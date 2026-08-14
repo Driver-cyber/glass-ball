@@ -357,6 +357,12 @@ body.modal-open{overflow:hidden;}
    16px on touch pointers is the cure; pinch-zoom stays available. */
 @media (pointer: coarse){
   select,input,textarea{font-size:16px;}
+  /* a 22px checkbox is a 22px target for a thumb — grow the hit area to the
+     44px Apple asks for, invisibly, without touching the drawn box */
+  .ck{position:relative;}
+  .ck::after{content:'';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:44px;height:44px;border-radius:12px;}
+  .ball-row .row-menu{padding:8px 12px;}
   .ball-row input,.step-row input,.proj-name{font-size:16px;}
 }
 </style>
@@ -364,7 +370,7 @@ body.modal-open{overflow:hidden;}
 <body>
 
 <div class="appbar">
-  <div class="brand"><span class="brand-orb" aria-hidden="true"></span><span>The Glass Ball<small>catch the glass · v0.3.3</small></span></div>
+  <div class="brand"><span class="brand-orb" aria-hidden="true"></span><span>The Glass Ball<small>catch the glass · v0.4.0</small></span></div>
   <div class="maintabs">
     <div class="maintab active" data-m="opening" onclick="switchMain('opening')">Opening</div>
     <div class="maintab" data-m="calendar" onclick="switchMain('calendar')">Calendar</div>
@@ -844,7 +850,14 @@ body.modal-open{overflow:hidden;}
 <input type="file" id="importFile" accept="application/json" style="display:none">
 <script>
 /* =====================================================================
-   The Glass Ball · v0.3.3 — Joelle's task & schedule app.
+   The Glass Ball · v0.4.0 — Joelle's task & schedule app.
+   v0.4.0 (pre-handoff polish): a running timer now survives iOS
+   discarding the backgrounded PWA — wall-clock endAt is kept in a
+   device-local key (never synced) and picked up on boot, ringing on
+   return if it finished while away. A page left open past midnight
+   re-renders instead of reporting yesterday. Checkboxes get 44px hit
+   areas on touch without changing how they look.
+   v0.3.3:
    v0.3.3: creation rows no longer commit on a timer. The debounce fired
    during a normal thinking pause, so in Dev Notes the composer popped
    open after the first space (Joelle's report) and — worse, unreported —
@@ -944,6 +957,23 @@ function bindCreate(el, commit){
 }
 function flushPendingCommits(){ const fns=[..._pendingFlush.values()]; _pendingFlush.clear(); fns.forEach(fn=>{ try{ fn(); }catch(e){ console.error(e); } }); }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden') flushPendingCommits(); });
+/* The phone sits open overnight and the rooms keep reporting yesterday —
+   "today" is computed at render, not live. Re-render when the date has
+   actually turned, and carry the selected day along if it was today. */
+/* stamped at load, NOT lazily on the first check — a page opened at 11:59pm
+   whose first check lands after midnight would otherwise just record the new
+   day and never repaint the rooms it drew yesterday */
+let _dayStamp=todayStr();
+function checkDayRollover(){
+  const t=todayStr();
+  if(t===_dayStamp) return;
+  const was=_dayStamp; _dayStamp=t;
+  if(calSel===was){ calSel=t; calMonth=t.slice(0,7); }
+  if(forgeDay===was) forgeDay=t;
+  renderAll();
+}
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') checkDayRollover(); });
+setInterval(checkDayRollover, 60000);
 window.addEventListener('pagehide',flushPendingCommits);
 
 /* ---------- Glass Ball storage seam ----------
@@ -955,7 +985,7 @@ const STORE_KEY = 'glassball_v1';   // Glass Ball's own key — never the CTT si
 const SCHEMA    = 'glassball-1';
 const CAPS = { glass:3, rubber:5 };   // the caps ARE the product — no override
 let db = {
-  version:'0.3.3', schema:SCHEMA, lastEdit:0,
+  version:'0.4.0', schema:SCHEMA, lastEdit:0,
   days:{},        // 'YYYY-MM-DD' → {glass:[task], rubber:[task], note:'', skipRecur:[], enough:false}
   recurring:[],   // repeat templates: {id,name,priority,blockMin,freq,anchor}
   projects:[],    // {id,name,notes,archived,createdDate,modifiedDate,steps:[{id,text,done,pushedTo}]}
@@ -1612,7 +1642,7 @@ function bellSet(mins,label){ bellStop(); bellClearRung();
   bell.total=Math.max(1,Math.round(mins))*60; bell.left=bell.total; bell.label=label||'';
   const e=bellEls(); e.dur.value=String(Math.round(bell.total/60)); e.start.textContent='Start';
   e.forEl.textContent=label?('Keeping time for: '+label):'Pick a ball above, or set minutes and run it standalone.';
-  bellToggle(true); }
+  bellToggle(true); timerSave(); }
 /* Start is the fun moment: a fresh start on a real task draws a wry line
    first. Never blocks — X, backdrop, and the button all start the work. */
 function forgeStartPressed(){
@@ -1632,8 +1662,8 @@ function bellStartPause(){ const e=bellEls();
   const midway=bell.left>0 && bell.left<bell.total && !bell.rung;
   if(!midway){ bellClearRung(); bell.total=bellMins()*60; bell.left=bell.total; bellVisPaint(true); }
   bell.endAt=Date.now()+bell.left*1000; bell.running=true; e.start.textContent='Pause';
-  bell.tick=setInterval(bellTick,250); bellTick(); bellWakeUpdate(); }
-function bellStop(){ bell.running=false; if(bell.tick){ clearInterval(bell.tick); bell.tick=null; } bellWakeUpdate(); }
+  bell.tick=setInterval(bellTick,250); bellTick(); bellWakeUpdate(); timerSave(); }
+function bellStop(){ bell.running=false; if(bell.tick){ clearInterval(bell.tick); bell.tick=null; } bellWakeUpdate(); timerSave(); }
 /* Stop asks the honest question when a task is on the anvil. */
 function forgeStopPressed(){
   const wasRunning=bell.running;
@@ -1649,12 +1679,12 @@ function bellReset(){ bellStop(); bellClearRung();
   bell.total=bellMins()*60; bell.left=bell.total; const e=bellEls();
   e.start.textContent='Start';
   e.forEl.textContent=bell.label?('Keeping time for: '+bell.label):'Pick a ball above, or set minutes and run it standalone.';
-  bellVisPaint(true); bellPaint(); }
+  bellVisPaint(true); bellPaint(); timerClear(); }
 function bellTick(){ if(!bell.running) return;
   bell.left=Math.max(0,Math.round((bell.endAt-Date.now())/1000)); bellPaint();
   if(bell.left<=0){ bellStop(); bellRing(); } }
 function bellRing(){ bell.rung=true; const e=bellEls();
-  e.start.textContent='Start'; e.vis.classList.add('rung'); bellPaint();
+  e.start.textContent='Start'; e.vis.classList.add('rung'); bellPaint(); timerSave();
   if(!bell.muted) bellChime();
   if(forgeTask){ openFinishDialog("Time's up.", true); }
   else e.word.textContent='Rung. The block is yours to close.'; }
@@ -1671,6 +1701,52 @@ function bellChime(){ try{
  }catch(e){ console.error('chime',e); } }
 function bellMuteToggle(){ bell.muted=!bell.muted;
   bellEls().mute.textContent='Sound: '+(bell.muted?'off':'on'); }
+
+/* ---------- the timer survives leaving the app ----------------------
+   iOS discards a backgrounded PWA without warning, and the bell lives in
+   memory only — so "start a 30, check a text, come back" returned a dead
+   timer with the ball unloaded. The countdown is already wall-clock
+   (endAt), so the cure is to keep that stamp somewhere device-local and
+   pick it up on boot. Deliberately NOT in the synced db: a timer running
+   in her hand is not a fact about the desktop. Written on state changes
+   only — the tick derives everything from endAt, so per-second writes
+   would buy nothing. */
+const TIMER_KEY='glassball_timer';
+function timerSave(){
+  try{
+    const idle = !bell.total || (!bell.running && !bell.rung && bell.left===bell.total);
+    if(idle){ localStorage.removeItem(TIMER_KEY); return; }
+    localStorage.setItem(TIMER_KEY, JSON.stringify({ total:bell.total, left:bell.left, endAt:bell.endAt,
+      running:bell.running, rung:bell.rung, label:bell.label, task:forgeTask, day:forgeDay, carry:forgeCarryMin }));
+  }catch(e){}
+}
+function timerClear(){ try{ localStorage.removeItem(TIMER_KEY); }catch(e){} }
+function timerRestore(){
+  let raw=null; try{ raw=localStorage.getItem(TIMER_KEY); }catch(e){}
+  if(!raw) return;
+  let s=null; try{ s=JSON.parse(raw); }catch(e){ timerClear(); return; }
+  if(!s||!s.total){ timerClear(); return; }
+  // only re-attach a ball that still exists — it may have been caught or
+  // deleted on the other device while this one was away
+  if(s.task && findTask(s.task.ds, s.task.id)){ forgeTask=s.task; forgeDay=s.day||s.task.ds; forgeCarryMin=s.carry||0; }
+  else { forgeTask=null; forgeCarryMin=0; }
+  bell.total=s.total; bell.label=s.label||''; bell.endAt=s.endAt||0;
+  const e=bellEls();
+  if(s.running){
+    const left=Math.max(0, Math.round((s.endAt-Date.now())/1000));
+    if(left>0){ bell.left=left; bell.running=true; e.start.textContent='Pause';
+      bell.tick=setInterval(bellTick,250); bellTick(); }
+    else { bell.left=0; bell.running=false; bellRing(); }   // it rang while she was away
+  }else{
+    bell.left=Math.max(0,Math.min(s.total, s.left||0)); bell.rung=!!s.rung;
+    e.start.textContent=(bell.left>0&&bell.left<bell.total)?'Resume':'Start';
+    if(bell.rung) e.vis.classList.add('rung');
+  }
+  if(e.dur) e.dur.value=String(Math.round(bell.total/60));
+  if(e.forEl) e.forEl.textContent=bell.label?('Keeping time for: '+bell.label):'Pick a ball above, or set minutes and run it standalone.';
+  bellToggle(true); bellPaint(); renderForge();
+}
+
 /* full-screen + wake lock (ported): while full-screen AND running, keep the
    phone awake; the OS releases locks on backgrounding, so re-arm on return.
    Wall-clock endAt means the countdown never drifts while away. */
@@ -1726,7 +1802,7 @@ function finishComplete(){
   setTimeout(()=>{ wrap.classList.add('done'); nameEl.firstChild.classList.add('ck-done');
     setTimeout(()=>ckBurst(wrap),820); },250);
   forgeTask=null; forgeCarryMin=0; pendingFinish=null;
-  bell.label=''; bellReset(); renderForge();
+  bell.label=''; bellReset(); timerClear(); renderForge();
 }
 function celebComplete(){ closeModal('celebrateBg');
   paintQuote(drawQuoteEntry('finish'),'finishQuoteText','finishQuoteImg');
@@ -2388,6 +2464,7 @@ if('serviceWorker' in navigator){ navigator.serviceWorker.register('./sw.js').ca
 
 load();
 bell.vis=(db.settings&&db.settings.forgeVis)||'moon';
+timerRestore();   // a timer started before iOS discarded the page picks up where it was
 document.getElementById('bellVisSel').value=bell.vis;
 </script>
 </body>

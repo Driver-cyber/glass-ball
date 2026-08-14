@@ -239,6 +239,33 @@
       flush, the full Dev Notes loop (open, save, discard-empty, edit,
       delete), and the project creation row.
 
+* **[2026-08-14] v0.4.0 — pre-handoff polish, found by auditing rather than
+  guessing.** Three real first-week failure modes, each reproduced before it
+  was fixed.
+    * **A running timer did not survive the app being closed.** iOS discards a
+      backgrounded PWA routinely, and the bell lived in memory only — "start a
+      30, check a text, come back" returned a dead 25:00 with the ball
+      unloaded. *Decision:* persist the wall-clock `endAt` (plus label, ball
+      reference, carry minutes) to a **device-local** key, `glassball_timer`,
+      **never the synced db** — a timer running in her hand is not a fact
+      about the desktop. Restored on boot; if it finished while she was away
+      it comes back rung, with the honest question waiting. A saved timer
+      pointing at a ball that has since been caught or deleted on the other
+      device degrades to a standalone timer rather than resurrecting it.
+      Written on state transitions only — the tick derives from `endAt`.
+    * **A page left open past midnight kept reporting yesterday** ("today" is
+      computed at render). Now re-checked on return-to-visible and once a
+      minute; when the date has actually turned, the rooms repaint and a
+      selected day that *was* today follows along. `_dayStamp` is stamped at
+      load, not lazily — a page opened at 11:59pm whose first check lands
+      after midnight would otherwise record the new day and never repaint.
+    * **22px checkboxes were 22px thumb targets.** Hit areas grow to the 44px
+      Apple asks for on coarse pointers, invisibly, without changing the drawn
+      box; the ⋯ menu got the same.
+    * *Housekeeping:* the v0.2.0 / v0.3.0 smoke suites were de-staled (they
+      pinned exact version strings and the retired Dev Notes inline input) so
+      they stay usable as regression suites. Both re-run green against v0.4.0.
+
 ## 🤔 Pending Joelle (open design calls)
 * Body/UI typeface pick: Atkinson Hyperlegible vs. Karla vs. Alegreya Sans
   (or another direction she prefers)
