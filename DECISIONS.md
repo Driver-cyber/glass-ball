@@ -1,681 +1,81 @@
-# 🗺 Chiaro Tinker Tools — Evolution & Decision Log
+# 🗺 The Glass Ball — Project Evolution & Decision Log
 
-> **Note to Claude:** This project is iterative by design. Read this log to
-> understand the current vibe before suggesting changes. Settled decisions
-> below shouldn't be relitigated without a real reason — but "we found a real
-> reason" is always valid. Rules are defaults; judgment is primary.
+> **Note to Claude:** This project is iterative. Reference this log to
+> understand the current vibe before suggesting changes. `CLAUDE.md` holds the
+> principles; this file holds the running state.
 
 ## 🎯 The North Star (Current Goal)
-* **Goal:** Chad's personal digital tool belt — timecard + project journal
-  re-pointed at ORDO, growing into tasks and the tinker's bell.
-* **Deeper mission:** trustworthy closure. Chiaro's real output is the room
-  Chad walks into after he closes it — present with family, mind-space set
-  down. Two good endings: **completed** (pride of a job done) and **entrusted**
-  (open work made *bounded* instead of infinite — clay on a shelf with a note).
-* **Vibe:** chiaroscuro, warm lamp in honored dark, myth-literate and
-  unpretentious. Good enough is perfect; ship and discover the form.
-* **Current phase:** Phase 0 (the Trophy) → Phase 1 (CTT MVP).
+* **Goal:** Joelle's daily task & schedule app built on the glass/rubber
+  priority metaphor — catch what matters (max 3 glass balls/day), let the rest
+  bounce guilt-free. Sibling to CTT.
+* **Vibe:** Co-design with Joelle. Classic calm base (cream-white/black), fun
+  concentrated at completion moments. Ship the heart (Calendar) before the
+  game (stickers/jokes).
 
 ## 🛠 Active Tech Stack
-* **App:** single-file HTML (`src/index.html`), vanilla JS, no framework, no build
-* **State:** one in-memory `db` JSON object with schema version + `normalize()`
-* **Persistence:** localStorage (new CTT key) + one-tap JSON export/import
-* **Web deploy:** Cloudflare Pages auto-deploy from `main`; PWA early in Phase 1
-* **Desktop:** Tauri 2 (Phase 0 targets macOS `.dmg`; Windows heritage retired)
-* **Repo:** `Driver-cyber/chiaro-tinker-tools` (public; zero secrets in source)
+* **Repos:** `Driver-cyber/glass-ball` (main, desktop-primary) +
+  `Driver-cyber/glass-ball-mobile` (iPhone-primary) — CTT two-repo pattern
+* **App:** Single-file vanilla HTML/CSS/JS per repo, no framework, no build
+* **Hosting:** Cloudflare Pages auto-deploy from `main` (both repos)
+* **Storage:** `localStorage` (new Glass Ball key) behind a single storage
+  module; `SCHEMA_VERSION` + `normalize()` from commit one
+* **Sync:** Cloudflare KV worker from day one — Chad wires the worker; app
+  built against the sync seam from the first commit; one schema + one KV
+  namespace shared by both surfaces
 
-## 📝 Change Log (Decisions)
+## 📝 Change Log (Pivots & Decisions)
 
-* **[2026-07-18] Project founded.** Fork of PJT (Chad's firm-facing single-file
-  timecard/journal, Windows/Tauri). CTT is the personal re-point.
-    * *Decision — Phase 0 "Trophy" first:* wrap the repo as-is (PJT branding,
-      demo data) as a macOS `.dmg`. Showpiece for family + first live test of
-      the macOS Tauri toolchain on a known-good artifact. Tag `pjt-trophy`.
-      Gatekeeper right-click-open is acceptable; signing deliberately deferred.
-    * *Decision — platform order:* web app on Cloudflare Pages → PWA early →
-      macOS wrap of CTT → iPhone (native or PWA-supreme) later. Design for
-      MacBook first, phone second.
-    * *Decision — MVP scope (Phase 1):* re-point at ORDO. Strip audit-binder
-      defaults; free-form custom-step projects. Drop billable/nonbillable/
-      unpaid time types entirely; lean codes whose one job is **admin vs.
-      client-deliverable** separation. New storage key + schema version.
-      Export/import from day one (non-negotiable).
-    * *Decision — sync parked, seam preserved:* localStorage + export is the
-      MVP posture on the Mac. Keep the single write/read storage seam clean so
-      Worker+KV or Gist sync slots in later without a rewrite. Hard gate:
-      off-device durability required before iPhone becomes a primary device
-      (iOS PWA storage eviction risk).
-    * *Decision — encryption deferred:* PJT's Web Crypto machinery exists and
-      is proven; a single-user local tool doesn't need it yet. Revisit with sync.
-    * *Decision — anti-engagement ethos is architecture:* no streaks, badges,
-      guilt, or re-engagement mechanics, ever. Closing is a success state.
-    * *Decision — open/close lens adopted:* every feature must answer "what am
-      I looking for on open?" and "how should it feel to close?" A feature that
-      can't answer the second probably doesn't ship.
-    * *Decision — clutter lives at the edges:* personality, trinkets, and
-      lived-in warmth belong in empty states, the guide, the bell, the naming.
-      Working surfaces (day grid, project steps) stay crisp. That's the line.
-    * *Decision — founding docs:* CLAUDE.md + DECISIONS.md + tracker created
-      per house standard. Deeper docs (ARCHITECTURE, DATA-MODEL, BRAND) are
-      generated and maintained by Claude Code during the build, when code can
-      be their source of truth.
+* **[2026-08-14]:** Project founded (planning session, claude.ai).
+    * *Decision:* New repos porting CTT components — not a fork. Port list:
+      blueprint day lists + inline entry, check/strikethrough animation, Moon
+      + pixel-grid timer renderers with hot-swap registry, projects surface.
+    * *Decision:* Two-repo pattern (`glass-ball` + `glass-ball-mobile`)
+      matching CTT; Joelle iPhone-primary but desktop built from day one.
+    * *Decision:* KV worker sync from day one. Chad sets up the worker as
+      step one, in parallel with Claude Code's Phase 0 scaffold.
+    * *Decision:* Five tabs — Opening, Calendar, Projects, The Forge, Closing.
+      Opening is the launch default and deep-links tasks straight into the
+      Forge (one tap from open to timer running).
+    * *Decision:* Hard caps: 3 glass / 5 rubber per day. No override. Rubber
+      never accrues guilt states.
+    * *Decision:* Sticker rules — one per glass ball; days with <3 glass balls
+      grant remaining sticker(s) on the last glass completion; all glass done
+      = gold star on the calendar day.
+    * *Decision:* Forge timer keeps only Moon + pixel grid renderers.
+      Timer works standalone when decoupled from a task.
+    * *Decision:* Stop/timeout flow — Task Complete (sticker + celebration)
+      or Still Needs Work (+15/+30/custom, or "Follow up: " roll-forward task
+      via pre-filled creation screen).
+    * *Decision:* Jokes v1 = text only. Mechanism + original/aphorism starter
+      set shipped in code; show quotes (Arcane, Friends, Star Wars, ITYSL,
+      SNL) are Chad/Joelle-curated data, never shipped in code. Library format
+      built image-ready for the v2 meme library.
+    * *Decision:* Design language is Glass Ball's own — `#FBFAF6`-ish cream
+      white, black text, functional-with-personality type. House
+      walnut/amber/Fraunces applies only to the tracker file.
+    * *Decision:* Joelle is design authority; unsettled design questions are
+      logged here as "pending Joelle," not defaulted.
+    * *Decision:* Month report deprioritized for initial builds (stub OK).
+    * *Decision:* Build tracker created (`glass-ball-tracker.html`) — initial
+      priorities reflect Phase 0 scaffold/port, Phase 1 heart, and sync
+      go-live across both repos.
 
-* **[2026-07-21] Phase 1 build underway (Claude Code, in-repo).**
-    * *Storage seam (L1):* new localStorage key `ctt_v1` + `schema:'ctt-1'` +
-      `normalize()` forward-compat path; CTT starts clean, never adopts PJT
-      data. Clarified: the "storage key" is *browser localStorage*, not a gist —
-      cloud sync (gist or Worker+KV) stays parked until a second device joins.
-    * *Templates + types (L2a):* two orthogonal dimensions. **Template** =
-      structure — ORDO Monthly (7 steps → future codes 1–7: reconcile, month
-      close, filings, financial analysis & forecasting, meeting agenda prep,
-      present/host meeting, follow-up), Simple (Plan · Execute · Review), and
-      Audit (kept as an option, no longer default). **Type** = life-domain for
-      organizing/filtering: ORDO · Tinker · Family · Personal — a project
-      property + filter chips (not separate tab-screens; reversible, tab-split
-      parked). Non-audit templates render as a clean flat list; audit keeps its
-      grouped A–Z binder. Dropped PJT's audit-section backfill migrations.
-    * *Carry-forward (planned L4):* dual checkbox per open note — left "carry"
-      (default on), right "resolved" (checking it clears carry); resolving is a
-      completion, so it gets the happy animation. One reusable animated-checkbox
-      primitive for all of Chiaro; lives at the month-close threshold, not the
-      day-grid.
-    * *Single-file reaffirmed:* stay single-file HTML through Phase 1–2; revisit
-      only when the ritual engine + bell push editing size, or a real PWA build
-      pipeline is wanted. Chad is open to splitting if a constraint appears.
+## 🤔 Pending Joelle (open design calls)
+* Body/UI typeface pick: Atkinson Hyperlegible vs. Karla vs. Alegreya Sans
+  (or another direction she prefers)
+* Glass vs. rubber visual treatment (must be distinct at a glance; not color
+  alone)
+* Sticker & gold star art direction
+* App display name/branding ("The Glass Ball" working title)
 
-* **[2026-07-21] Cloud sync live + five categories + chiaroscuro v0.1.0.**
-    * *Sync (SHIPPED, un-parked):* Cloudflare Worker + KV (`sync/`), deployed by
-      Chad (`chiaro-sync.cstewch.workers.dev`) and verified across devices.
-      Secrets stay out of the repo: URL + secret entered at runtime, stored
-      per-device; a one-paste **Sync code** (`CHIARO1-…`) onboards a new device.
-      This clears the constitution's off-device-durability gate — the iPhone
-      may now graduate to primary whenever Chad wants.
-    * *Time categories:* codes now carry a **derived** category — the linked
-      project's type (ORDO/Tinker/Family/Personal), else Admin. Summary is one
-      clickable **Total**; a resizable popup shows the 5-way breakdown. Standard
-      codes trimmed to Admin + Break (baked-in, out of the way). Lunch dropped.
-    * *Notes model:* Preparer/Reviewer retired (legacy data preserved, exports
-      label it "legacy"); one **Scratchpad** per step — named for creative space,
-      not "Open Items" open-endedness. **Auto-save everywhere**: inline and
-      expanded editor commit as you type (~0.8s debounce); closing the editor
-      any way (button/backdrop/Escape) commits first. Editor button is just
-      "Close." Fixes a real data-loss bug Chad hit while dogfooding.
-    * *Chiaroscuro shipped (CTT v0.1.0):* dark is the material — near-black
-      walnut field, one amber lamp (#F2A24A), lamp-glyph brand, serif titles,
-      happy checkbox now glows amber. "Light mode" is now **Cream** — ink on
-      parchment, per the brand's export face. One-time migration lands everyone
-      on dark; the toggle (🕯 Dark / Cream) remains.
-
-* **[2026-07-22] Daily W.I.N. retired · Blueprint · recurring carry-forward ritual (v0.2.0).**
-    * *Daily W.I.N. removed on sight:* firm-specific form Chad explicitly hates —
-      the moniker and the daily imposition, not the idea of naming intentions.
-      Replaced by **Blueprint**: a 7-day board (Sun–Sat), **three slots per day**,
-      happy checkboxes, week nav, Copy Week Plan. Fill it Sunday; return to it
-      when the day goes sideways to re-ground instead of spiraling. Data note:
-      slots reuse the legacy `day.win` field (existing entries preserved; legacy
-      days with >3 filled slots still show them all). "Today's three" mini panel
-      stays on the Time Card.
-    * *Carry-forward generalized (L4 SHIPPED):* not ORDO-only — any project can
-      toggle **Recurring** (project header + create modal; ORDO template defaults
-      on, cadence is Chad's business — monthly close, weekly budget, whatever).
-      Recurring projects get **🔄 Start next period**: the ritual lists every
-      scratchpad line with dual checks — *Carry* (default on, the safeguard) and
-      *Resolved* (strikes ✓ into the archive, with the happy animation; checking
-      one unchecks the other). Begin → old period archives, steps reset, carried
-      lines land in the fresh period, time codes re-seed, name auto-bumps
-      (July→August, 2026-07→2026-08).
-    * *Next big move — Open/Close tab architecture:* Chad's direction: open and
-      close the day on purpose — fear is the torrent. Cannibalize his
-      `garden-app` (calm screen) and `project-dashboard` (der Hain grove) for
-      the Closing surface. **Revised (Chad, same day):** the original
-      "returning or starting?" popup idea is retired — a gate is a wall, not a
-      mirror. Opening is a *tab* and the default landing, never a click-through.
-
-* **[2026-07-22] Opening tab shipped (v0.3.0).**
-    * *The threshold room:* new first tab, **default on every load**. The
-      single-line Thinker (from `assets/`, inlined — no external calls) draws
-      himself in over ~6s, tap to pause; an intention prompt fades in, drawn
-      at random from a growable pool in the db (`db.prompts.open`).
-    * *Today's intentions:* up to three, each with a from→to time box
-      (e.g. 1100 → 1230) and the happy checkbox; progress reads "n / m met."
-      Stored per-date in `db.intentions` — **deliberately separate from the
-      Blueprint** (Chad: the board holds the week's small reminders; Opening
-      names today's few big rocks; no merging or overriding). A read-only
-      "week at a glance" panel mirrors the Blueprint with a jump link.
-    * *Mask + glow:* original plague-mask glyph (line style, amber) is now the
-      favicon — first appearance of Plagued-by-Concepts in the app chrome. The
-      brand lamp breathes on an 8s flicker. Both honor reduced-motion.
-    * *Still open:* Closing tab (calm screen) — waiting on repo access to
-      `garden-app` / `project-dashboard` to study what to cannibalize.
-
-* **[2026-07-22] Closing tab shipped (v0.4.0) — the log-off room.**
-    * *Phase-gate red team (before building):* **Confirmed** — Closing is a tab,
-      not a summonable ritual (inspectable, skippable, never modal; matches the
-      Opening-tab architecture). **Confirmed** — cannibalize the *mechanism* of
-      garden-app's calm screen (traveling-wave field, one-job-per-element
-      restraint, breath-paced check), never its sage/sky palette; re-materialize
-      in chiaroscuro. **Scheduled** — "Opening as default on every load" may
-      grate on the eighth mid-day open; dogfood first, no conditional-landing
-      logic built (the app deciding for Chad would be worse than the friction).
-    * *The room:* a read-only **ledger of the held day** — intentions met or
-      *entrusted* (never "failed," never red), hours given (a statement, no
-      comparisons), **the shelves** (der Hain's gift: each active project a
-      small lamp chip with its count of held scratchpad lines), and tomorrow's
-      Blueprint glance so tomorrow is bounded before leaving. The room asks for
-      no input. Below it, a **night field**: 150 swaying blades tipped in
-      lamplight (garden-app's calm screen re-materialized), reduced-motion
-      honored.
-    * *"It was enough."* — the parking-lot enough-on-close ritual landed in its
-      smallest honest form: one optional check (happy-checkbox primitive),
-      keyed per-date in `db.closing`, history never surfaced — a streak is
-      impossible by construction. Mirror, not wall.
-    * *Closing prompts:* `db.prompts.close` pool mirroring the Opening pool,
-      drawn at random ("The bench will hold it." / "Take the lamp. The rest
-      keeps." …). Growable in the db.
-    * *Deliberately left out:* any capture input (scratchpads, Blueprint, and
-      intentions are the homes; a new inbox is a new unbounded thing), weekly/
-      monthly reflection (a different room), animation gating.
-    * *Deferred, on the table:* a per-line **"carry to tomorrow"** on unmet
-      intentions. Chad's call: wear the room in for a few days first.
-
-* **[2026-07-23] Dogfood iteration 1 (v0.5.0) — two days in the rooms.**
-    * *Blueprint daily notes:* a ✎ notes drawer under each day's three slots —
-      default hidden, expands to a brain-dump textarea (autosave, `day.note`).
-      A subtle amber dot marks days that hold a note. The point: thoughts get
-      a home without crowding the three; the working surface stays crisp.
-    * *Closing field raised:* the night grass now grows to roughly the
-      "Tomorrow, at a glance" line, rising behind all windows (ledger stays
-      z-above). The "It was enough." check gained a quiet radial pool of dark
-      so it reads over the tall grass in both themes.
-
-* **[2026-07-24] The surface split — CTT Mobile founded (Chad's call).**
-    * *Decision — two repos, one soul:* this repo stays the **desktop** surface
-      (desktop browser + Tauri macOS wrap); the new
-      `Driver-cyber/chiaro-tinker-tools-mobile` is the **mobile** surface
-      (mobile-browser PWA now, iOS native someday), with its own Cloudflare
-      Pages deploy. Each surface stays focused instead of one repo carrying
-      both sets of compromises. Founding docs inherited whole over there, with
-      the split caveat.
-    * *Shipped there — CTT Mobile v0.1.0:* `src/index.html` forked verbatim at
-      CTT v0.5.0 + PWA layer (manifest, shell-only service worker with silent
-      network-first updates, mask-glyph icon set, iOS standalone chrome +
-      safe areas, tab-wrap fix — Closing was off-canvas at 390px). Mobile runs
-      its own version line (v0.1.x) and decision log from the fork point.
-    * *Decision — schema lockstep (load-bearing):* both repos share one synced
-      `db` (`SCHEMA='ctt-1'`) through the Worker+KV bridge. Any schema or
-      `normalize()` change must land on both sides (or be verified tolerated)
-      before merging, verified with legacy-shaped data. Surface divergence:
-      yes. Data-model divergence: never.
-    * *Answered same day (Chad) — desktop installability: Scheduled, not now.*
-      The destination is confirmed: CTT everywhere — installed on the MacBook
-      (dock), in the browser, on the phone (eventually native iPhone). "My
-      security blanket — accessible everywhere, all the time." But while the
-      app is changing fast, the plain browser's iteration speed wins; the
-      dock install waits until the churn settles. When it's time, the mobile
-      repo's manifest/sw.js pattern ports over nearly verbatim.
-
-* **[2026-07-25] Custom domains — both surfaces get real doors (Chad).**
-      **https://chiaro.chadstewartcpa.com** fronts this repo's Pages deploy;
-      **https://chiaromobile.chadstewartcpa.com** fronts the mobile sibling.
-      The `pages.dev` aliases still serve the same builds. No code changes —
-      all paths are relative. Per-origin note (matters when the dock install
-      lands, and already matters on the phone): PWA installs, localStorage,
-      and sync-code config are per-origin, so the custom domains are the
-      canonical doors to install and onboard from.
-
-* **[2026-07-25] v0.6.0 — the tinker's bell rings (un-parked by Chad) + code hints.**
-    * *Code hints (Chad's ask):* the log dropdown now reads
-      "a — VPS 1 · Reconcile accounts" — hint **derived at render time** from
-      the linked step name (prefix stripped, ~18-char truncation). Not stored:
-      step renames already propagate into `linkSection`, so hints can't go
-      stale and there's **no schema change** (mobile lockstep untouched).
-      A hand-typed abbreviation field was considered and deliberately deferred
-      — it would be a schema change; revisit only if derived names aren't
-      enough after dogfooding.
-    * *Tinker's bell (parked since founding, bid in by Chad):* a collapsible
-      panel atop the Time Card Day Entry — hidden by default, opened by its
-      carrot (default 25 min) or by a **🔔 on any time block** (left of ✕),
-      which pre-fills the block's computed duration and names what it's
-      keeping time for. The face is an **ember field**: 100 amber cells on
-      walnut, extinguishing in sequence as time passes; serif countdown
-      beside it. Pause/Resume/Reset; collapsed header shows the remaining
-      time small while running.
-    * *The ring (mirror, not wall):* one soft synthesized bell strike
-      (WebAudio, original instrument, mutable) and — Chad's addition — a
-      **slow breathing pulse + amber glow on the field until noticed**: a
-      signal that waits for your eyes instead of grabbing them. Deliberately
-      excluded: browser notifications, tab-title countdowns, auto-restarts,
-      overtime counters. Reduced-motion gets a static glow, no pulse.
-    * *Ephemeral by design:* no db fields, no sync traffic, nothing persisted.
-      A bell you set while present. The lock-screen Live Activity vision is
-      parked with the iOS-native phase (mobile repo M2).
-
-* **[2026-07-25] v0.6.1 — the bell floats (Document Picture-in-Picture).**
-      Chad asked for the "weird limited mini window" — it has a name. A ⧉
-      Pop out button in the bell header (feature-detected: exists only where
-      the Document PiP API does — desktop Chrome/Edge; Safari/Firefox/mobile
-      never see it) **moves** the bell's face into a small always-on-top
-      floating window: same DOM nodes, same running timer, pulse and rung
-      state carry over; the engine stays in the page (bell element refs are
-      cached, not looked up, so nodes survive the document move). Closing
-      the mini window folds the face back into the panel. Also v0.6.1: bell
-      **defaults to muted** (Chad runs it silent; the pulse is the signal —
-      sound-on-by-default meant muting it every session). Known bound: the
-      floating window is a child of the tab — closing the CTT tab closes it;
-      switching tabs/apps doesn't.
-
-* **[2026-07-25] v0.6.2 — the floating bell's buttons work (first dogfood catch).**
-      Chad popped the bell out and the controls went dead: inline `onclick`
-      attributes resolve in the document the node lives in, and the PiP window
-      has no scripts. Bell controls now use real `addEventListener` handlers —
-      listeners travel with moved nodes. Bonus fix from the same report: the
-      big countdown follows the Minutes field live while idle (typing also
-      settles a rung pulse — typing is noticing). *Scar for the wall: CDP
-      tests that call functions directly can't catch handler-wiring bugs —
-      drive real element clicks in the element's own document.*
-
-* **[2026-07-26] v0.7.0 — the timer visual system (Chad's idea, planned in a
-  claude.ai session, built here).**
-    * *Decision:* replace the single pixel-grid countdown with a **swappable
-      renderer registry**. Ship five visuals (Balance, Moon, The Thinker,
-      Lantern, Sundial) plus the original ember grid as a sixth.
-    * *Decision:* **random visual per timer start/reset**; a Visual dropdown
-      override that **hot-swaps while preserving timer state**. Renderers are
-      pure functions of elapsed fraction `p` — `render(p) → {vb, body, post?}`
-      — the `bell` object stays the only brain. A manual pick holds for the
-      current timer only, then the random pool returns.
-    * *Decision:* the timer is an **edge surface**, so it is the sanctioned
-      home for growing "clutter." Adding a visual = appending one object to
-      `BELL_VISUALS`; it joins the pool and dropdown automatically. Canon set
-      deliberately deferred until Chad sees which ones he reaches for.
-    * *Guardrail:* the random visual is a pleasure at the **start** of a
-      block, never a reward for continuing — no streaks, unlocks, or
-      collections. Nothing pulses or accelerates during the countdown; every
-      p=1 state is warm and settled (full moon, ember, shadow at rest). The
-      **rung pulse survives** unchanged: it fires *after* the ring, on the
-      container, as the muted bell's only signal — the two designs compose.
-    * *Reconciliations from the handoff review:* no Google Fonts (the app
-      stays self-contained; prototype tokens mapped onto app palette vars, so
-      cream mode inherits for free) · Thinker's 40 `getTotalLength()` calls
-      cached after first mount · fixed square letterbox so hot-swapping the
-      tall Thinker against wide dials never reflows the panel · repaints are
-      naturally 1 Hz (guarded on integer-second p changes), ambient by
-      construction and kind to reduced-motion.
-    * *Verified* headless with real clicks: all six render clean at five
-      p-values; hot-swap mid-run preserved left/running exactly; pin cleared
-      to Random on reset; Thinker halfway = figure fully drawn, mask fully
-      undrawn (29+11 cached lengths); grid at half = 50/100 lit; rung pulse
-      lands on the container under any renderer; PiP carries the SVG, swaps
-      from inside, and folds back home. *Harness scar re-learned:* a stray
-      running timer from an earlier test step repaints over staged states —
-      stop the bell before staging p, or the 1 Hz tick wins the race.
-    * *Prototype credit:* geometry lifted verbatim from
-      `chiaro-timer-visuals.html` (planning chat) — terminator ellipse,
-      balance tilt, sundial shadow, stroke-dash draw. Don't re-derive it.
-
-* **[2026-07-26] v0.8.0 — the scratch sheet, and the birth of the pocket-tool
-  pattern (Chad's idea + placement call).**
-    * *Decision (Chad):* an 8×25 spreadsheet grid for un-squinting numbers —
-      "so I don't have to close my eyes and visualize it in my mind." Text,
-      numbers, and `=` formulas: `+ - * /` with parentheses, cell refs
-      (A1..H25), and SUM/AVG/MIN/MAX over ranges. Hand-rolled ~80-line
-      recursive-descent evaluator, zero libraries. Napkin rules, not Excel
-      rules: blank/text cells count as 0; errors show `#ERR`/`#CYCLE`/
-      `#DIV0`/`#REF` but the typed text is never lost. Scope deliberately
-      frozen: no formatting, no extra rows/sheets — it's a paper napkin with
-      a calculator in it.
-    * *Decision (Chad, from three options): the pocket-tool pattern.* Not a
-      sixth tab (a scratch sheet is not a room), not a panel inside one room
-      (numbers strike anywhere). A dim ▦ glyph in the appbar summons it as
-      an overlay from any room; ✕/Esc/backdrop puts it back; the room
-      underneath never moves. **Tabs are rooms; pockets are tools** — the
-      belt now has a place for future pocket tools to live without
-      crowding the header. Clearing is a two-tap arm ("Really clear?"),
-      not a modal.
-    * *SCHEMA LOCKSTEP — first real bite since the split.* Cells persist as
-      raw strings in `db.scratch.cells` through the one save() seam (synced,
-      exported, secrets-stripping untouched). `mergeDefaults()` gains the
-      `p.scratch` default in BOTH repos the same day. Verified with
-      legacy-shaped data: a pre-scratch db staged in localStorage boots
-      clean, gains the default, and preserves a canary field — the
-      load-bearing migration test, actually run. (Both repos' normalize
-      also preserves unknown keys, so a skewed deploy window can't drop
-      the field — but same-day is the rule, and it held.)
-    * *Verified* headless with focus-emulated real events: SUM/AVG/MIN/MAX,
-      parens, division, cross-cell propagation, cycle/#ERR/#DIV0/#REF,
-      focus-shows-raw/blur-shows-computed, Enter-moves-down, Esc-vs-modal
-      priority, cold-reload persistence, export carrying db.scratch with
-      sync stripped.
-    * *Harness scar (new, recorded):* an unfocused headless document moves
-      `activeElement` on `focus()` but **swallows the focus/blur events** —
-      commit handlers silently never run and phantom "nothing persists" bugs
-      appear. `Emulation.setFocusEmulationEnabled` before any focus-driven
-      test. (The engine was never wrong; the harness was.)
-
-* **[2026-07-26] v0.8.1 — scratch-sheet ergonomics (Chad's dogfood asks,
-  same evening).**
-    * *Arrow-key navigation:* Up/Down always move cells; Left/Right move
-      cells only from the text's edge or with the value fully selected
-      (as right after focus) — mid-formula they stay caret moves, so
-      editing never fights navigation. No wrap at the grid edges.
-    * *Excel-style point-to-refer:* mid-formula (caret right after `=` or
-      an operator), clicking a cell INSERTS its ref; consecutive clicks
-      replace the last pointed ref while you hunt; typing anything ends
-      the span. With a complete formula, a click just commits and moves —
-      Excel's own rule, kept.
-    * *Bug caught by the harness, fixed for real users:* the point-span
-      flag cleared only on keydown — but IME/autocomplete/paste fire
-      `input` without one (so does char-only synthetic typing, which is
-      how the harness caught it). Cleared on `input` too; the programmatic
-      insert itself doesn't fire `input`, so pointing still chains.
-    * *Verified* with real key events and real mouse clicks through the
-      CDP input pipeline: 6⏎5⏎ list entry, all four arrows incl.
-      edge-only Left/Right and mid-text caret behavior, =B2 point →
-      + → point → consecutive replace → Enter = 11, complete-formula
-      click committing 30 and moving focus. Zero schema impact.
-
-* **[2026-07-26] v0.8.2 — accounting face for the scratch sheet (Chad).**
-  Every displayed number — typed or computed — renders with thousands commas
-  and a fixed two decimals (`toLocaleString en-US`). Display only: raw cell
-  text is untouched, focus still shows exactly what was typed, and
-  comma-typed input already parsed. Minus sign kept for negatives;
-  accountant's parentheses offered, Chad's call if wanted. Lockstep patch
-  with mobile v0.4.2 (no schema impact).
-
-* **[2026-07-26] v0.8.3 — the composition bar + source-cell highlighting
-  (Chad's Excel muscle memory, and it's the right spec source).**
-    * *Composition bar:* a wide formula bar above the grid mirroring the cell
-      being edited, with its ref on the left — so a ten-term formula isn't
-      squeezed into a 104px cell. Typing in a cell mirrors up live; typing in
-      the bar commits to the cell on Enter (and steps down a row) or on blur.
-      Point-to-refer works **from the bar**: click cells while composing and
-      their refs land in the bar with focus kept.
-    * *Source highlighting:* while a formula is being composed — in a cell or
-      the bar — every cell it draws from is outlined amber, ranges expanded
-      (`=SUM(B1:B3)` lights B1, B2, B3). Re-opening a stored formula lights
-      its sources too, which turns "where did this number come from?" into a
-      glance. Pure display; `scHilite()` reads the in-progress text and
-      touches nothing else.
-    * *Escape, corrected to Excel's rule (bug the harness caught):* Escape
-      while editing used to bubble to the document handler and close the whole
-      pocket tool. Now an in-progress edit is abandoned and the sheet stays;
-      with nothing to abandon, Escape falls through and closes as before. The
-      same two-stage rule applies in the bar.
-    * *Verified* with real key + mouse events: bar mirrors typing and its ref
-      label follows focus; commit-from-bar lands 60.00 and steps down;
-      bar-side pointing builds `=B2+B3` → 50.00; refs and ranges light and
-      clear on commit; stored formulas re-light on reopen; both Escape stages.
-      Zero schema impact; lockstep patch with mobile v0.4.3.
-
-* **[2026-07-26] v0.8.4 — scratch cells truncate honestly.** A number too
-  wide for its cell was clipping *silently* from the right, so `4,959,665.82`
-  read as a complete `4,959,665.8` — a plausible wrong number, which for an
-  accountant is worse than an obvious one. Cells now use
-  `text-overflow:ellipsis`, so a cut figure always announces itself
-  (`49,568,236…`); the composition bar shows the whole value on focus.
-  Landed with the mobile sibling's v0.4.4 (same rule, both surfaces).
-
-* **[2026-07-26] v0.8.5 — the popped-out bell scales with its window (Chad).**
-  The PiP face was pinned at 190px no matter how big the floating window got,
-  leaving a lake of empty walnut beneath it. Fixed in **pure CSS, no
-  listener**: `vw`/`vh` inside the PiP document resolve against *that*
-  window's viewport, so `.bell-body.pip .bell-vis` sized at
-  `max(110px, min(84vw, 54vh))` tracks the drag automatically; the countdown
-  rides along on a `clamp()`. Floored so a tiny window still shows a
-  readable lamp, height-capped so the controls never get pushed out of view.
-  *Verified* by resizing the PiP target at three sizes: 300×540 → 252px
-  visual, 460×760 → 386px, 220×380 → 185px; content fit and the Start button
-  stayed in view at every size, and the in-page face is still exactly 190px
-  when folded back home.
-
-* **[2026-07-26] v0.9.0 — RICH NOTES: formatting you can see (Chad).**
-    * *The complaint:* the notes showed `**bold**` literally. The B/I buttons
-      only ever *inserted markers* — nothing rendered them.
-    * *The constraint, stated plainly:* a `<textarea>` cannot display styled
-      text. Live formatting means `contenteditable`. So the three note
-      surfaces (section scratchpads, project notes, expanded editor) became
-      contenteditable divs that still look like the old boxes.
-    * *Decision — markdown stays the stored format.* Non-negotiable for two
-      reasons: `Export Project Markdown` keeps working untouched, and the
-      **mobile sibling reads the same field** — storing HTML would have
-      broken lockstep. So this is a display/edit layer only: markdown in via
-      `mdSet()`, markdown out via `mdGet()`, **zero schema impact**.
-    * *Supported:* `**bold**`, `*italic*`, `~~strike~~`, and red. Markdown
-      has no colour syntax, so **red rides as an inline
-      `<span style="color:#c00">`** (Chad picked this over display-only) —
-      the one form that still renders red when an export lands in
-      Word/Outlook. "Black" is the absence of colour, not a marker.
-    * *Implementation notes:* formatting runs through `document.execCommand`
-      — deprecated, but it handles selection and caret correctly across
-      browsers where hand-rolled Range surgery does not. **Paste is forced
-      to plain text**, or a copy from Word drags foreign markup into a field
-      that must serialise back to markdown. `mdWrap()` retired;
-      `mdBullets()` rewritten for contenteditable.
-    * *Bug caught in-harness, invisible by eye:* Chrome normalises
-      `execCommand('foreColor','#c00')` to `<font color="#cc0000">`, which
-      the red-detection regex missed — the colour rendered on screen and was
-      then **silently dropped on save**. Every spelling of the red is now
-      recognised. Lesson: when a browser rewrites your markup, the
-      serialiser is where the data quietly dies.
-    * *Verified:* eight-case markdown→rendered→markdown round trip, all
-      lossless (including the trap case `5 * 3 = 15 and 2*2`, which must NOT
-      become italic); tags actually render with no asterisks visible; a live
-      scratchpad edit stores `**call** the bank` and survives a cold reload
-      still bold; export still contains the markers; the expanded editor
-      loads rendered and red persists to the stored markdown.
-
-* **[2026-07-26] v0.9.1 — projects can point at their own workshop (Chad).**
-    * *The question Chad brought:* a "Projects" tab as a linktree of
-      companion web apps, **or** a per-project link in the Journal header?
-    * *Decision — the per-project link, no new tab.* Reasoning, straight
-      from the pattern we set today: **tabs are rooms**, and a linktree is a
-      signpost, not a room. A "Projects" tab beside "Project Journal" would
-      be two tabs whose names mean the same thing, and it would make you
-      navigate *away* from a project to find the link *to* that project.
-      The link is a **property of the project**, so it lives on the project.
-    * *Shape:* one optional `p.appUrl`. A **⧉ Workshop** button appears in
-      the project header only when set; a **⧉** mark appears beside that
-      project in Recent, so the "linktree" view emerges for free without a
-      surface to maintain. A bare domain typed in gets `https://` prepended.
-    * *Vocabulary:* the companion app is a project's **workshop** — distinct
-      from the bench, which is CTT itself. The bench links out rather than
-      swallowing a project's detail.
-    * *Schema-lockstep:* new project field, landed in both repos the same
-      hour (desktop v0.9.1 / mobile v0.9.0). No `normalize()` change needed —
-      the field is read with `||''` everywhere, so a db that predates it
-      simply has no door. Verified against exactly that legacy shape.
-    * *First workshop:* **Gertie** — a 1966 Volvo P1800S barn find from
-      Chad's grandpa. Single-file build log: an SVG blueprint of the car
-      that paints itself in as phases complete, 49 tasks across 8 gated
-      phases, full-text search, trophy case. Notably it satisfies the
-      anti-engagement ethos by construction: the progress visual is a mirror
-      of **the car's state**, not a scoreboard of Chad's diligence.
-    * *Verified* on both surfaces: legacy project shows no door and no ⧉;
-      a bare domain stores as `https://…`; the door opens in a new tab;
-      the ⧉ appears in Recent; the value survives a cold reload; clearing
-      the field removes the door; no layout overflow on either.
-
-* **[2026-07-26] Gertie moves in — the first workshop, hosted at /gertie/.**
-    * *Decision (Chad):* rather than a separate repo and domain, the P1800S
-      build log ships as a **folder inside this repo** — `src/gertie/` —
-      served at `chiaro.chadstewartcpa.com/gertie/`. Cloudflare Pages' build
-      output dir is already `src`, so the slug works with zero new
-      infrastructure: no second Pages project, no second domain, one deploy.
-    * *Why it's the right call now, and cheap if wrong:* moving a single HTML
-      file to its own repo later is a five-minute job. Take the simple option
-      when the exit is that cheap. The bench links out via the new
-      **⧉ Workshop** field (v0.9.1) pointed at `/gertie/`.
-    * *PWA layer added* (`sw.js`, `manifest.webmanifest`, `icons/`) because
-      the whole point is a phone in a barn with no signal. **The worker's
-      scope is `/gertie/`** — a worker registered at `/gertie/sw.js` cannot
-      reach up and intercept the CTT app at the origin root, which was the
-      one thing worth getting right about co-hosting. Verified explicitly.
-    * *Icons* rendered from Gertie's own dashboard SVG — the P1800 profile in
-      amber on petrol, her palette, not CTT's. Scar re-learned: pin the
-      render frame (`overflow:hidden` + `--hide-scrollbars`) or the capture
-      picks up scrollbars and a black band.
-    * *Real find while testing:* her Google Fonts `<link>` was
-      **render-blocking**, so the inline script could not run until that
-      third-party request resolved or timed out — a stall before anything
-      appears, in exactly the no-signal barn she is built for. Switched to
-      the `media="print"` + `onload` async pattern; offline she now falls
-      back to system fonts instantly instead of waiting.
-    * *Storage boundary (the thing to keep watching):* Gertie and CTT now
-      share an origin, so they share the **~5 MB localStorage budget**. Their
-      keys don't collide (`p1800-build-log-v1` vs `ctt_v1`), but a phone
-      photo is 3–5 MB before base64 inflation — **one photo could evict real
-      ORDO data**. So the parked photo feature must use **IndexedDB** (Blobs,
-      no base64, quota measured in hundreds of MB, separate bucket), never
-      localStorage. Recorded here because the trap is invisible until it
-      costs something.
-    * *Verified* at 390×844: loads at the slug with 8 phases / 49 tasks; the
-      reveal mechanic responds (completing Phase 1 took `lay-1` opacity
-      0.10 → 1, odometer to 14%, one badge earned); the worker registered at
-      scope `/gertie/` and cached 7 shell entries; **an offline reload
-      rendered the full page with progress intact** — the barn test; CTT
-      still loads at the root, is not controlled by Gertie's worker, and both
-      storage keys coexist.
-
-* **[2026-08-12] Gertie hardened, and PJT's v4.0.0 handoff audited against CTT.**
-  A working session on the phone turned up three real defects and one
-  imported one.
-    * *Workshop links mangled same-origin paths* (v0.9.2 / mobile v0.9.1).
-      `updateAppUrl` prepended `https://` to anything without a scheme, so
-      `/gertie/` became `https:///gertie/` — the exact value the Gertie
-      handoff told Chad to paste. Paths beginning `/` now pass through.
-      **Standing rule that came out of it:** `appUrl` rides the synced db and
-      the two surfaces sit on *different origins* (`chiaro` vs
-      `chiaromobile`), so a relative path only resolves on whichever surface
-      hosts the companion. **Synced fields take absolute URLs.**
-    * *Gertie's notes did not survive a refresh on iPhone.* Not reproducible
-      in Chromium at phone size, so rather than guess at Safari the fragile
-      parts were fixed outright: the dead `window.storage` branch removed (if
-      anything had ever defined it, reads returned null and writes went into
-      the void — both silently); **pending debounced writes now flush on
-      `visibilitychange`/`pagehide`**, because iOS discards backgrounded
-      pages and a 260 ms promise-to-write-later dies with them; and storage
-      errors stopped being swallowed. Chad confirmed persistence after.
-    * *The save receipt learned to travel.* No save button — the log writes
-      itself, and a button that does nothing is a lie while one that does
-      something implies you're unsaved the rest of the time. But the receipt
-      sat in the footer below 49 tasks, i.e. reassurance nobody would ever
-      see. It now floats above the safe-area inset, fades after 1.7 s, and
-      **a refused write does not fade** — amber, and it stays.
-    * *Mobile audit — the margins weren't small, they were zero.* `.wrap` set
-      the gutter with the `padding` shorthand and `.hero`/`.case` each carry
-      their own `padding` shorthand later in the sheet, resetting the sides
-      to 0 on two of three tabs. **This is the third time the shorthand-
-      flattens-longhand trap has bitten across PJT and CTT.** PJT's journal
-      says it: *some lessons need a lint rule, not a note.* Also fixed: the
-      **iOS sub-16px auto-zoom trap** (search + notes were 15/14.5px — the
-      same defect CTT Mobile fixed in v0.4.4, re-inherited by a file written
-      elsewhere), 21 px tap targets grown to 44 px without changing the
-      visual, and task names that were centre-aligned on phones because a
-      `<button>` keeps the UA's centred text regardless of the flex parent.
-    * *Decision — what to take from PJT v4.0.0.* Adopted now: `node --check`
-      over extracted `<script>` blocks as a pre-flight, temp-file-then-swap
-      for edits. **Next session: the jsdom test harness**, because the
-      schema lockstep between the sibling repos is currently enforced by
-      nothing but memory, and a corpus test against a real export is the only
-      mechanism that would actually catch drift. Declined for now: the
-      three-doors guide (CTT has one user, who wrote it), the AI help packet
-      (no support burden here), the Actions matrix (belongs at the Phase 3
-      Tauri wrap). Kept divergent on purpose: PJT scopes its scratch sheet to
-      `sessionStorage`; CTT's lives in `db.scratch` and syncs, which is right
-      for a belt carried across two devices.
-    * *Pre-emptive scar, recorded before the feature exists:* when the scratch
-      sheet gets copy-to-clipboard, **formulas must copy as results** (the
-      dialect isn't Excel's) and **numbers must copy raw, not as displayed** —
-      `1,234,567.50` pastes as *text* in any locale that doesn't group with
-      commas. Silently wrong totals is the worst failure available to a tool
-      an accountant uses. From PJT's journal; cheap now, expensive later.
-
-* **[2026-08-12] Import takes an undo snapshot** (v0.9.3 / mobile v0.9.2).
-  PJT's handoff found `applyImport('replace')` overwriting its journal with
-  no safety copy while `restoreBackup` ten lines away did the right thing.
-  **CTT had inherited the same defect, and worse:** `backupNow()` is gated
-  behind `FS_ENABLED` (Tauri only), so the web/PWA builds had no file backup
-  to fall back on — and the result *syncs*, so a wrong file imported on the
-  phone reaches the desktop on the next push.
-    * Both modes snapshot now. **Merge is destructive too**, which PJT's own
-      fix didn't cover: days are combined with `Object.assign`, so any date
-      present in both files is silently overwritten by the incoming one.
-    * Sync credentials stripped going in, live ones re-attached coming out —
-      same shape as `restoreBackup`'s `keepSync`, so a stale secret can't
-      ride back in.
-    * *If the snapshot can't be written the import BLOCKS* and offers an
-      explicit override. The first attempt used a transient `flash()` and was
-      useless — `save()` rewrites the status line moments later, so the one
-      warning that mattered was invisible. Caught in testing, not in review.
-    * No schema change: the buffer lives under `ctt_import_undo_v1`, outside
-      `db`, so it never enters sync or export.
-    * *Chad's own diagnosis from the PJT journal, which found this:*
-      **documentation that tells the user to perform a safety step the code
-      could perform itself is a bug report in prose.** Worth grepping the
-      guide text of anything for that pattern.
-
-## 💡 The Parking Lot (Future Ideas — deliberately open)
-* ~~**Intention-on-open / enough-on-close ritual**~~ — **SHIPPED in base form:**
-  intention-on-open as the Opening tab (v0.3.0), enough-on-close as the
-  Closing tab's "It was enough." check (v0.4.0). Still open from the original
-  idea: the *active* mirror that names the "five more minutes" impulse out
-  loud when the named intentions are met mid-session. Revisit after dogfooding
-  the Opening→Closing loop.
-* **Brand illustration — "Plagued by Concepts."** *[2026-07-19]* Rodin's
-  *Thinker*, seated on his plinth, contemplating a plague-doctor mask instead of
-  resting his chin — art-historical, dry-witted, memento-mori; the literate,
-  myth-soaked voice made visible. Two original renderings exist: a clean
-  single-continuous-line version (the *animatable* asset) and a richer
-  cross-hatched engraving (static frontispiece — and effectively the Atelier /
-  Alchemist's-Ledger palette incarnate). **The plague mask alone = the app
-  icon**; the full figure = the between-states "mental canvas." Original art
-  only; renders ink-on-cream or gilt-on-walnut from one file. Working direction:
-  *Atelier as the surface, Plagued-by-Concepts as the soul.*
-* **Line-draw ritual screens — boot + think mode.** *[2026-07-19]* The single-
-  line art animated in code (SVG `stroke-dashoffset`, staggered per path),
-  **duration as a parameter**: ~6s draw on boot, slow/looping in "think" mode,
-  pause-on-tap as a fidget-lamp for re-centering. One drawing, two rituals.
-  Intentionally-slow boot as anti-engagement in its purest form — it *spends*
-  the wait asking "what did you come for?" (this is the concrete embodiment of
-  the intention-on-open ritual above), never apologizing for it. Intention
-  prompts live in the `db` as a growable pool, drawn at random — open-mode sets
-  intention ("What is this session for?", "What would be enough, today?"),
-  think-mode re-centers ("Held, not solved. That is also progress."). **Not
-  video** (Veo caps ~8s; baked timing, heavy files, compression smears fine
-  line-work): centerline-trace the clean art → stroked paths → `stroke-
-  dashoffset`, duration as a parameter. Image-gen (Gemini) is the renewable
-  style engine for more figures (mask solo, the tinker's bell), each traced into
-  the same draw-engine. **Working proof-of-concept now lives in the repo:
-  `assets/chiaro-ritual-screen.html` (8s Open + 2min Think + tap-to-pause) and
-  the traced art `assets/thinker-single-line.svg` (~40 stroked paths).** Open
-  art-direction question: should the mask draw *last*, arriving in his open hand
-  as the final gesture? (probably yes — decide when it ships.) On graduation
-  into the single-file app: do an archival-quality retrace, and inline the fonts
-  (the demo links Google Fonts — the app's CSP forbids external calls).
-  Deliberately parked until the MVP daily loop is real.
-* **Brand line language** — *[2026-07-20]* one continuous line, no fills,
-  generous negative space: the style rule is that the man and his plague are
-  literally the *same stroke*. Amber (#F2A24A) on near-black in-app; ink on
-  cream for exports. The mask-alone glyph is a candidate capture button — "tap
-  the plague to set it down." The etched/lithograph rendering is a separate
-  *tattoo track*, not the app. Not locked.
-* **Personal task surface** — separate tab or other form; mechanism
-  deliberately undecided. Don't over-spec.
-* ~~**Tinker's bell**~~ — **SHIPPED 2026-07-25 (v0.6.0)** in base form: ember-field
-  timer in the Time Card, block-linked durations, one ring + pulse-until-
-  noticed. Still open from the original idea: sound design iteration, a
-  bell⇄time-entry tie-in beyond duration pre-fill, and the lock-screen Live
-  Activity (parked with iOS native, mobile repo M2). Never "pomodoro."
-* **Project templates** (Phase 2) — bookkeeping cadence, advisory framework.
-* ~~**Cross-device sync**~~ — **SHIPPED 2026-07-21** as Worker+KV (see change
-  log). Remaining follow-on: at-rest encryption of the KV blob (below).
-* **At-rest encryption** — PJT's AES-GCM + PBKDF2 pattern, if/when warranted.
-* **CTT macOS bundle identifier** — pick deliberately at Phase 3 wrap
-  (e.g. `com.chiarotinkertools.ctt`); Phase 0 keeps PJT's.
-* **Code signing / notarization** — required for any distribution beyond
-  family right-click-open; consciously deferred. *[2026-07-18]* Chad has a
-  paid Apple Developer account, so this is unlocked whenever we want it:
-  Developer ID cert + notarytool via GitHub Actions secrets (runtime
-  injection, per the no-secrets rule). Also the gate-opener for native iOS.
-* **PJT ↔ CTT backport notes** — lightweight log of improvements general
-  enough to flow between the sibling apps.
+## 💡 The Parking Lot (Future Ideas)
+* Month report analytics (ahead/behind time-block budget) — mechanism stubbed
+* Meme/image joke library (format is image-ready from v1)
+* Projects ↔ Calendar bridge polish (push project steps to days as
+  glass/rubber — basic version in v1, refinement later)
+* Additional timer renderers (registry supports it)
+* Recurring-task edge cases (edit one vs. all occurrences)
+* Sync conflict handling beyond last-write-wins (revisit once both surfaces
+  are live)
+* Shared visibility for Chad (e.g., seeing Joelle's glass balls) — only if
+  Joelle wants it
