@@ -126,6 +126,36 @@
       (`glass-ball-v0.1.1`) bumped together, per convention; arrives silently
       on next online open.
 
+* **[2026-08-14] v0.2.0 — the pre-Joelle release.** Everything on the list
+  before her first real week:
+    * *Decision (Chad):* every todo is a **ball**, everywhere — task modal,
+      Forge picker, projects (no more "steps"), buttons, hints, guide. Code
+      identifiers keep `task`; the language the app speaks is balls.
+    * *New room:* **Dev Notes** (6th tab) — Joelle's direct line. Quick
+      capture in the house list style; naming a note auto-opens a composer
+      for details; the round ✓, the X, and the backdrop all SAVE (a jotted
+      bug report never dies to a stray tap). Copy-all formats a numbered
+      batch for a text message; Clear empties after sending. Synced +
+      exported like everything else (`db.devnotes`, mergeDefaults lockstep).
+    * *New:* **Joke library editor** (gear 🎭) — the door for the
+      Chad/Joelle-curated show quotes. Two pools (start / finish), bulk add
+      one-per-line, delete per-entry; entries sync and ride in backups.
+      Shipped starters always play and never appear in the editor. Meme
+      images stay a v2 slot ({text, img} format reserved) — likely hosted
+      URLs, not embedded blobs, to spare localStorage/KV.
+    * *Backlog first shots:* the **project bridge closes** — catching a ball
+      that came from a project checks its step at home (and unchecking
+      unchecks); **recurring edits** gain This-day-only vs All-future (name +
+      minutes propagate to the template and not-yet-caught instances; day and
+      priority always stay per-day) plus **End repeat** (stops the template,
+      clears not-caught instances from that day forward, past days keep what
+      happened); **month report** adds worked-vs-budgeted totals.
+    * *Still deliberately untouched:* Closing refinement (waiting on real
+      use), meme images (v2), sync conflict handling beyond last-write-wins.
+    * *Verified:* 25-check Chromium suite (naming, recurring scope + end,
+      bridge, dev-notes full loop, joke library, persistence) — green, zero
+      console errors; lockstep suite green.
+
 ## 🤔 Pending Joelle (open design calls)
 * Body/UI typeface pick: Atkinson Hyperlegible vs. Karla vs. Alegreya Sans
   (or another direction she prefers)
