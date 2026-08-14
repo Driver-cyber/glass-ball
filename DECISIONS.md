@@ -156,6 +156,35 @@
       bridge, dev-notes full loop, joke library, persistence) — green, zero
       console errors; lockstep suite green.
 
+* **[2026-08-14] v0.3.0 — the meme library lands.** Chad wanted to build the
+  library now (paste memes straight from an image search) with display polish
+  later; both halves shipped, since a library feeding nothing is a trap.
+    * *Three intake paths, all routed by section:* paste (⌘V/Ctrl-V anywhere in
+      a pool), drag-and-drop onto its box, or "choose a photo" (the iOS path —
+      Safari clipboard-into-a-div is unreliable, a file picker is not).
+    * *Decision — compress on the way in:* 480px max edge, JPEG q0.62,
+      transparency flattened to white. A phone photo becomes ~20–40KB. The db
+      is ONE synced blob: every image is bandwidth on every push and a bite out
+      of the ~5MB iOS grants a PWA. Not compressing was never an option.
+    * *Decision — a hard ~1.2MB image cap with a visible meter*, refusing the
+      add (and saying why) rather than silently bloating. The meter turns warn
+      at 80%. If the library outgrows it: hosted images (R2) or a second KV
+      key, **not** a fatter blob.
+    * *Decision — pasted image ADDRESSES are stored as links* ({img:url}, zero
+      bytes), including via the text box (an image URL typed into "add jokes"
+      becomes a meme). Cheap, but hotlinks die; the UI says so, and a broken
+      thumbnail dims itself instead of vanishing.
+    * *Decision — minimal display shipped now:* popups paint the meme when the
+      drawn entry has one; a meme-only entry simply has no caption. Polish
+      (captions, sizing, pairing text+image) waits for real use.
+    * *Scar fixed while here:* `persistLocal()` swallowed failed writes. Now a
+      refused write says "NOT saved — storage full" in the save pill and
+      explains the likely cause once. A silent save failure is the worst bug
+      this app could have, and images make it reachable.
+    * *Verified:* 25-check Chromium suite driving real paste/drop/file-pick
+      events, compression bounds, section routing, cap refusal, delete, popup
+      painting, and reload persistence — green, zero console errors.
+
 ## 🤔 Pending Joelle (open design calls)
 * Body/UI typeface pick: Atkinson Hyperlegible vs. Karla vs. Alegreya Sans
   (or another direction she prefers)

@@ -292,7 +292,28 @@ body.modal-open{overflow:hidden;}
 .keybox code{flex:1;font-family:Consolas,Menlo,monospace;font-size:12px;background:var(--panel);border:1px solid var(--border);
   border-radius:8px;padding:8px 10px;overflow:auto;white-space:nowrap;}
 .sync-note{font-size:12px;color:var(--muted);line-height:1.5;margin:6px 0 0;}
+/* meme library — paste/drop target, thumbnails, and a budget meter. Images
+   are downscaled + re-encoded before storage: the whole db is ONE synced
+   blob, so a fat image is bandwidth on every push and a bite out of the
+   ~5MB iOS gives a PWA. The meter makes that cost visible instead of
+   mysterious. */
+.meme-drop{border:1.5px dashed var(--border);border-radius:12px;padding:13px 12px;text-align:center;
+  font-size:12.5px;color:var(--muted);cursor:pointer;background:var(--bg);line-height:1.6;}
+.meme-drop:hover{border-color:var(--glass);color:var(--text);}
+.meme-drop.over{border-color:var(--glass);background:var(--glass-soft);color:var(--text);}
+.meme-drop.armed{border-color:var(--glass);border-style:solid;background:var(--glass-soft);color:var(--text);}
+.q-row{display:flex;align-items:center;gap:10px;padding:6px 2px;border-bottom:1px solid var(--border);}
+.q-row:last-child{border-bottom:none;}
+.q-thumb{width:54px;height:54px;flex:none;border-radius:8px;object-fit:cover;
+  border:1px solid var(--border);background:var(--group);display:block;}
+.q-text{flex:1;min-width:0;font-size:13px;overflow-wrap:anywhere;}
+.q-text.is-meme{color:var(--muted);font-style:italic;}
+.budget-bar{height:6px;border-radius:4px;background:var(--group);overflow:hidden;margin-top:6px;}
+.budget-bar i{display:block;height:100%;background:var(--glass);transition:width .3s;}
+.budget-bar.warn i{background:var(--warn);}
 /* quote popups — the fun. Never blocking: X and the primary both close. */
+.quote-img{max-width:100%;max-height:46vh;border-radius:12px;display:block;margin:8px auto 2px;
+  border:1px solid var(--border);}
 .quote-box{text-align:center;padding:8px 4px 2px;}
 .quote-text{font-size:17px;line-height:1.55;font-style:italic;margin:10px 0 4px;}
 .quote-kicker{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;}
@@ -314,7 +335,7 @@ body.modal-open{overflow:hidden;}
 <body>
 
 <div class="appbar">
-  <div class="brand"><span class="brand-orb" aria-hidden="true"></span><span>The Glass Ball<small>catch the glass · v0.2.0</small></span></div>
+  <div class="brand"><span class="brand-orb" aria-hidden="true"></span><span>The Glass Ball<small>catch the glass · v0.3.0</small></span></div>
   <div class="maintabs">
     <div class="maintab active" data-m="opening" onclick="switchMain('opening')">Opening</div>
     <div class="maintab" data-m="calendar" onclick="switchMain('calendar')">Calendar</div>
@@ -561,6 +582,7 @@ body.modal-open{overflow:hidden;}
   <button class="x-btn" onclick="startJokeGo()" aria-label="Close and start">✕</button>
   <div class="quote-box">
     <div class="quote-kicker">Before you forge</div>
+    <img class="quote-img" id="startJokeImg" alt="" style="display:none">
     <div class="quote-text" id="startJokeText"></div>
   </div>
   <div class="modal-actions" style="justify-content:center">
@@ -612,6 +634,7 @@ body.modal-open{overflow:hidden;}
   <button class="x-btn" onclick="closeModal('quoteBg')" aria-label="Close">✕</button>
   <div class="quote-box">
     <div class="quote-kicker">Caught</div>
+    <img class="quote-img" id="finishQuoteImg" alt="" style="display:none">
     <div class="quote-text" id="finishQuoteText"></div>
   </div>
   <div class="modal-actions" style="justify-content:center">
@@ -639,21 +662,32 @@ body.modal-open{overflow:hidden;}
 <div class="modal-bg" id="quotesModalBg"><div class="modal wide">
   <button class="x-btn" onclick="closeModal('quotesModalBg')" aria-label="Close">✕</button>
   <h2 style="margin-top:0">🎭 Joke library</h2>
-  <p class="muted" style="margin-top:0">Your own lines — Arcane, Friends, Star Wars, ITYSL, SNL, whatever makes you two laugh. They sync across devices and ride along in backups. Paste several at once, one per line. (Meme images: a v2 slot is reserved.)</p>
-  <div class="sync-row">
+  <p class="muted" style="margin-top:0">Your own lines and memes — Arcane, Friends, Star Wars, ITYSL, SNL, whatever makes you two laugh. Everything here syncs across devices and rides along in backups. Text: paste several at once, one per line. Memes: paste, drag, or pick a photo into the box in either section.</p>
+  <p class="sync-note" id="memeBudget" style="margin:0"></p>
+  <div class="budget-bar" id="memeBar"><i style="width:0%"></i></div>
+  <div class="sync-row" data-pool="start">
     <h3>Start jokes <span class="muted" id="qStartCnt"></span></h3>
     <p class="sync-note">Wry, sarcastic-about-work — one pops when a timer starts.</p>
     <div id="qStartList" style="margin-top:8px"></div>
     <textarea id="qStartAdd" style="margin-top:8px;min-height:56px" placeholder="Add start joke(s) — one per line"></textarea>
-    <div style="margin-top:8px"><button class="small" onclick="addQuotes('start')">Add</button></div>
+    <div style="margin-top:8px"><button class="small" id="qStartAddBtn" onclick="addQuotes('start')">Add</button></div>
+    <div class="meme-drop" id="qStartDrop" tabindex="0" style="margin-top:10px">
+      🖼 <b>Memes</b> — click here then paste (⌘V / Ctrl-V) · drag an image in · <button class="ghost small" onclick="memePick('start',event)">choose a photo</button><br>
+      <span style="font-size:11.5px">Copied an image <em>address</em> from a search instead? Paste it here too — links cost nothing to store (but can go dead later).</span>
+    </div>
   </div>
-  <div class="sync-row">
+  <div class="sync-row" data-pool="finish">
     <h3>Finish encouragements <span class="muted" id="qFinishCnt"></span></h3>
     <p class="sync-note">Dry but genuinely encouraging — one pops on the second Complete tap.</p>
     <div id="qFinishList" style="margin-top:8px"></div>
     <textarea id="qFinishAdd" style="margin-top:8px;min-height:56px" placeholder="Add finish line(s) — one per line"></textarea>
-    <div style="margin-top:8px"><button class="small" onclick="addQuotes('finish')">Add</button></div>
+    <div style="margin-top:8px"><button class="small" id="qFinishAddBtn" onclick="addQuotes('finish')">Add</button></div>
+    <div class="meme-drop" id="qFinishDrop" tabindex="0" style="margin-top:10px">
+      🖼 <b>Memes</b> — click here then paste (⌘V / Ctrl-V) · drag an image in · <button class="ghost small" onclick="memePick('finish',event)">choose a photo</button><br>
+      <span style="font-size:11.5px">Pasted image addresses work here as well.</span>
+    </div>
   </div>
+  <input type="file" id="memeFile" accept="image/*" style="display:none">
   <div class="modal-actions"><button class="ghost" onclick="closeModal('quotesModalBg')">Close</button></div>
 </div></div>
 
@@ -772,6 +806,7 @@ body.modal-open{overflow:hidden;}
     <p><strong>The idea.</strong> Some tasks are <strong>◉ glass balls</strong> — drop them and something real breaks (enrollment paperwork before the deadline). Most are <strong>○ rubber balls</strong> — they feel urgent, but they bounce back fine tomorrow (the dishes). Each day holds at most <strong>3 glass</strong> and <strong>5 rubber</strong>. That's not a limitation, it's the point: three glass balls is a winnable day.</p>
     <p><strong>The rooms.</strong> <strong>Opening</strong> shows today at a glance — tap any ball and the Forge loads it, timer set. <strong>Calendar</strong> is the heart: pick a day, type into an empty line to add a ball, or use ⋯ / + for the full form (repeats, time blocks). <strong>Projects</strong> holds bigger multi-step things — any step can be sent onto a day as a ball. <strong>The Forge</strong> is where you work: pick a ball, the timer loads its minutes, start. <strong>Closing</strong> is the exhale. <strong>Dev Notes</strong> is the suggestion box: spot a bug or wish for something, jot it there, then Copy-all and text the batch to Chad.</p>
     <p><strong>The game.</strong> Every glass ball caught earns a <strong>sticker ✦</strong>. Catch all of a day's glass and the day gets a <strong>gold star ★</strong> on the calendar. Rubber gets the satisfying check — and zero guilt when it bounces. No streaks, ever. When the glass is caught, you're done. Go rest.</p>
+    <p><strong>Jokes &amp; memes.</strong> Gear ⚙ → <strong>Joke library</strong> holds your own lines and memes — paste, drag, or pick images right into it. They pop when a timer starts and when a ball is caught, and they sync to every device.</p>
     <p><strong>Your data.</strong> Everything saves on this device automatically. Gear ⚙ → Export backup any time. Cloud sync (optional) keeps phone + computer as two views of the same days.</p>
   </div>
   <div class="modal-actions"><button class="ghost" onclick="closeModal('guideModalBg')">Close</button></div>
@@ -780,7 +815,15 @@ body.modal-open{overflow:hidden;}
 <input type="file" id="importFile" accept="application/json" style="display:none">
 <script>
 /* =====================================================================
-   The Glass Ball · v0.2.0 — Joelle's task & schedule app.
+   The Glass Ball · v0.3.0 — Joelle's task & schedule app.
+   v0.3.0: the meme library lands — paste, drag, or pick images straight
+   into the joke library (gear 🎭). Images are downscaled to 480px JPEG
+   before storage and held under a hard ~1.2MB cap with a visible meter,
+   because the whole db is one synced blob; pasted image ADDRESSES are
+   stored as links instead (free, but they can go dead). Popups now paint
+   a meme when the drawn entry has one. A refused localStorage write is
+   surfaced instead of swallowed.
+   v0.2.0:
    v0.2.0: everything is a BALL (naming sweep — tasks and project steps
    alike); new Dev Notes room (quick capture → auto-open composer →
    copy-all batch → clear after sending; synced); joke library editor
@@ -851,7 +894,7 @@ const STORE_KEY = 'glassball_v1';   // Glass Ball's own key — never the CTT si
 const SCHEMA    = 'glassball-1';
 const CAPS = { glass:3, rubber:5 };   // the caps ARE the product — no override
 let db = {
-  version:'0.2.0', schema:SCHEMA, lastEdit:0,
+  version:'0.3.0', schema:SCHEMA, lastEdit:0,
   days:{},        // 'YYYY-MM-DD' → {glass:[task], rubber:[task], note:'', skipRecur:[], enough:false}
   recurring:[],   // repeat templates: {id,name,priority,blockMin,freq,anchor}
   projects:[],    // {id,name,notes,archived,createdDate,modifiedDate,steps:[{id,text,done,pushedTo}]}
@@ -872,7 +915,19 @@ function save(){
   clearTimeout(saveTimer); saveTimer=setTimeout(()=>{ dot.classList.remove('saving'); txt.textContent='Saved'; },220);
   if(typeof scheduleAutoPush==='function') scheduleAutoPush();
 }
-function persistLocal(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(db)); }catch(e){ console.error(e); } }
+/* A failed write used to die in the console. Now that the blob can carry
+   memes it can actually hit the device quota, and a silent failure is the
+   worst kind — say it out loud, once, where the eye already is. */
+let _quotaWarned=false;
+function persistLocal(){
+  try{ localStorage.setItem(STORE_KEY, JSON.stringify(db)); _quotaWarned=false; }
+  catch(e){ console.error(e);
+    const txt=document.getElementById('saveStatus');
+    if(txt) txt.textContent='NOT saved — storage full';
+    if(!_quotaWarned){ _quotaWarned=true;
+      setTimeout(()=>alert('This device refused to save — its storage is full.\n\nThe most likely cause is the meme library: gear ⚙ → Joke library → remove a few images. Your data is still here in this window until then.'),50); }
+  }
+}
 function load(){
   booting=true;
   const raw=localStorage.getItem(STORE_KEY);
@@ -1499,7 +1554,7 @@ function forgeStartPressed(){
   if(bell.running){ bellStartPause(); return; }              // → pause
   const midway=bell.left>0 && bell.left<bell.total && !bell.rung;
   if(!midway && forgeTask && !skipJokeOnce){
-    document.getElementById('startJokeText').textContent=drawQuote('start');
+    paintQuote(drawQuoteEntry('start'),'startJokeText','startJokeImg');
     openModal('startJokeBg'); return;
   }
   skipJokeOnce=false;
@@ -1609,7 +1664,7 @@ function finishComplete(){
   bell.label=''; bellReset(); renderForge();
 }
 function celebComplete(){ closeModal('celebrateBg');
-  document.getElementById('finishQuoteText').textContent=drawQuote('finish');
+  paintQuote(drawQuoteEntry('finish'),'finishQuoteText','finishQuoteImg');
   openModal('quoteBg'); }
 function finishStillWork(){ closeModal('finishModalBg'); openModal('moreModalBg'); }
 function moreMinutes(n){
@@ -1790,14 +1845,85 @@ const QUOTES_FINISH=[
   {text:'Somewhere, a deadline just sighed and gave up.'},
 ];
 let _lastQuote={start:null,finish:null};
-function drawQuote(kind){
+function quoteEntry(q){ return (typeof q==='string')?{text:q}:(q||{}); }
+/* Draw an entry (text and/or meme) from the shipped pool + the curated one.
+   An entry counts if it has text OR an image, so a meme-only entry plays. */
+function drawQuoteEntry(kind){
   const shipped=(kind==='start')?QUOTES_START:QUOTES_FINISH;
-  const user=(db.quotes&&db.quotes[kind]||[]).map(q=>typeof q==='string'?{text:q}:q).filter(q=>q&&q.text);
-  const pool=shipped.concat(user).filter(q=>q.text!==_lastQuote[kind]);
-  const pick=pool[Math.floor(Math.random()*pool.length)]||shipped[0];
-  _lastQuote[kind]=pick.text;
-  return pick.text;
+  const user=(db.quotes&&db.quotes[kind]||[]).map(quoteEntry).filter(q=>q.text||q.img);
+  const all=shipped.concat(user);
+  const key=q=>(q.img||'')+'|'+(q.text||'');
+  const pool=all.filter(q=>key(q)!==_lastQuote[kind]);
+  const pick=(pool.length?pool:all)[Math.floor(Math.random()*(pool.length?pool.length:all.length))]||shipped[0];
+  _lastQuote[kind]=key(pick);
+  return pick;
 }
+function drawQuote(kind){ return drawQuoteEntry(kind).text||''; }
+/* Paint an entry into a popup: the meme shows if there is one, the line
+   shows if there is one, and a meme-only entry simply has no caption. */
+function paintQuote(entry, textId, imgId){
+  const t=document.getElementById(textId), im=document.getElementById(imgId);
+  if(t) t.textContent=entry.text||'';
+  if(im){ if(entry.img){ im.src=entry.img; im.style.display=''; } else { im.removeAttribute('src'); im.style.display='none'; } }
+}
+
+/* =====================================================================
+   THE MEME LIBRARY — paste, drag, or pick an image and it lands in a pool
+   as {text, img}. Images are downscaled to MEME_MAX and re-encoded as JPEG
+   before storage: the whole db is ONE synced blob, so an untouched phone
+   photo would be megabytes on every push and a bite out of the ~5MB iOS
+   allows a PWA. A hard cap plus a visible meter keep that honest. A pasted
+   image URL is stored as a link instead — zero bytes, but it can go dead,
+   which the UI says out loud.
+   ===================================================================== */
+const MEME_MAX=480, MEME_Q=0.62, MEME_BUDGET=1200000;   // ~1.2MB of encoded image
+let memePool='start';
+function memeBytes(){ let n=0;
+  ['start','finish'].forEach(k=>(db.quotes[k]||[]).forEach(q=>{ const e=quoteEntry(q);
+    if(e.img && e.img.indexOf('data:')===0) n+=e.img.length; })); return n; }
+function isImgUrl(s){ s=(s||'').trim();
+  return /^https?:\/\/[^\s]+$/i.test(s) &&
+    (/\.(png|jpe?g|gif|webp)(\?|#|$)/i.test(s) || /googleusercontent|imgur|giphy|tenor|redd\.it|pbs\.twimg/i.test(s)); }
+function compressImage(file){
+  return new Promise((res,rej)=>{
+    const fr=new FileReader();
+    fr.onerror=()=>rej(new Error('read failed'));
+    fr.onload=()=>{ const im=new Image();
+      im.onerror=()=>rej(new Error('not an image'));
+      im.onload=()=>{ try{
+        let w=im.naturalWidth||im.width, h=im.naturalHeight||im.height;
+        const sc=Math.min(1, MEME_MAX/Math.max(w,h));
+        w=Math.max(1,Math.round(w*sc)); h=Math.max(1,Math.round(h*sc));
+        const c=document.createElement('canvas'); c.width=w; c.height=h;
+        const ctx=c.getContext('2d');
+        ctx.fillStyle='#FFFFFF'; ctx.fillRect(0,0,w,h);   // flatten transparency; JPEG has none
+        ctx.drawImage(im,0,0,w,h);
+        res(c.toDataURL('image/jpeg',MEME_Q));
+      }catch(err){ rej(err); } };
+      im.src=fr.result; };
+    fr.readAsDataURL(file);
+  });
+}
+async function addMemeFile(kind,file){
+  if(!file || !/^image\//.test(file.type||'')){ flash('That is not an image'); return; }
+  try{
+    const data=await compressImage(file);
+    if(memeBytes()+data.length > MEME_BUDGET){
+      alert('The meme library is full (about '+Math.round(MEME_BUDGET/1000)+'KB of images).\n\nEvery image rides along on every sync, so the cap is deliberate — remove a few, or paste image links instead of pictures.');
+      return; }
+    db.quotes[kind].push({text:'',img:data});
+    save(); renderQuotes(); flash('Meme added');
+  }catch(e){ console.error(e); flash('Could not read that image'); }
+}
+function addMemeUrl(kind,url){ db.quotes[kind].push({text:'',img:url.trim()}); save(); renderQuotes(); flash('Meme link added'); }
+function memePick(kind,ev){ if(ev) ev.stopPropagation(); memePool=kind; document.getElementById('memeFile').click(); }
+/* Which pool a paste/drop belongs to is read off the section it happened in,
+   so pasting into the Finish half never lands in Start. */
+function poolFromNode(n){ while(n && n!==document){ if(n.dataset && n.dataset.pool) return n.dataset.pool; n=n.parentNode; } return memePool; }
+function armDrop(kind){ memePool=kind;
+  ['start','finish'].forEach(k=>{ const z=document.getElementById(k==='start'?'qStartDrop':'qFinishDrop');
+    if(z) z.classList.toggle('armed',k===kind); }); }
+
 /* ---- the joke library editor (gear 🎭) — user entries only; the shipped
    starter set always plays and never appears here. Bulk add: one per line. */
 function openQuotes(){ renderQuotes(); openModal('quotesModalBg'); }
@@ -1806,21 +1932,32 @@ function renderQuotes(){ ['start','finish'].forEach(k=>{
   el.innerHTML='';
   const arr=db.quotes[k]||[];
   if(!arr.length) el.innerHTML='<p class="sync-note" style="margin:0">Nothing custom yet — the starter set carries the show.</p>';
-  arr.forEach((q,i)=>{ const t=typeof q==='string'?q:((q&&q.text)||'');
-    const row=document.createElement('div');
-    row.style.cssText='display:flex;align-items:center;gap:8px;padding:5px 2px;border-bottom:1px solid var(--border)';
-    const sp=document.createElement('span'); sp.style.cssText='flex:1;min-width:0;font-size:13px'; sp.textContent=t;
+  arr.forEach((q,i)=>{ const e=quoteEntry(q);
+    const row=document.createElement('div'); row.className='q-row';
+    if(e.img){ const im=document.createElement('img'); im.className='q-thumb'; im.alt=''; im.loading='lazy'; im.src=e.img;
+      im.onerror=function(){ this.style.opacity='.3'; this.alt='(link broken)'; };
+      row.appendChild(im); }
+    const sp=document.createElement('span'); sp.className='q-text'+((!e.text&&e.img)?' is-meme':'');
+    sp.textContent=e.text || (e.img ? (e.img.indexOf('data:')===0?'meme':'linked meme') : '');
     const del=document.createElement('button'); del.className='ghost small'; del.textContent='✕'; del.title='Remove';
     del.onclick=()=>{ db.quotes[k].splice(i,1); save(); renderQuotes(); };
     row.append(sp,del); el.appendChild(row); });
   const cnt=document.getElementById(k==='start'?'qStartCnt':'qFinishCnt');
   if(cnt) cnt.textContent=arr.length?('· '+arr.length):'';
-}); }
+});
+  const used=memeBytes(), pct=Math.min(100,Math.round(used/MEME_BUDGET*100));
+  const lbl=document.getElementById('memeBudget'), bar=document.getElementById('memeBar');
+  if(lbl) lbl.textContent='Meme storage: '+Math.round(used/1000)+'KB of '+Math.round(MEME_BUDGET/1000)+'KB'
+    +(used?' — images sync to every device, so the cap is deliberate.':' — nothing stored yet.');
+  if(bar){ bar.classList.toggle('warn',pct>=80); bar.firstChild.style.width=pct+'%'; }
+}
 function addQuotes(k){ const ta=document.getElementById(k==='start'?'qStartAdd':'qFinishAdd');
   const lines=(ta.value||'').split('\n').map(s=>s.trim()).filter(Boolean);
   if(!lines.length) return;
-  lines.forEach(t=>db.quotes[k].push({text:t}));
-  ta.value=''; save(); renderQuotes(); flash(lines.length+' added'); }
+  let links=0;
+  lines.forEach(t=>{ if(isImgUrl(t)){ links++; db.quotes[k].push({text:'',img:t}); } else db.quotes[k].push({text:t}); });
+  ta.value=''; save(); renderQuotes();
+  flash(lines.length+' added'+(links?(' ('+links+' meme link'+(links>1?'s':'')+')'):'')); }
 
 /* =====================================================================
    IMPORT / EXPORT — one-tap export from day one; import keeps an undo
@@ -2115,6 +2252,43 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeGearMenu();
   if(dn.classList.contains('open')){ devNoteConfirm(); return; }
   document.querySelectorAll('.modal-bg.open').forEach(m=>{ m.classList.remove('open'); m.style.zIndex=''; });
   updateModalLock(); cancelPendingConflict(); } });
+
+/* ---- meme intake wiring: paste anywhere inside a pool section, drag onto
+   its box, or pick a photo. All three land in the section they happened in. */
+(function wireMemes(){
+  const file=document.getElementById('memeFile');
+  if(file) file.addEventListener('change',e=>{ const f=e.target.files&&e.target.files[0];
+    if(f) addMemeFile(memePool,f); e.target.value=''; });
+  ['start','finish'].forEach(k=>{
+    const z=document.getElementById(k==='start'?'qStartDrop':'qFinishDrop'); if(!z) return;
+    z.addEventListener('click',()=>{ armDrop(k); try{ z.focus(); }catch(_){} });
+    z.addEventListener('focus',()=>armDrop(k));
+    z.addEventListener('dragover',e=>{ e.preventDefault(); z.classList.add('over'); });
+    z.addEventListener('dragleave',()=>z.classList.remove('over'));
+    z.addEventListener('drop',e=>{ e.preventDefault(); z.classList.remove('over');
+      const dt=e.dataTransfer; if(!dt) return;
+      const f=dt.files&&dt.files[0];
+      if(f){ addMemeFile(k,f); return; }
+      const url=dt.getData('text/uri-list')||dt.getData('text');
+      if(url && isImgUrl(url)) addMemeUrl(k,url);
+      else flash('Drop an image file, or paste its address'); });
+  });
+  document.addEventListener('paste',e=>{
+    const modal=document.getElementById('quotesModalBg');
+    if(!modal || !modal.classList.contains('open')) return;
+    const kind=poolFromNode(e.target);
+    const items=(e.clipboardData&&e.clipboardData.items)||[];
+    for(let i=0;i<items.length;i++){
+      if((items[i].type||'').indexOf('image')===0){ const f=items[i].getAsFile();
+        if(f){ e.preventDefault(); addMemeFile(kind,f); return; } } }
+    // a pasted image ADDRESS: only intercept outside the text boxes, so a
+    // typed-out joke that happens to contain a link is never hijacked
+    const tag=e.target&&e.target.tagName;
+    if(tag==='TEXTAREA'||tag==='INPUT') return;
+    const txt=(e.clipboardData&&e.clipboardData.getData('text'))||'';
+    if(isImgUrl(txt)){ e.preventDefault(); addMemeUrl(kind,txt); }
+  });
+})();
 
 (function wireBell(){
   const e=bellEls();

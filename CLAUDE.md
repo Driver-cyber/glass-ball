@@ -148,9 +148,14 @@ never blocks or nags.
    only**. Claude Code ships the mechanism + a starter library of cultural
    aphorisms and original wry lines. The show-quote library (Arcane, Friends,
    Star Wars, I Think You Should Leave, SNL bits) is **Chad/Joelle-curated
-   content** added by them — do not ship third-party quotes in code. Meme/image
-   support is a parked v2 feature; build the library format so images can slot
-   in later.
+   content** added by them — do not ship third-party quotes in code, ever.
+   **Memes shipped in v0.3.0** (was a parked v2 item): images are pasted,
+   dragged, or picked into the in-app library, downscaled to 480px JPEG, and
+   held under a hard ~1.2MB cap with a visible meter — because the whole db
+   is one synced blob, image weight is sync bandwidth and iOS storage. Pasted
+   image *addresses* are stored as links instead (free, but they can go dead).
+   If the library ever outgrows the cap, the escape hatch is hosted images
+   (Cloudflare R2/Images) or a second KV key — not a bigger blob.
 
 ---
 
