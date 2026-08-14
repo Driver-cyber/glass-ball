@@ -1,5 +1,5 @@
 /* =====================================================================
-   The Glass Ball · service worker · v0.4.0
+   The Glass Ball · service worker · v0.5.0
    The offline shelf. Strategy, in keeping with the storage seam:
 
    - The app's data never passes through here. All state lives in
@@ -14,10 +14,11 @@
    - Bump CACHE with the app version on release-worthy builds — same
      convention as the subtitle + JS header.
    ===================================================================== */
-const CACHE = 'glass-ball-v0.4.0';
+const CACHE = 'glass-ball-v0.5.0';
 const SHELL = [
   './',
   './index.html',
+  './guide.html',
   './manifest.webmanifest',
   './icons/icon-192.png',
   './icons/icon-512.png',
@@ -51,10 +52,13 @@ self.addEventListener('fetch', (e) => {
       fetch(req)
         .then((res) => {
           const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put('./index.html', copy));
+          // cache each page under its own key, so an offline visit to the
+          // guide gets the guide, not the app
+          const page = /guide(\.html)?$/.test(url.pathname) ? './guide.html' : './index.html';
+          caches.open(CACHE).then((c) => c.put(page, copy));
           return res;
         })
-        .catch(() => caches.match('./index.html'))
+        .catch(() => caches.match(/guide(\.html)?$/.test(url.pathname) ? './guide.html' : './index.html'))
     );
     return;
   }

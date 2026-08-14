@@ -266,6 +266,40 @@
       pinned exact version strings and the retired Dev Notes inline input) so
       they stay usable as regression suites. Both re-run green against v0.4.0.
 
+* **[2026-08-14] v0.5.0 — the guide becomes a scrollytelling page.** Chad's
+  call, modelled on his PJT scrolly page: the guide moves out of a modal and
+  onto its own URL — `guide.html`, `/guide` on Pages — as a full-screen
+  scroll-driven tour, mobile-polished first.
+    * *Form:* the daylight edition of the PJT page's bones (sticky `100svh`
+      pins, progress measured against the pin so the collapsing iPhone URL
+      bar can't jitter it, one rAF loop, honest reduced-motion fallback) in
+      Glass Ball's own language — cream field, ink type, glass-blue and gold
+      light. Eight scenes: the orb hero → glass-vs-rubber (the rubber one
+      bounces, with squash; the glass one is held) → the caps filling
+      3-then-5 → six room cards → the moon running a block down with the
+      clock → stickers landing then the gold star spinning in → the no-guilt
+      pledge in huge type → "Go catch today." with the door back in.
+    * *Decision:* every scene is **drawn live** — no screenshots. The app's
+      visuals are simple shapes (balls, slots, the moon, stickers), so the
+      page stays one self-contained file, never goes stale against the real
+      UI, and caches for offline exactly like the app.
+    * *Standalone-PWA safety:* a fixed "← the app" pill and a closing button
+      both point at `./` — in an installed PWA there is no browser chrome, so
+      a page without its own way back is a trap.
+    * *Plumbing:* gear → Guide navigates to the page; the old in-app guide
+      modal is retired. `sw.js` caches `guide.html` in the shell and routes
+      offline navigations to the right page (an offline `/guide` visit used
+      to get `index.html`).
+    * *Two flaws caught by testing, not by eye:* the reduced-motion height
+      reset lost the specificity war against the phone-height `#id !important`
+      rules (motion-averse readers got 30k px of empty scroll — now reset by
+      ID); and the rubber ball's bounce apex crossed the headline's
+      word-arrival lane — box-height arithmetic was wrong because the flex
+      column holds the tag too, so the amplitude is now capped by the
+      **measured** gap at runtime, re-measured on real resizes. Verified by
+      sweeping the whole scene at 3% steps on both widths (min gap 4px phone /
+      15px desktop, and it still bounces).
+
 ## 🤔 Pending Joelle (open design calls)
 * Body/UI typeface pick: Atkinson Hyperlegible vs. Karla vs. Alegreya Sans
   (or another direction she prefers)
