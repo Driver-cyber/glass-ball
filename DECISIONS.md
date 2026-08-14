@@ -109,6 +109,23 @@
       prefill, push-to-day, reload persistence, export strips sync) — all
       green, zero console errors. `node --check` clean on both script blocks.
 
+* **[2026-08-14] v0.1.1 — journals & the switch/recover fold.** Sync went
+  live same-day (Worker `glass-ball-sync`, journal `joelle`, both surfaces
+  synced).
+    * *Decision:* multiple journals under one Worker + secret are **supported
+      on purpose** — "Create a new journal" / "Join & pull" switch which
+      journal *this device* points at; the other cloud copies stay in KV under
+      their IDs. One-journal-per-person remains the intent; the mechanism is
+      the recovery/testing door (iOS storage eviction, new phone, corrupted
+      blob → join back in or start fresh).
+    * *Decision:* once connected, those blocks fold behind a **"Switch or
+      recover a journal…"** carrot (Chad's call) — collapsed by default,
+      first-run keeps them prominent. Everyday surface: status, sync code,
+      backups. Recovery at the edges.
+    * *Shipped as v0.1.1:* subtitle + JS header + SW cache
+      (`glass-ball-v0.1.1`) bumped together, per convention; arrives silently
+      on next online open.
+
 ## 🤔 Pending Joelle (open design calls)
 * Body/UI typeface pick: Atkinson Hyperlegible vs. Karla vs. Alegreya Sans
   (or another direction she prefers)
