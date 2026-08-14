@@ -1,0 +1,9 @@
+{
+  "name": "glass-ball",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The Glass Ball — Joelle's task & schedule app. Catch the glass, let the rubber bounce.",
+  "scripts": {
+    "test": "node --test test/"
+  }
+}

@@ -60,6 +60,55 @@
       priorities reflect Phase 0 scaffold/port, Phase 1 heart, and sync
       go-live across both repos.
 
+* **[2026-08-14] (build session, Claude Code):** Separation surgery + Phase 0–2 core
+  shipped as **v0.1.0** on `claude/glass-ball-task-app-n3izqt` in both repos.
+    * *Founding lineage:* both repos imported from CTT at commit `d202183`
+      (desktop v0.9.3 / mobile v0.9.2 line). Stripped: `src/gertie/`,
+      `PJT-BACKPORT.md`, `HANDOFF.md`, macOS `build.yml`, `src-tauri/`
+      (deleted — Joelle's surfaces are browser + iPhone PWA; a native wrap can
+      return later with its own bundle id), Chiaro assets, all CTT trackers.
+      Kept: LICENSE, the sync Worker (renamed), and the engineering scars.
+    * *App:* fresh single-file `src/index.html` (not a transform of CTT's) with
+      ported components: happy checkbox + spark burst, blueprint inline-entry
+      pattern, focus timer (wall-clock countdown, wake lock, full-screen) with
+      exactly Moon + pixel-grid faces, storage seam, import-undo buffer, KV
+      sync client. Five rooms live: Opening (launch ramp, deep-links to Forge),
+      Calendar (month grid + capped lists + notes + creation modal), Projects
+      (steps + push-to-day bridge), The Forge (picker, time-block auto-load,
+      start joke, complete / still-needs-work / follow-up, month report stub),
+      Closing (stickers, gold star, "It was enough." check).
+    * *Identity:* `STORE_KEY='glassball_v1'`, `SCHEMA='glassball-1'`,
+      `KV_KEY='glassball_kv'`, sync-code prefix `GLASS1-`, Worker binding
+      `GLASS_KV`, Worker file `sync/glass-sync-worker.js`, SW cache
+      `glass-ball-v0.1.0`. Nothing can reach Chad's data.
+    * *Decision:* recurring tasks materialize **lazily** per viewed day from
+      `db.recurring` templates; deleting an instance tombstones that template on
+      that day (`day.skipRecur`); a day at cap skips the instance silently —
+      caps are hard. Edit one-vs-all occurrences stays parked.
+    * *Decision:* stickers/gold stars are **derived** from task state
+      (`dayInfo()`), never stored — the marker always mirrors real state.
+    * *Decision:* start joke shows only when a task is attached; the standalone
+      timer stays a quiet tool. Joke popups dismiss-to-start (X, Esc, and
+      backdrop all begin the block — never blocks, never re-nags).
+    * *Decision:* PWA companions (manifest, sw.js, icons) ship in **both**
+      repos; the two `src/` trees are byte-identical at founding. Divergence
+      begins only when mobile dogfooding demands it.
+    * *Decision:* schema-lockstep suite created at `test/lockstep.test.js`
+      (main repo; `npm test`), with `lockstep.yml` in both repos cloning the
+      sibling (same-named branch first, else main). **Observed failing** on a
+      deliberate one-sided `mergeDefaults` canary, then green after revert —
+      the guard is proven, not assumed. (The CTT jsdom suite referenced in the
+      work order didn't exist in the import; this suite was written fresh.)
+    * *Provisional (pending Joelle):* palette — cream `#FBFAF6`, ink text,
+      glass-blue `#39749B` accent, gold `#D9A21B` stickers/stars; glass rows =
+      sheened blue edge, rubber rows = matte (never color alone); type = system
+      humanist stack led by Avenir Next (webfont pick like Atkinson
+      Hyperlegible still hers to make).
+    * *Verified:* 32-check Chromium smoke suite (boot, caps enforced, sticker
+      rules, deep link, joke → timer, stop → celebrate → quote, follow-up
+      prefill, push-to-day, reload persistence, export strips sync) — all
+      green, zero console errors. `node --check` clean on both script blocks.
+
 ## 🤔 Pending Joelle (open design calls)
 * Body/UI typeface pick: Atkinson Hyperlegible vs. Karla vs. Alegreya Sans
   (or another direction she prefers)
