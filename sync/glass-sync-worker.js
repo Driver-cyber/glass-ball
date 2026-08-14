@@ -1,5 +1,5 @@
 /* =====================================================================
-   Chiaro Tinker Tools — Cloud Sync Worker (Cloudflare)
+   The Glass Ball — Cloud Sync Worker (Cloudflare)
    ---------------------------------------------------------------------
    Stores one JSON blob per "journal" key in a KV namespace, guarded by a
    shared secret. This is the whole backend: the app PUTs its data here and
@@ -7,14 +7,14 @@
    the secret is a Worker secret you set in the Cloudflare dashboard.
 
    SETUP (Cloudflare dashboard):
-     1. Workers & Pages → KV → Create a namespace, e.g. "chiaro-sync".
-     2. Workers & Pages → Create → Worker. Name it e.g. "chiaro-sync".
+     1. Storage & Databases → KV → Create a namespace, e.g. "glass-ball-sync".
+     2. Workers & Pages → Create → Worker. Name it e.g. "glass-ball-sync".
         Paste this file as its code and Deploy.
      3. Worker → Settings → Variables:
-          - Bindings → KV namespace: variable name  CHIARO_KV  → your namespace.
+          - Bindings → KV namespace: variable name  GLASS_KV  → your namespace.
           - Secrets → add  SYNC_SECRET  = a long random passphrase you choose.
         Deploy again after adding these.
-     4. Copy the Worker URL (…workers.dev). In the app: Settings → Cloud Sync →
+     4. Copy the Worker URL (…workers.dev). In the app: gear ⚙ → Cloud Sync →
         paste the URL + the same SYNC_SECRET, Connect, then Create my journal.
 
    The secret is sent in the X-Sync-Secret header. Anyone without it gets 401.
@@ -37,8 +37,8 @@ export default {
     if (!env.SYNC_SECRET || provided !== env.SYNC_SECRET) {
       return new Response('Unauthorized', { status: 401, headers: CORS });
     }
-    if (!env.CHIARO_KV) {
-      return new Response('KV namespace CHIARO_KV is not bound', { status: 500, headers: CORS });
+    if (!env.GLASS_KV) {
+      return new Response('KV namespace GLASS_KV is not bound', { status: 500, headers: CORS });
     }
 
     const url = new URL(request.url);
@@ -46,7 +46,7 @@ export default {
     const kvKey = 'journal:' + journal;
 
     if (request.method === 'GET') {
-      const val = await env.CHIARO_KV.get(kvKey);
+      const val = await env.GLASS_KV.get(kvKey);
       if (val == null) return new Response('', { status: 404, headers: CORS });
       return new Response(val, { status: 200, headers: { ...CORS, 'Content-Type': 'application/json' } });
     }
@@ -56,7 +56,7 @@ export default {
       if (body.length > 24 * 1024 * 1024) {
         return new Response('Payload too large', { status: 413, headers: CORS });
       }
-      await env.CHIARO_KV.put(kvKey, body);
+      await env.GLASS_KV.put(kvKey, body);
       return new Response('OK', { status: 200, headers: CORS });
     }
 

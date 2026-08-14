@@ -1,0 +1,24 @@
+# Schema lockstep guard: this repo and glass-ball-mobile read/write the same
+# synced db, so every push proves the seam still matches the sibling.
+name: lockstep
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+jobs:
+  lockstep:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Clone the mobile sibling (same-named branch when it exists, else main)
+        run: |
+          REPO=https://github.com/Driver-cyber/glass-ball-mobile.git
+          BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
+          git clone --depth 1 --branch "$BRANCH" "$REPO" ../glass-ball-mobile \
+            || git clone --depth 1 "$REPO" ../glass-ball-mobile
+      - name: Run the lockstep suite
+        run: npm test

@@ -1,176 +1,285 @@
-# CLAUDE.md — Chiaro Tinker Tools (CTT)
+# CLAUDE.md — The Glass Ball
 
 *Project constitution. Read this first, every session. Then read `DECISIONS.md`
-and `chiaro-tinker-tools-tracker.html` for current state and priorities.*
+and `glass-ball-tracker.html` for current state and priorities.*
 
 ---
 
 ## 🌟 North Star
 
-**Chiaro's real output isn't in Chiaro. It's in the room Chad walks into after
-he closes it.**
+**The Glass Ball exists so Joelle never drops what actually matters — and never
+feels guilty about what bounces.**
 
-CTT is a personal digital tool belt and studio — today a timecard + project
-journal re-pointed at Chad's ORDO consulting work, eventually a task surface, a
-focus timer (the "tinker's bell"), and whatever the belt grows. But the deeper
-mission is not productivity. It is **trustworthy closure**: a safe place to set
-down everything unresolved — finished or not — so Chad can leave the mind-space
-completely and be present with his family and the people in front of him.
+This is Joelle's task and schedule app, sibling to Chiaro Tinker Tools. Where
+CTT is about *setting work down*, Glass Ball is about *catching the right
+things*. The core metaphor is the juggler's: **glass balls** are tasks with
+real consequences if dropped (school enrollment before the deadline); **rubber
+balls** feel urgent but bounce back fine tomorrow (the dishes). Most task apps
+treat every item as glass. That's the lie this app refuses to tell.
 
-Every other tool measures itself by engagement. This one measures itself by how
-completely it can be *left*. Success looks like Chad half-forgetting CTT exists
-for a few hours because he trusts it to hold what he left there.
+The caps are the philosophy: **max 3 glass balls per day, max 5 rubber.** Three
+glass balls makes "what actually matters today" a bounded, winnable game.
+Everything rubber is explicitly *allowed to bounce* — no shame mechanics, no
+overdue-task guilt piles. When the glass is caught, the day is won. Stickers,
+gold star, done. Rest.
 
-**Two honest ways to be done for today — CTT must make both feel good:**
-- **Completed** — wrapped, finished, the quiet pride of mastery as its own reward.
-- **Entrusted** — open and unfinishable right now, but set down with just enough
-  of a path that it is *bounded* instead of infinite. A lump of clay on a shelf,
-  with a note about what it wants to become. The clay stays clay; it just stops
-  sitting on Chad's chest.
+Success looks like Joelle closing the app mid-afternoon with three stickers and
+zero nagging feeling that she should be doing more.
 
-The dread CTT exists to dissolve is not "unfinished" — it is "undefined, and
-therefore endless." Convert infinite into bounded, and the peace follows.
-
-## 🔦 The Open/Close Lens (design test for every feature)
+## 🤹 The Juggler's Test (design lens for every feature)
 
 For every screen, tool, and feature, answer two questions:
 
-1. **On open:** What is Chad looking for? Orientation, the one next thing, a
-   lamp on the chaos. First function, fast.
-2. **On close:** How should it feel to put down? Held, content, free to go.
+1. **Does it help catch glass?** Fewer taps between opening the app and doing
+   the thing that matters. The Opening dashboard deep-links straight into the
+   Forge — that's the standard: **one tap from "I opened the app" to "the timer
+   is running on my task."**
+2. **Does it let rubber bounce guiltlessly?** No feature may punish, badge,
+   redden, or pile up uncompleted rubber tasks. Incomplete rubber is a neutral
+   fact, not a failure state.
 
-**If a feature can't answer the second question, it probably doesn't earn its
-place.** When proposing new features, state both answers explicitly.
+If a feature can't answer both, it probably doesn't earn its place. When
+proposing new features, state both answers explicitly.
 
-## 🚫 Anti-Engagement Ethos (non-negotiable)
+## 🚫 Anti-Engagement Ethos (inherited from CTT)
 
-- No streaks, badges, gamification, or re-engagement mechanics. Ever.
-- No guilt: no "you haven't logged today," no red dots, no nagging.
-- Closing is a success state, not a churn event. It should feel like an exhale.
-- **Future direction (parked, post-MVP):** intention-on-open / enough-on-close
-  ritual. Chad names what a session is for; when it's met, CTT is a *mirror,
-  not a wall* — it names the "five more minutes" impulse out loud ("you did
-  what you came to do") and points at the door, never blocks. Experimental;
-  see DECISIONS.md parking lot.
+Glass Ball measures itself by how good it feels to *leave*. The Closing surface
+— "you've done enough, go rest" — is a first-class feature, not an afterthought.
+Never add streaks, daily-use pressure, or anything that rewards opening the app
+for its own sake. The gamification celebrates *completion*, never *engagement*.
 
-## 🎨 Aesthetic & Voice
+---
 
-- **Chiaroscuro, taken literally:** dark is the *material*, not a mode. Near-black
-  field, honored and present. **One warm accent** — a lamp in real dark. The
-  warmth comes from the quality of the light and the voice.
-- **Clutter has a home — the edges.** A lived-in bench is human: trinkets,
-  motifs, texture, personality live in empty states, the guide, the bell,
-  naming choices. The *working surfaces* (day grid, project steps) stay crisp
-  and legible. Clutter on the shelf is warmth; clutter on the day-grid is
-  friction. That is the only line.
-- **Voice:** earnest, literate, a little myth-soaked, unpretentious.
-  Apocalyptic optimism — "so it goes," keep walking, carry a small lamp.
-  Ordo ab chao. Light and dark in concert, not several.
-- The focus timer, when it arrives, is a **tinker's bell** — never "pomodoro."
-- Internal shorthand: **CTT**. The app may wink at itself as CTT.
+## 👥 The People
 
-## 🛠 Tech Stack (with rationale)
+- **Joelle** — primary user and **design authority**. She and Chad are
+  co-designing. Her taste wins ties on anything visual or interactive. Open
+  design questions get logged in `DECISIONS.md` parking lot as "pending Joelle"
+  rather than decided unilaterally.
+- **Chad** — builder, product partner, and infrastructure owner. He wires the
+  Cloudflare KV worker and sync plumbing personally; Claude Code builds against
+  the seam he provides.
 
-| Layer | Choice | Why |
-|---|---|---|
-| App | **Single-file HTML** (`src/index.html`) — all markup, CSS, JS inline | Inherited from PJT and proven: portable, rollback-safe (versioned disposable files), debuggable in a plain browser with devtools, no build loop |
-| Framework | **None.** Vanilla JS, one in-memory `db` object | Small surface, no bundler, matches house default |
-| State | Single JSON `db` with a **schema version string** for migrations | PJT pattern; fine at this scale. Revisit (SQLite) only if it outgrows a blob |
-| Persistence (MVP) | `localStorage` under a **new CTT-specific key** + one-tap JSON export/import | New key so CTT can never collide with PJT data |
-| Native bits | **Feature detection** (`window.__TAURI__`) — browser mode is byte-identical with fs as no-ops | The PJT superpower: debug 95% in Chrome, build only for last-mile checks |
-| Web deploy | **Cloudflare Pages**, auto-deploy from GitHub `main` | House default; zero secrets in this path |
-| PWA | Manifest + service worker, early in Phase 1 | Cheap for a single-file app; the iPhone on-ramp |
-| Desktop (later) | **Tauri 2** → macOS `.app`/`.dmg` | PJT's shell, re-pointed. See Phase 0 |
-| Repo | `Driver-cyber/chiaro-tinker-tools` | Public repo; no secrets in source, ever |
+---
 
-## ⚖️ Non-Negotiables
+## 🗺 Product Spec — The Five Tabs
 
-1. **One-tap export from day one.** Chad has lived a near-data-loss
-   (localStorage partitioned per Chrome profile). Export/import ships in the
-   first CTT build and never regresses.
-2. **Keep the storage seam clean.** All persistence flows through one
-   write/read boundary (PJT's `save()`/boot pattern). Sync (Worker+KV or Gist)
-   and encryption must be able to slot in later at that seam without a rewrite.
-   Do not scatter direct `localStorage` calls.
-3. **Schema version on the `db` from the first commit**, with a `normalize()`
-   path for forward compatibility. When migrating, **verify with legacy-shaped
-   data** — the single most load-bearing migration step. Since the surface
-   split (2026-07-24), schema/`normalize()` changes must also stay in lockstep
-   with the mobile sibling (`chiaro-tinker-tools-mobile`) — both repos read
-   and write the same synced db; see DECISIONS.md.
-4. **No secrets in the repo or any distributable.** Runtime injection only.
-   Credentials stripped from every backup and export (PJT pattern).
-5. **Off-device durability before iPhone becomes a primary device.** iOS can
-   evict PWA storage. Sync is parked, but this gate is real: the phone doesn't
-   graduate from companion to primary until a durable off-device copy exists.
-6. **Anti-engagement ethos** (above) is architecture, not polish.
-7. **Original assets only.** No third-party IP.
+**Opening · Calendar · Projects · The Forge · Closing**
 
-## 🗺 Phases
+### 1. Opening (default on launch)
+Today-at-a-glance dashboard: today's glass balls (with their stickers, earned
+or pending), rubber balls below, gold-star status. **Tapping any task
+deep-links into the Forge with that task loaded and its time block set.** This
+is the launch ramp, not a lobby — zero friction between opening the app and
+starting work.
 
-- **Phase 0 — The Trophy.** Wrap the repo *as-is* (still PJT, demo data,
-  original branding) as a macOS `.dmg` via Tauri 2 + GitHub Actions. No sync,
-  no persistence changes, no rebrand. Purpose: a showpiece for Chad's wife and
-  sister, *and* the first live test of the macOS toolchain (Tauri bundler,
-  `macos-latest` runner, Gatekeeper) on a known-good artifact. Tag the commit
-  `pjt-trophy` so it stays reproducible forever. Note: unsigned/un-notarized
-  builds hit Gatekeeper friction — right-click-open is acceptable for a family
-  demo; document the workaround, don't solve signing yet.
-- **Phase 1 — CTT MVP: re-point at ORDO.** The fork becomes CTT. Strip audit
-  binder defaults; projects become free-form custom-step projects. Drop
-  billable/nonbillable/unpaid; lean time codes whose one MVP job is separating
-  **admin time vs. client-deliverable time**. New storage key + schema version.
-  Export carried over. Chiaroscuro rebrand. Deploy to Cloudflare Pages; make it
-  an installable PWA early. Let the form be discovered through iteration — the
-  brief defines the room, not every pixel.
-- **Phase 2 — Templates.** Reusable project scaffolds: bookkeeping cadence,
-  advisory framework, other repeated ORDO workflows.
-- **Phase 3+ — Parked.** macOS wrap of CTT → iPhone native / PWA mobile
-  supremacy → task surface → tinker's bell → sync + encryption when a second
-  device actually joins. See DECISIONS.md parking lot.
+### 2. Calendar (the heart)
+- Full-month calendar page; dates are tappable cards; defaults to today.
+- Gold stars visible on past days where all glass was caught.
+- Selecting a date shows that day's lists below the calendar:
+  - **Glass list** (max 3) — checkboxes left, CTT check-and-strikethrough
+    animation on complete.
+  - **Rubber list** (max 5) — same interaction.
+  - **Expandable Notes** button below (CTT blueprint pattern) — free brain-dump
+    for anything that doesn't fit the lists.
+- **Inline task entry**: type into the empty checklist line to add (CTT
+  blueprint pattern).
+- **Full creation screen**: via a three-dot menu on any task row or the
+  plus-circle button top-right of the Calendar. iPhone-Reminders-style form:
+  - Name — **the only required field** (plus the day being added to)
+  - Date
+  - Recurrence: none / daily / weekly / every other week / monthly
+  - Priority: glass or rubber
+  - Time block: budgeted **minutes** (not a clock time); optional
 
-## 🧗 Inherited Scars (from PJT's BUILD-NOTES — honor these)
+### 3. Projects
+Multi-step, longer-term projects, ported from CTT's projects surface.
+**The bridge:** a project step can be pushed onto a calendar day as a glass or
+rubber ball, so projects feed the daily game instead of living in a silo.
+Bridge polish is backlogged; the v1 port + basic push-to-day comes first.
 
-- `withGlobalTauri` is an **app-level** setting in `tauri.conf.json` — wrong
-  placement fails silently (app runs in "browser mode," no file ever written).
-- `build.frontendDist` points at `../src`; the file to overwrite is always
-  `src/index.html`.
-- **Green build ≠ working app.** CI compiling proves nothing about runtime fs.
-  Real test: install → edit → confirm the data file appears.
-- Pick the **bundle identifier** deliberately on day one (Phase 0 keeps PJT's;
-  Phase 3 CTT wrap gets its own, e.g. `com.chiarotinkertools.ctt`). Data nests
-  under it — surface the *resolved* path in-app, never a guess.
-- `window.prompt()` is unreliable in Tauri WebViews — use in-app modals.
-- Rolling daily backups beat a single overwriting file.
-- CSP: if native builds need outbound API calls later, allowlist explicitly —
-  don't ship `"csp": null`.
+### 4. The Forge (the workspace)
+- **Focus timer** ported from CTT with exactly **two renderers: Moon and pixel
+  grid** (hot-swappable, CTT registry pattern).
+- Date selector (defaults today) + month report chips + a "Select a task"
+  picker window.
+- Picking a task from that day's list **auto-loads its time block minutes**
+  into the timer.
+- Timer: start / pause / stop, custom minutes, reset. **Standalone mode**: the
+  timer works decoupled from any task (e.g., expanded without a selection).
+- **Start flow:** pressing start pops a wry joke/quote window → user taps
+  start again to close it and begin. (Never blocks: closable instantly.)
+- **Stop / timeout flow:** always the same two options —
+  - **Task complete** → checks it off: popup shows task name + checkbox
+    animation + strikethrough + **sticker earned**. From there: X to close, or
+    tap complete again for a dry/encouraging closing quote.
+  - **Still needs work** → offers +15 / +30 / custom more minutes to continue,
+    **or** "Create follow-up" → opens the task creation screen pre-filled from
+    the original with "Follow up: " prefixed to the name, so the remainder
+    lands somewhere deliberate on the calendar.
+- Completing a task via the Forge routes the celebration here (popup), then
+  the Closing surface carries the "enough" moment.
+- **Month report** (within the Forge): completed tasks vs. budget — ahead or
+  behind the assigned time block. Actual time = time elapsed on the timer when
+  marked complete. **Deprioritized for initial builds** — mechanism can stub.
+
+### 5. Closing
+The celebration and rest surface. Reflects the day's stickers and gold-star
+status, asks the quiet question — *have you done enough?* — and points at the
+door. Mirror, not wall (CTT principle): it names the impulse to keep going, it
+never blocks or nags.
+
+---
+
+## 🏅 Gamification Rules (exact)
+
+1. Each **glass ball** completed earns a **sticker** for that day. Visible on
+   the task line and the day.
+2. A day holds up to **3 sticker slots**. If a day has fewer than 3 glass
+   balls, the remaining sticker(s) are granted when the **last** glass ball of
+   that day is completed. (Two glass balls → third sticker arrives with the
+   second completion.)
+3. All glass complete → the day earns a **gold star**, shown on the Calendar
+   and Opening surfaces, persistent across past days.
+4. Rubber balls get the satisfying check animation but **no stickers, no
+   penalties, no visual debt** when skipped.
+5. **Jokes/quotes**: one on timer start (sarcastic-about-work flavor), one on
+   the second "complete" tap (dry but genuinely encouraging). v1 is **text
+   only**. Claude Code ships the mechanism + a starter library of cultural
+   aphorisms and original wry lines. The show-quote library (Arcane, Friends,
+   Star Wars, I Think You Should Leave, SNL bits) is **Chad/Joelle-curated
+   content** added by them — do not ship third-party quotes in code. Meme/image
+   support is a parked v2 feature; build the library format so images can slot
+   in later.
+
+---
+
+## 🎨 Design Language
+
+- **Background:** white with *just a little* cream — softens the glare of pure
+  white without reading warm or yellow. Target neighborhood: `#FBFAF6`. Not
+  CTT's chiaroscuro; not the house walnut. This app lives in daylight.
+- **Text:** black. High contrast, effortless legibility.
+- **Type:** functional and easy to read, with a little more personality than a
+  pure utility face. Candidate direction (pending Joelle — log the pick in
+  `DECISIONS.md`): **Atkinson Hyperlegible**, **Karla**, or **Alegreya Sans**
+  for body/UI; pair with a modest display face only if the design earns it.
+- **Classic at the baseline, fun in the moments.** The calm cream-and-black
+  shell earns the joy: check animations, stickers, gold stars, joke popups.
+  Delight is concentrated at completion moments, not sprinkled as decoration.
+- **Glass vs. rubber must be visually distinct at a glance** — treatment
+  pending Joelle (subtle glassy sheen vs. matte is one direction). Never rely
+  on color alone.
+- Mobile-first layouts in the mobile repo; desktop-comfortable in main.
+- This app has its **own design language**. The house walnut/amber/Fraunces
+  system applies only to `glass-ball-tracker.html`, never to the app itself.
+
+---
+
+## 🛠 Tech Stack & Architecture (with rationale)
+
+- **Two repos, CTT pattern:**
+  - `Driver-cyber/glass-ball` — main repo, desktop-browser primary.
+  - `Driver-cyber/glass-ball-mobile` — iPhone-primary surface (Joelle's daily
+    driver).
+  - Both deploy via **Cloudflare Pages** auto-deploy from `main`.
+- **Single-file vanilla HTML/CSS/JS** (`src/index.html` or root `index.html`
+  per repo) — house default. No framework, no build step: makes Pages deploys
+  bulletproof and the whole app greppable. Reach for more only if genuinely
+  warranted, and propose first.
+- **Ported CTT components** (new repo, not a fork): blueprint-style day lists
+  + inline entry, check/strikethrough animation, Moon + pixel-grid timer
+  renderers + hot-swap registry, projects surface. Port deliberately — copy
+  the component, strip CTT-specific state, rename storage touchpoints.
+- **Storage & sync:**
+  - `localStorage` under a **new Glass Ball-specific key** (never reuse CTT's).
+  - **Cloudflare KV worker sync from day one** — Chad wires the worker
+    (step-one, in parallel with the scaffold). Claude Code builds the storage
+    layer **against the sync seam from the first commit**: a single storage
+    module boundary through which all reads/writes pass, so KV sync attaches
+    without refactoring.
+  - `SCHEMA_VERSION` + `normalize()` on load (house pattern) — every schema
+    change bumps the version and extends `normalize()` so old data always
+    upgrades cleanly. Forward-compatible from commit one.
+  - Both repos share one schema and one KV namespace — the two surfaces are
+    views of the same data.
+
+## 🔒 Non-Negotiables
+
+1. **Caps are hard:** 3 glass / 5 rubber per day, enforced in the UI. No
+   override setting. The constraint *is* the product.
+2. **Rubber never accrues guilt.** No overdue states, red badges, or nag
+   surfaces for rubber tasks. Ever.
+3. **No secrets in either repo.** KV worker credentials/config live in the
+   worker environment, entered/managed at runtime — repos stay safely public.
+4. **All storage I/O goes through the storage module.** No direct
+   `localStorage` calls scattered in feature code — the sync seam depends on it.
+5. **`SCHEMA_VERSION` + `normalize()`** on every load; never ship a schema
+   change without them.
+6. **Joke popups never block.** Instantly closable/skippable, always.
+7. **No third-party quotes or IP shipped in code.** Mechanism + original
+   content only; curated show quotes are user-added data.
+8. **Joelle's design call wins ties.** Unsettled visual/interaction questions
+   go to the parking lot as "pending Joelle," not to a unilateral default.
+
+---
+
+## 📅 Phases
+
+- **Phase 0 — Scaffold & Port:** Both repos created; cream/black shell with
+  five tabs; CTT components ported and de-CTT'd; storage module + schema +
+  `normalize()` in place with the sync seam stubbed. *(Chad wires the KV
+  worker in parallel.)*
+- **Phase 1 — The Heart:** Calendar (month view, day cards, glass/rubber
+  lists, notes, inline + full task creation, recurrence); Opening dashboard
+  with the Forge deep-link; KV sync live across both surfaces.
+- **Phase 2 — The Game:** Forge full flow (task picker, time-block auto-load,
+  start joke, complete/still-needs-work/follow-up); stickers, gold stars,
+  completion celebration; Closing surface.
+- **Parked:** month report analytics, meme/image joke library, Projects↔
+  Calendar bridge polish, additional timer renderers, anything else that
+  surfaces (→ `DECISIONS.md` parking lot).
+
+Phase transitions are **red team gates** (see Maintenance).
+
+---
 
 ## 🧠 Memory & Strategy
 
-- **Read first:** `DECISIONS.md` for current vibe and settled decisions;
-  the tracker (`chiaro-tinker-tools-tracker.html`) for current priorities.
-- **Measure twice:** propose a plan before any multi-file or structural change
-  and wait for explicit approval ('y' / 'go'). Rules are defaults, judgment is
-  primary — if we've agreed the cost of measuring exceeds the cost of
-  re-cutting, say so and move.
-- **Pivots:** if a request contradicts prior decisions, ask "are we pivoting?"
+- **Read first, every session:** this file → `DECISIONS.md` → the tracker.
+- **Check the tracker:** Read `glass-ball-tracker.html` for current priorities
+  before starting work. Update it at the end of any session that changes
+  priorities.
+- **Measure twice:** Before any multi-file or multi-step change, propose a
+  plan and wait for explicit approval ('y' / 'go'). Chad works in bursts —
+  reconstruct context from the docs at each session start rather than assuming
+  continuity.
+- **Are we pivoting?** If a request contradicts the docs or prior code, ask
   before refactoring.
-- **Token thrift:** targeted reads over recursive scans. The app is one big
-  file — use anchors/greps for sections, ask for locations if unsure. Deliver
-  changes as targeted edits unless a full-file rewrite is genuinely simpler.
-- **"idk" is a valid stance.** Low confidence is an invitation to connect,
-  not a license to improvise alone. Name assumptions; prefer reversible moves.
-- **Push back.** Chad drives product decisions and wants technical pushback
-  when something's wrong — suggestions over pronouncements, but honest ones.
+- **Token thrift:** Ask for specific file paths rather than scanning
+  recursively. Targeted greps over full reads. Confirm scope before lengthy
+  output.
+- **Structured feedback:** Chad tests and returns numbered notes — treat them
+  as the precise primary input for the next iteration.
+- **Terminal comfort:** Moderate. Number any CLI/deploy steps. Don't
+  over-explain product concepts — Chad and Joelle know the domain.
 
-## 📝 Maintenance Protocol
+## 📝 Maintenance Rules
 
-- After a major pivot or completed phase, ask: "Should I update DECISIONS.md?"
-- **Tracker:** update `chiaro-tinker-tools-tracker.html` at the end of any
-  session that completes or changes priorities. Bump the `updated` date in both
-  the visual header and the JSON data block.
-- **Red team at phase gates and after time gaps.** Chad works in bursts; a
-  session restart after days/weeks away is a valid red-team trigger. Argue
-  *against* recent decisions; land each in Confirmed / Revised / Scheduled.
-- Version-bump the app subtitle + JS comment header on each release-worthy
-  build (PJT convention).
+- **Log changes:** After a major decision or pivot, ask: "Should I update
+  DECISIONS.md?" Convert relative dates to absolute (YYYY-MM-DD).
+- **Build tracker:** Update `glass-ball-tracker.html` at the end of sessions
+  that complete or change priorities — both the visual board and the JSON
+  block, including the `updated` date in both places.
+- **Red team triggers:** at every phase gate; after ~2–3 completed features;
+  at the first session after a significant time gap. Argue *against* recent
+  decisions; land each on **Confirmed / Revised / Scheduled**.
+- **Context reset:** Suggest `/clear` when conversation history exceeds ~20
+  messages.
+
+---
+
+*Founded 2026-08-14 in a planning session with Claude (claude.ai). Sibling to
+Chiaro Tinker Tools. Built by Chad, for Joelle, co-designed by both.*
+
+**Catch the glass. Let the rubber bounce.**

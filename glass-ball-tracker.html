@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Glass Ball — Build Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --walnut: #2C1A0E;
+    --card: #3D2410;
+    --border: #4A2E18;
+    --amber: #F2A24A;
+    --wheat: #F5DEB3;
+    --rust: #7A3B1E;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--walnut);
+    color: var(--wheat);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    min-height: 100vh;
+    padding: 32px 20px 56px;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; }
+  header { margin-bottom: 28px; }
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 2rem;
+    color: var(--amber);
+    letter-spacing: 0.01em;
+  }
+  .tagline {
+    font-size: 0.95rem;
+    color: var(--wheat);
+    opacity: 0.85;
+    margin-top: 6px;
+  }
+  .meta {
+    font-size: 0.8rem;
+    color: var(--rust);
+    margin-top: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .meta b { color: var(--amber); }
+  .columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 720px) { .columns { grid-template-columns: 1fr; } }
+  .col {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px 20px;
+  }
+  .col h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1.25rem;
+    color: var(--wheat);
+  }
+  .col .sub {
+    font-size: 0.8rem;
+    color: var(--rust);
+    font-weight: 600;
+    margin: 4px 0 18px;
+  }
+  ol.priorities { list-style: none; counter-reset: p; }
+  ol.priorities li {
+    counter-increment: p;
+    display: flex;
+    gap: 14px;
+    margin-bottom: 16px;
+    align-items: flex-start;
+  }
+  ol.priorities li::before {
+    content: counter(p);
+    flex: 0 0 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--amber);
+    color: var(--walnut);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+  }
+  .p-title { font-weight: 600; font-size: 0.95rem; }
+  .p-note { font-size: 0.82rem; opacity: 0.75; margin-top: 3px; line-height: 1.45; }
+  .backlog-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin: 20px 0 10px;
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+  }
+  ul.backlog { list-style: none; }
+  ul.backlog li {
+    font-size: 0.84rem;
+    color: var(--wheat);
+    opacity: 0.7;
+    padding-left: 16px;
+    position: relative;
+    margin-bottom: 7px;
+    line-height: 1.4;
+  }
+  ul.backlog li::before {
+    content: "•";
+    color: var(--rust);
+    position: absolute;
+    left: 0;
+    font-weight: 700;
+  }
+  footer {
+    margin-top: 30px;
+    font-size: 0.78rem;
+    color: var(--rust);
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>The Glass Ball</h1>
+    <div class="tagline">Joelle's task &amp; schedule app — catch the glass, let the rubber bounce. Sibling to Chiaro Tinker Tools.</div>
+    <div class="meta">Updated <b>2026-08-14</b></div>
+  </header>
+
+  <div class="columns">
+    <div class="col">
+      <h2>glass-ball</h2>
+      <div class="sub">Main repo · desktop-primary · vanilla single-file · Cloudflare Pages</div>
+      <ol class="priorities">
+        <li><div><div class="p-title">KV sync live</div><div class="p-note">Chad's Cloudflare clicks + paste sync/glass-sync-worker.js (binding GLASS_KV, new SYNC_SECRET). Then connect in-app (gear → Cloud Sync), create the journal, and prove a cross-device pull/push.</div></div></li>
+        <li><div><div class="p-title">Merge to main + Pages deploys</div><div class="p-note">Merge the founding branch in both repos together (schema lockstep), stand up the two Cloudflare Pages projects (build output dir: src), pick domains.</div></div></li>
+        <li><div><div class="p-title">Co-design checkpoint with Joelle</div><div class="p-note">She drives: typeface, glass vs. rubber treatment, sticker/gold-star art, display name, and first-week friction. Provisional cream/ink/glass-blue/gold palette holds until she calls it.</div></div></li>
+      </ol>
+      <div class="backlog-label">Backlog</div>
+      <ul class="backlog">
+        <li>Month report growth (weekly view, streaks-free totals) — mechanism shipped, stub-level</li>
+        <li>Meme/image joke library (format is image-ready; show quotes are Chad/Joelle-curated data)</li>
+        <li>Projects ↔ Calendar bridge polish (step completion ↔ ball completion linkage)</li>
+        <li>Recurring-task edit edge cases (one vs. all occurrences)</li>
+        <li>Closing surface refinement once the game is felt in real use</li>
+      </ul>
+    </div>
+
+    <div class="col">
+      <h2>glass-ball-mobile</h2>
+      <div class="sub">iPhone-primary · Joelle's daily driver · PWA · Cloudflare Pages</div>
+      <ol class="priorities">
+        <li><div><div class="p-title">Install-flow test on Joelle's iPhone</div><div class="p-note">Add to home screen → airplane mode → open → the room is still there. Green build ≠ working app; this is the real test.</div></div></li>
+        <li><div><div class="p-title">Sync joined from the phone</div><div class="p-note">One-paste GLASS1- sync code from the desktop, auto-sync on, then the notes-survive-background check.</div></div></li>
+        <li><div><div class="p-title">Mobile ergonomics (M1)</div><div class="p-note">Discovered through dogfooding, not speculated: thumb reach, tap targets, day-grid density, keyboard behavior. Real friction writes this backlog.</div></div></li>
+      </ol>
+      <div class="backlog-label">Backlog</div>
+      <ul class="backlog">
+        <li>Mobile-specific layout divergence when dogfooding demands it (files currently identical to main)</li>
+        <li>Sync conflict handling beyond last-write-wins</li>
+        <li>Pending Joelle: typeface pick, glass vs. rubber visual treatment, sticker art, app display name</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer>Ordo ab chao · Built by Chad, for Joelle, co-designed by both</footer>
+</div>
+
+<script id="tracker-data" type="application/json">
+{
+  "project": "The Glass Ball",
+  "description": "Joelle's glass/rubber-ball task and schedule app — catch what matters, let the rest bounce; sibling to CTT.",
+  "updated": "2026-08-14",
+  "columns": [
+    {
+      "name": "glass-ball",
+      "sub": "Main repo · desktop-primary · vanilla single-file · Cloudflare Pages",
+      "priorities": [
+        { "title": "KV sync live", "note": "Chad's Cloudflare clicks + paste sync/glass-sync-worker.js (binding GLASS_KV, new SYNC_SECRET); connect in-app, create journal, prove a cross-device pull/push." },
+        { "title": "Merge to main + Pages deploys", "note": "Merge the founding branch in both repos together (schema lockstep); stand up both Cloudflare Pages projects (output dir: src); pick domains." },
+        { "title": "Co-design checkpoint with Joelle", "note": "Typeface, glass vs. rubber treatment, sticker/gold-star art, display name, first-week friction. Provisional palette holds until she calls it." }
+      ],
+      "backlog": [
+        "Month report growth — mechanism shipped, stub-level",
+        "Meme/image joke library (format image-ready; show quotes are user-curated data)",
+        "Projects ↔ Calendar bridge polish (step ↔ ball completion linkage)",
+        "Recurring-task edit edge cases (one vs. all)",
+        "Closing surface refinement after real use"
+      ],
+      "shipped": [
+        { "date": "2026-08-14", "what": "Founded the pair from the CTT import: full separation surgery (identity, sync worker, no CTT keys) + Glass Ball v0.1.0 — five rooms, month-calendar heart with hard glass/rubber caps, task creation with recurrence + time blocks, Forge timer (Moon + pixel grid) with start-joke and complete/still-needs-work/follow-up flow, stickers + gold stars, projects with push-to-day, KV sync client (GLASS1-), PWA shell, and a schema-lockstep suite proven to fail on one-sided drift.", "tags": ["founding", "port", "pwa", "sync", "testing"], "learned": "A lockstep guard isn't real until you've watched it go red on a deliberate one-sided change." }
+      ]
+    },
+    {
+      "name": "glass-ball-mobile",
+      "sub": "iPhone-primary · Joelle's daily driver · PWA · Cloudflare Pages",
+      "priorities": [
+        { "title": "Install-flow test on Joelle's iPhone", "note": "Add to home screen → airplane mode → open → the room is still there. The real test." },
+        { "title": "Sync joined from the phone", "note": "One-paste GLASS1- sync code, auto-sync on, notes-survive-background check." },
+        { "title": "Mobile ergonomics (M1)", "note": "Discovered through dogfooding: thumb reach, tap targets, day-grid density, keyboard behavior." }
+      ],
+      "backlog": [
+        "Mobile-specific layout divergence when dogfooding demands it (files currently identical to main)",
+        "Sync conflict handling beyond last-write-wins",
+        "Pending Joelle: typeface, glass vs. rubber treatment, sticker art, display name"
+      ],
+      "shipped": [
+        { "date": "2026-08-14", "what": "Founding PWA: Glass Ball v0.1.0 app (identical to main at founding) + manifest, offline-shell service worker (glass-ball-v0.1.0, silent updates), original glass-orb icon set, iOS safe-area + no-zoom scars carried over.", "tags": ["founding", "pwa", "icons"] }
+      ]
+    }
+  ]
+}
+</script>
+</body>
+</html>
