@@ -143,9 +143,9 @@
       <h2>glass-ball</h2>
       <div class="sub">Main repo · desktop-primary · vanilla single-file · Cloudflare Pages</div>
       <ol class="priorities">
-        <li><div><div class="p-title">KV sync live</div><div class="p-note">Chad's Cloudflare clicks + paste sync/glass-sync-worker.js (binding GLASS_KV, new SYNC_SECRET). Then connect in-app (gear → Cloud Sync), create the journal, and prove a cross-device pull/push.</div></div></li>
-        <li><div><div class="p-title">Merge to main + Pages deploys</div><div class="p-note">Merge the founding branch in both repos together (schema lockstep), stand up the two Cloudflare Pages projects (build output dir: src), pick domains.</div></div></li>
-        <li><div><div class="p-title">Co-design checkpoint with Joelle</div><div class="p-note">She drives: typeface, glass vs. rubber treatment, sticker/gold-star art, display name, and first-week friction. Provisional cream/ink/glass-blue/gold palette holds until she calls it.</div></div></li>
+        <li><div><div class="p-title">Co-design checkpoint with Joelle</div><div class="p-note">She drives: typeface, glass vs. rubber treatment, sticker/gold-star art, display name. Provisional cream/ink/glass-blue/gold palette holds until she calls it.</div></div></li>
+        <li><div><div class="p-title">First real week — let friction write the backlog</div><div class="p-note">Sync is live and both Pages sites deploy from main. Joelle's numbered notes become the next iteration's primary input.</div></div></li>
+        <li><div><div class="p-title">Custom domains (optional)</div><div class="p-note">Pages.dev URLs work today; pick her domains when ready. Sync fields already take absolute URLs, so a domain move is safe.</div></div></li>
       </ol>
       <div class="backlog-label">Backlog</div>
       <ul class="backlog">
@@ -187,9 +187,9 @@
       "name": "glass-ball",
       "sub": "Main repo · desktop-primary · vanilla single-file · Cloudflare Pages",
       "priorities": [
-        { "title": "KV sync live", "note": "Chad's Cloudflare clicks + paste sync/glass-sync-worker.js (binding GLASS_KV, new SYNC_SECRET); connect in-app, create journal, prove a cross-device pull/push." },
-        { "title": "Merge to main + Pages deploys", "note": "Merge the founding branch in both repos together (schema lockstep); stand up both Cloudflare Pages projects (output dir: src); pick domains." },
-        { "title": "Co-design checkpoint with Joelle", "note": "Typeface, glass vs. rubber treatment, sticker/gold-star art, display name, first-week friction. Provisional palette holds until she calls it." }
+        { "title": "Co-design checkpoint with Joelle", "note": "Typeface, glass vs. rubber treatment, sticker/gold-star art, display name. Provisional palette holds until she calls it." },
+        { "title": "First real week — friction writes the backlog", "note": "Sync live, both Pages sites deploying from main. Joelle's numbered notes drive the next iteration." },
+        { "title": "Custom domains (optional)", "note": "Pages.dev works today; sync fields take absolute URLs, so a domain move is safe." }
       ],
       "backlog": [
         "Month report growth — mechanism shipped, stub-level",
@@ -199,6 +199,7 @@
         "Closing surface refinement after real use"
       ],
       "shipped": [
+        { "date": "2026-08-14", "what": "v0.1.1 — sync live same-day (Worker + journal joelle, both surfaces synced); create/join journal blocks now fold behind a Switch-or-recover carrot once connected.", "tags": ["sync", "settings"] },
         { "date": "2026-08-14", "what": "Founded the pair from the CTT import: full separation surgery (identity, sync worker, no CTT keys) + Glass Ball v0.1.0 — five rooms, month-calendar heart with hard glass/rubber caps, task creation with recurrence + time blocks, Forge timer (Moon + pixel grid) with start-joke and complete/still-needs-work/follow-up flow, stickers + gold stars, projects with push-to-day, KV sync client (GLASS1-), PWA shell, and a schema-lockstep suite proven to fail on one-sided drift.", "tags": ["founding", "port", "pwa", "sync", "testing"], "learned": "A lockstep guard isn't real until you've watched it go red on a deliberate one-sided change." }
       ]
     },

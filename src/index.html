@@ -314,7 +314,7 @@ body.modal-open{overflow:hidden;}
 <body>
 
 <div class="appbar">
-  <div class="brand"><span class="brand-orb" aria-hidden="true"></span><span>The Glass Ball<small>catch the glass · v0.1.0</small></span></div>
+  <div class="brand"><span class="brand-orb" aria-hidden="true"></span><span>The Glass Ball<small>catch the glass · v0.1.1</small></span></div>
   <div class="maintabs">
     <div class="maintab active" data-m="opening" onclick="switchMain('opening')">Opening</div>
     <div class="maintab" data-m="calendar" onclick="switchMain('calendar')">Calendar</div>
@@ -662,19 +662,28 @@ body.modal-open{overflow:hidden;}
       <button class="small ghost" id="copyKeyBtn" onclick="copyJournalKey()">Copy</button></div>
   </div>
 
+  <!-- Switch/recover fold: prominent on first run (a new device NEEDS create/
+       join), tucked behind a carrot once a journal is connected — recovery
+       tools live at the edges, the everyday surface stays crisp. -->
   <div id="syncSetupBlocks">
-    <div class="sync-row">
-      <h3>Create a new journal</h3>
-      <p class="sync-note">First device? Create the journal — it uploads the current data to your Cloudflare KV.</p>
-      <input id="newJournalName" placeholder="Journal name (e.g. joelle)" style="margin-top:8px" />
-      <div style="margin-top:8px"><button class="small" onclick="createJournal()">Create my journal</button></div>
-    </div>
-    <div class="sync-row">
-      <h3>Join an existing journal</h3>
-      <p class="sync-note">New device, or recovering? Paste the Journal ID and pull it down.</p>
-      <input id="restoreId" placeholder="Journal ID" style="margin-top:8px" />
-      <div style="margin-top:8px"><button class="small" onclick="restoreFromId()">Join &amp; pull</button>
-        <button class="small ghost" onclick="leaveJournal()" style="margin-left:6px">Leave journal (this device)</button></div>
+    <h3 id="switchHead" onclick="toggleSwitchRow()" style="display:none;cursor:pointer;user-select:none;font-size:14px;margin:2px 2px 10px">
+      <span class="bell-carrot" id="switchCarrot" style="display:inline-block;transition:transform .18s">▸</span> Switch or recover a journal…
+    </h3>
+    <div id="switchBody">
+      <p class="sync-note" id="switchNote" style="display:none;margin:0 0 10px">Switching repoints <em>this device</em> only — the current cloud copy stays safe in KV under its Journal ID, rejoinable anytime.</p>
+      <div class="sync-row">
+        <h3>Create a new journal</h3>
+        <p class="sync-note">First device? Create the journal — it uploads the current data to your Cloudflare KV.</p>
+        <input id="newJournalName" placeholder="Journal name (e.g. joelle)" style="margin-top:8px" />
+        <div style="margin-top:8px"><button class="small" onclick="createJournal()">Create my journal</button></div>
+      </div>
+      <div class="sync-row">
+        <h3>Join an existing journal</h3>
+        <p class="sync-note">New device, or recovering? Paste the Journal ID and pull it down.</p>
+        <input id="restoreId" placeholder="Journal ID" style="margin-top:8px" />
+        <div style="margin-top:8px"><button class="small" onclick="restoreFromId()">Join &amp; pull</button>
+          <button class="small ghost" onclick="leaveJournal()" style="margin-left:6px">Leave journal (this device)</button></div>
+      </div>
     </div>
   </div>
 
@@ -708,7 +717,12 @@ body.modal-open{overflow:hidden;}
 <input type="file" id="importFile" accept="application/json" style="display:none">
 <script>
 /* =====================================================================
-   The Glass Ball · v0.1.0 — Joelle's task & schedule app. Founded
+   The Glass Ball · v0.1.1 — Joelle's task & schedule app.
+   v0.1.1: sync settings — once a journal is connected, the create/join
+   blocks fold behind a "Switch or recover a journal…" carrot (multiple
+   journals under one Worker are supported on purpose; the fold keeps the
+   everyday surface crisp while the recovery door stays reachable).
+   v0.1.0: founded 2026-08-14 —
    2026-08-14 by porting components from Chiaro Tinker Tools (the happy
    checkbox, the blueprint inline-entry pattern, the focus timer with the
    Moon + pixel-grid faces, the storage seam, import-undo, and the KV
@@ -767,7 +781,7 @@ const STORE_KEY = 'glassball_v1';   // Glass Ball's own key — never the CTT si
 const SCHEMA    = 'glassball-1';
 const CAPS = { glass:3, rubber:5 };   // the caps ARE the product — no override
 let db = {
-  version:'0.1.0', schema:SCHEMA, lastEdit:0,
+  version:'0.1.1', schema:SCHEMA, lastEdit:0,
   days:{},        // 'YYYY-MM-DD' → {glass:[task], rubber:[task], note:'', skipRecur:[], enough:false}
   recurring:[],   // repeat templates: {id,name,priority,blockMin,freq,anchor}
   projects:[],    // {id,name,notes,archived,createdDate,modifiedDate,steps:[{id,text,done,pushedTo}]}
@@ -1881,7 +1895,19 @@ function kvDisconnect(){
 function copySyncCode(){ if(!isConnected()){ syncMsg('Create or join a journal first.',true); return; }
   const code=encSyncCode(kvCfg().url, kvCfg().secret, db.sync.journalId);
   navigator.clipboard.writeText(code).then(()=>syncMsg('Sync code copied — paste it on another device to set it up in one step.'),()=>syncMsg('Copy failed — select it manually.',true)); }
-function openSettings(){ renderSync(); renderUndoBtn(); syncMsg(''); openModal('settingsModalBg'); }
+/* Switch/recover fold: default open while there's no journal yet (first-run
+   path), folded once connected. The default is set on modal open only, so a
+   mid-modal re-render never snaps it shut under the user. */
+let switchOpen=false;
+function setSwitchRow(open){ switchOpen=open;
+  const b=document.getElementById('switchBody'), c=document.getElementById('switchCarrot');
+  const h=document.getElementById('switchHead'), n=document.getElementById('switchNote');
+  if(h) h.style.display=isConnected()?'block':'none';
+  if(n) n.style.display=isConnected()?'block':'none';
+  if(b) b.style.display=(open||!isConnected())?'block':'none';
+  if(c) c.style.transform=open?'rotate(90deg)':''; }
+function toggleSwitchRow(){ setSwitchRow(!switchOpen); }
+function openSettings(){ renderSync(); setSwitchRow(!isConnected()); renderUndoBtn(); syncMsg(''); openModal('settingsModalBg'); }
 function syncBoot(){ if(isConnected()){ setSyncDot('on'); if(db.sync.auto) syncPull(false); } else setSyncDot('off'); }
 function scheduleAutoPush(){ if(syncing||!isConnected()||!db.sync.auto) return; clearTimeout(pushTimer); pushTimer=setTimeout(()=>syncPush(false), 4000); }
 function cancelPendingConflict(){ if(conflictResolver){ const r=conflictResolver; conflictResolver=null; r('cancel'); } }
