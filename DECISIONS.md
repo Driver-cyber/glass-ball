@@ -215,6 +215,30 @@
       block loaded — the one-tap launch ramp is the whole point of this room,
       and the subheader line now says so out loud.
 
+* **[2026-08-14] v0.3.3 — creation rows must never commit on a timer.**
+  Joelle's report: in Dev Notes the composer popped open mid-word, right
+  after the first space.
+    * *Root cause:* `bindCommit()` (a 700ms debounce, built for auto-saving
+      *edits*) was also wired to the *creation* rows. A normal thinking pause
+      fired it. Chasing it turned up a worse, unreported instance of the same
+      defect in the daily flow: typing "Buy milk" with a pause created a ball
+      named **"milkBuy"** — the commit cleared the field and re-rendered the
+      list while the remaining keystrokes were still arriving.
+    * *Decision:* creation gets its own binding, `bindCreate()` — commits on
+      **Enter or blur only**, never on a timer — while staying in the
+      pending-flush registry so backgrounding on iOS still rescues what was
+      typed. Edits keep the debounce; they don't re-render or clear a field,
+      so they were never at risk.
+    * *Decision (Chad):* Dev Notes drops inline typing altogether. The compose
+      row is a **door, not a field**: one tap opens the composer with the
+      title focused. No keyboard-then-modal flicker on the phone, and the
+      pop-open-mid-word failure mode is structurally impossible. An untouched
+      draft is discarded; anything typed is kept by ✓, X, or the backdrop.
+    * *Verified:* 17-check Chromium pass replaying the exact typing-with-a-
+      pause that produced "milkBuy", plus blur-commit, the iOS background
+      flush, the full Dev Notes loop (open, save, discard-empty, edit,
+      delete), and the project creation row.
+
 ## 🤔 Pending Joelle (open design calls)
 * Body/UI typeface pick: Atkinson Hyperlegible vs. Karla vs. Alegreya Sans
   (or another direction she prefers)
