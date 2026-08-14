@@ -178,13 +178,20 @@ body{padding-left:env(safe-area-inset-left, 0px);padding-right:env(safe-area-ins
 .day-note{width:100%;margin-top:8px;min-height:110px;font-size:13.5px;line-height:1.55;resize:vertical;}
 
 /* ---------- Opening ---------- */
-.open-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:4px 2px 16px;}
-.open-date{font-size:22px;font-weight:800;}
+/* Opening is a DASHBOARD, and the title says so: "at a glance" sets the
+   expectation that this room reports, it doesn't edit. The two doors out
+   sit right under it as a subheader rather than stranded at the bottom. */
+.open-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:4px 2px 8px;}
+.open-date{font-size:clamp(19px,5.2vw,24px);font-weight:800;margin:0;letter-spacing:-.01em;}
+.open-glance{font-weight:500;color:var(--muted);}
+.open-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  margin:0 2px 18px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.open-actions .open-hint{font-size:12.5px;color:var(--muted);font-style:italic;line-height:1.5;flex:1 1 100%;}
+@media (min-width:640px){ .open-actions .open-hint{flex:0 1 auto;} }
 .open-row{cursor:pointer;}
 .open-row:hover{border-color:var(--glass);}
 .open-empty{border:1px dashed var(--border);border-radius:12px;padding:18px 16px;color:var(--muted);
   font-size:13.5px;line-height:1.6;text-align:center;font-style:italic;}
-.open-forge-hint{font-size:12px;color:var(--muted);margin:10px 2px 0;font-style:italic;}
 
 /* ---------- Projects ---------- */
 .proj-card{margin-bottom:16px;}
@@ -353,7 +360,7 @@ body.modal-open{overflow:hidden;}
 <body>
 
 <div class="appbar">
-  <div class="brand"><span class="brand-orb" aria-hidden="true"></span><span>The Glass Ball<small>catch the glass · v0.3.1</small></span></div>
+  <div class="brand"><span class="brand-orb" aria-hidden="true"></span><span>The Glass Ball<small>catch the glass · v0.3.2</small></span></div>
   <div class="maintabs">
     <div class="maintab active" data-m="opening" onclick="switchMain('opening')">Opening</div>
     <div class="maintab" data-m="calendar" onclick="switchMain('calendar')">Calendar</div>
@@ -383,20 +390,20 @@ body.modal-open{overflow:hidden;}
 <div class="main-pane active" id="main-opening">
   <div class="wrap">
     <div class="open-head">
-      <div class="open-date" id="openDate">Today</div>
+      <h2 class="open-date">Your <span id="openDate">today</span> <span class="open-glance">at a glance</span></h2>
       <div class="stick-slots" id="openSticks"></div>
       <span class="muted" id="openGoldNote"></span>
+    </div>
+    <div class="open-actions">
+      <span class="open-hint">Tap a ball to run it in the Forge. To add, edit, or plan another day —</span>
+      <button class="ghost small" onclick="switchMain('calendar')">Open the Calendar</button>
+      <button class="ghost small" onclick="switchMain('forge')">Just the timer</button>
     </div>
     <div id="openGoldBanner"></div>
     <div class="list-head"><span class="glyph">◉</span> Glass <span class="cnt" id="openGlassCnt"></span></div>
     <div id="openGlassList"></div>
     <div class="list-head"><span class="glyph">○</span> Rubber <span class="cnt" id="openRubberCnt"></span></div>
     <div id="openRubberList"></div>
-    <div class="open-forge-hint">Tap any ball to load it in the Forge — timer set, ready to start.</div>
-    <div style="display:flex;gap:9px;margin-top:16px;flex-wrap:wrap">
-      <button class="ghost" onclick="switchMain('calendar')">Open the Calendar</button>
-      <button class="ghost" onclick="switchMain('forge')">Just the timer</button>
-    </div>
   </div>
 </div>
 
@@ -833,7 +840,12 @@ body.modal-open{overflow:hidden;}
 <input type="file" id="importFile" accept="application/json" style="display:none">
 <script>
 /* =====================================================================
-   The Glass Ball · v0.3.1 — Joelle's task & schedule app.
+   The Glass Ball · v0.3.2 — Joelle's task & schedule app.
+   v0.3.2: Opening reads as the dashboard it is — "Your <date> at a
+   glance" — and the two doors out (Calendar, Forge) move from the bottom
+   of the page into a subheader right under the title, so "look here,
+   edit there" is legible without scrolling.
+   v0.3.1:
    v0.3.1: the glass/rubber choice reads honestly. The ◉/○ glyphs looked
    like radio buttons, so the UNSELECTED half still appeared chosen
    (Joelle's catch). The motif is now an actual ball — glass spherical and
@@ -919,7 +931,7 @@ const STORE_KEY = 'glassball_v1';   // Glass Ball's own key — never the CTT si
 const SCHEMA    = 'glassball-1';
 const CAPS = { glass:3, rubber:5 };   // the caps ARE the product — no override
 let db = {
-  version:'0.3.1', schema:SCHEMA, lastEdit:0,
+  version:'0.3.2', schema:SCHEMA, lastEdit:0,
   days:{},        // 'YYYY-MM-DD' → {glass:[task], rubber:[task], note:'', skipRecur:[], enough:false}
   recurring:[],   // repeat templates: {id,name,priority,blockMin,freq,anchor}
   projects:[],    // {id,name,notes,archived,createdDate,modifiedDate,steps:[{id,text,done,pushedTo}]}
