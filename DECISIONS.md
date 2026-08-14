@@ -202,6 +202,19 @@
       the ✓ moving, fill/border deltas, aria flipping, and that saving still
       lands on the chosen priority.
 
+* **[2026-08-14] v0.3.2 — the Opening announces itself as a dashboard.**
+  Chad: the room needed to say "this is a glance," so it's obvious that
+  adding and editing happen in the Calendar.
+    * *Decision:* the title becomes **"Your <date> at a glance"** (the date
+      bold, "at a glance" lighter) instead of a bare date, and the two doors
+      out — Open the Calendar / Just the timer — move from the bottom of the
+      page into a subheader directly under the title, over a rule. The
+      look-here / edit-there split is now legible without scrolling, which
+      matters most on the phone where the lists push everything down.
+    * *Kept:* tapping a ball still deep-links straight into the Forge with its
+      block loaded — the one-tap launch ramp is the whole point of this room,
+      and the subheader line now says so out loud.
+
 ## 🤔 Pending Joelle (open design calls)
 * Body/UI typeface pick: Atkinson Hyperlegible vs. Karla vs. Alegreya Sans
   (or another direction she prefers)
