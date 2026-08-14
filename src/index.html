@@ -282,10 +282,28 @@ body.modal-open{overflow:hidden;}
 .field{margin-bottom:13px;}
 .field label{display:block;font-size:12px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;
   color:var(--muted);margin-bottom:5px;}
+/* Segmented choice. The ball motif is a real little ball, never a radio
+   glyph — a ◉ sitting in the UNSELECTED half read as "still chosen", which
+   is exactly the confusion this control must not create. Selection is
+   carried by three things at once (fill, border weight, and a ✓), so it
+   never rests on colour alone. */
 .seg{display:flex;gap:6px;flex-wrap:wrap;}
-.seg button{flex:1;background:transparent;color:var(--text);border:1px solid var(--border);font-weight:600;}
-.seg button.on{background:var(--ink);color:var(--btn-ink);border-color:var(--ink);}
+.seg button{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  background:transparent;color:var(--muted);border:1px solid var(--border);font-weight:600;
+  padding:10px 12px;line-height:1.3;transition:background .15s,color .15s,border-color .15s;}
+.seg button:hover{color:var(--text);border-color:var(--glass);}
+.seg button.on{background:var(--ink);color:var(--btn-ink);border-color:var(--ink);border-width:2px;font-weight:700;}
 .seg button.on.glassy{background:var(--glass);border-color:var(--glass);}
+.seg .seg-check{font-weight:900;flex:none;opacity:0;width:0;overflow:hidden;transition:opacity .15s;}
+.seg button.on .seg-check{opacity:1;width:auto;}
+/* the two balls, told apart by material rather than by colour alone:
+   glass is spherical and lit, rubber is flat and matte with a soft edge */
+.ball-dot{width:15px;height:15px;border-radius:50%;flex:none;}
+.ball-dot.glass{background:radial-gradient(circle at 36% 30%, #E8F3F9 0 2px, #7FB0CE 6px, var(--glass-deep) 12px);
+  box-shadow:inset -1px -2px 3px rgba(0,0,0,.22), 0 1px 2px rgba(0,0,0,.18);}
+.ball-dot.rubber{background:var(--muted);opacity:.5;box-shadow:none;}
+.seg button.on .ball-dot.rubber{background:var(--btn-ink);opacity:.85;}
+.seg button.on .ball-dot.glass{box-shadow:inset -1px -2px 3px rgba(0,0,0,.22), 0 0 0 2px rgba(255,255,255,.55);}
 .sync-row{border:1px solid var(--border);border-radius:12px;padding:13px;margin-bottom:12px;background:var(--bg);}
 .sync-row h3{margin:0 0 6px;font-size:14px;}
 .keybox{display:flex;gap:8px;align-items:center;margin-top:8px;}
@@ -335,7 +353,7 @@ body.modal-open{overflow:hidden;}
 <body>
 
 <div class="appbar">
-  <div class="brand"><span class="brand-orb" aria-hidden="true"></span><span>The Glass Ball<small>catch the glass · v0.3.0</small></span></div>
+  <div class="brand"><span class="brand-orb" aria-hidden="true"></span><span>The Glass Ball<small>catch the glass · v0.3.1</small></span></div>
   <div class="maintabs">
     <div class="maintab active" data-m="opening" onclick="switchMain('opening')">Opening</div>
     <div class="maintab" data-m="calendar" onclick="switchMain('calendar')">Calendar</div>
@@ -519,8 +537,8 @@ body.modal-open{overflow:hidden;}
     <input type="date" id="tmDate"></div>
   <div class="field"><label>Priority</label>
     <div class="seg">
-      <button type="button" id="tmGlass" onclick="tmSetPriority('glass')">◉ Glass — it matters</button>
-      <button type="button" id="tmRubber" onclick="tmSetPriority('rubber')">○ Rubber — it bounces</button>
+      <button type="button" id="tmGlass" onclick="tmSetPriority('glass')"><span class="ball-dot glass" aria-hidden="true"></span>Glass — it matters<span class="seg-check" aria-hidden="true">✓</span></button>
+      <button type="button" id="tmRubber" onclick="tmSetPriority('rubber')"><span class="ball-dot rubber" aria-hidden="true"></span>Rubber — it bounces<span class="seg-check" aria-hidden="true">✓</span></button>
     </div></div>
   <div class="field"><label>Time block (minutes — optional)</label>
     <input type="text" inputmode="numeric" id="tmBlock" placeholder="e.g. 30"></div>
@@ -567,8 +585,8 @@ body.modal-open{overflow:hidden;}
   <div class="field"><label>Day</label><input type="date" id="pushDate"></div>
   <div class="field"><label>As</label>
     <div class="seg">
-      <button type="button" id="pushGlass" onclick="pushSetPriority('glass')">◉ Glass</button>
-      <button type="button" id="pushRubber" onclick="pushSetPriority('rubber')">○ Rubber</button>
+      <button type="button" id="pushGlass" onclick="pushSetPriority('glass')"><span class="ball-dot glass" aria-hidden="true"></span>Glass<span class="seg-check" aria-hidden="true">✓</span></button>
+      <button type="button" id="pushRubber" onclick="pushSetPriority('rubber')"><span class="ball-dot rubber" aria-hidden="true"></span>Rubber<span class="seg-check" aria-hidden="true">✓</span></button>
     </div></div>
   <p class="sync-note" id="pushMsg" style="min-height:16px;color:var(--danger)"></p>
   <div class="modal-actions">
@@ -815,7 +833,14 @@ body.modal-open{overflow:hidden;}
 <input type="file" id="importFile" accept="application/json" style="display:none">
 <script>
 /* =====================================================================
-   The Glass Ball · v0.3.0 — Joelle's task & schedule app.
+   The Glass Ball · v0.3.1 — Joelle's task & schedule app.
+   v0.3.1: the glass/rubber choice reads honestly. The ◉/○ glyphs looked
+   like radio buttons, so the UNSELECTED half still appeared chosen
+   (Joelle's catch). The motif is now an actual ball — glass spherical and
+   lit, rubber flat and matte — and the selection is carried by fill +
+   heavier border + a ✓ (never colour alone), with aria-pressed for
+   assistive tech.
+   v0.3.0:
    v0.3.0: the meme library lands — paste, drag, or pick images straight
    into the joke library (gear 🎭). Images are downscaled to 480px JPEG
    before storage and held under a hard ~1.2MB cap with a visible meter,
@@ -894,7 +919,7 @@ const STORE_KEY = 'glassball_v1';   // Glass Ball's own key — never the CTT si
 const SCHEMA    = 'glassball-1';
 const CAPS = { glass:3, rubber:5 };   // the caps ARE the product — no override
 let db = {
-  version:'0.3.0', schema:SCHEMA, lastEdit:0,
+  version:'0.3.1', schema:SCHEMA, lastEdit:0,
   days:{},        // 'YYYY-MM-DD' → {glass:[task], rubber:[task], note:'', skipRecur:[], enough:false}
   recurring:[],   // repeat templates: {id,name,priority,blockMin,freq,anchor}
   projects:[],    // {id,name,notes,archived,createdDate,modifiedDate,steps:[{id,text,done,pushedTo}]}
@@ -1171,12 +1196,18 @@ function setTaskDone(ds,id,dn,actualMin){
 let tmCtx=null;   // null = create; {ds,id} = edit
 let tmPriority='glass';
 let tmScope='one';   // recurring edits: 'one' (this day) | 'all' (template + future repeats)
+/* One place that knows how a segment shows "chosen": the class carries the
+   look (fill + heavier border + ✓), aria-pressed carries it for a screen
+   reader, since the ✓ and the ball are decorative. */
+function segState(id,on,glassy){ const b=document.getElementById(id); if(!b) return;
+  b.className=on?(glassy?'on glassy':'on'):'';
+  b.setAttribute('aria-pressed', on?'true':'false'); }
 function tmSetPriority(p){ tmPriority=p;
-  document.getElementById('tmGlass').className=(p==='glass')?'on glassy':'';
-  document.getElementById('tmRubber').className=(p==='rubber')?'on':''; }
+  segState('tmGlass', p==='glass', true);
+  segState('tmRubber', p==='rubber', false); }
 function tmSetScope(sc){ tmScope=sc;
-  document.getElementById('tmScopeOne').className=(sc==='one')?'on':'';
-  document.getElementById('tmScopeAll').className=(sc==='all')?'on':''; }
+  segState('tmScopeOne', sc==='one', false);
+  segState('tmScopeAll', sc==='all', false); }
 function openTaskModal(ctx,prefill){
   tmCtx=ctx||null;
   const isEdit=!!(ctx&&ctx.id);
@@ -1382,8 +1413,8 @@ function buildStepRow(p,s,isNew){
 /* ---- the bridge: push a step onto a day ---- */
 let pushCtx=null, pushPriority='rubber';
 function pushSetPriority(pr){ pushPriority=pr;
-  document.getElementById('pushGlass').className=(pr==='glass')?'on glassy':'';
-  document.getElementById('pushRubber').className=(pr==='rubber')?'on':''; }
+  segState('pushGlass', pr==='glass', true);
+  segState('pushRubber', pr==='rubber', false); }
 function openPushModal(pid,sid){
   const p=db.projects.find(x=>x.id===pid); const s=p&&p.steps.find(x=>x.id===sid);
   if(!s||!(s.text||'').trim()) return;

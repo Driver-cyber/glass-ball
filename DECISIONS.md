@@ -185,6 +185,23 @@
       events, compression bounds, section routing, cap refusal, delete, popup
       painting, and reload persistence — green, zero console errors.
 
+* **[2026-08-14] v0.3.1 — the glass/rubber choice reads honestly.** Joelle's
+  catch, on the phone: the priority segments used ◉ / ○ glyphs baked into the
+  labels, which look exactly like radio buttons — so with Rubber selected, the
+  Glass half still showed a *filled* ◉ and appeared chosen.
+    * *Decision:* the motif becomes an actual ball, not a control glyph —
+      glass is a small lit sphere, rubber is flat and matte (material, not
+      colour, per the design language). Selection is carried by three signals
+      at once: filled background, heavier border, and a ✓ that only the chosen
+      segment shows. Unselected text goes muted.
+    * *Also:* `aria-pressed` now tracks selection (the ball and ✓ are
+      decorative), and one `segState()` helper owns "how a segment looks
+      chosen" for all three segmented controls — priority, push-to-day, and
+      the recurring-edit scope.
+    * *Verified:* 12-check Chromium pass at iPhone width covering both states,
+      the ✓ moving, fill/border deltas, aria flipping, and that saving still
+      lands on the chosen priority.
+
 ## 🤔 Pending Joelle (open design calls)
 * Body/UI typeface pick: Atkinson Hyperlegible vs. Karla vs. Alegreya Sans
   (or another direction she prefers)
