@@ -314,13 +314,14 @@ body.modal-open{overflow:hidden;}
 <body>
 
 <div class="appbar">
-  <div class="brand"><span class="brand-orb" aria-hidden="true"></span><span>The Glass Ball<small>catch the glass · v0.1.1</small></span></div>
+  <div class="brand"><span class="brand-orb" aria-hidden="true"></span><span>The Glass Ball<small>catch the glass · v0.2.0</small></span></div>
   <div class="maintabs">
     <div class="maintab active" data-m="opening" onclick="switchMain('opening')">Opening</div>
     <div class="maintab" data-m="calendar" onclick="switchMain('calendar')">Calendar</div>
     <div class="maintab" data-m="projects" onclick="switchMain('projects')">Projects</div>
     <div class="maintab" data-m="forge" onclick="switchMain('forge')">The Forge</div>
     <div class="maintab" data-m="closing" onclick="switchMain('closing')">Closing</div>
+    <div class="maintab" data-m="devnotes" onclick="switchMain('devnotes')">Dev Notes</div>
   </div>
   <div class="spacer"></div>
   <div class="save-pill"><span class="save-dot" id="saveDot"></span><span id="saveStatus">Saved</span></div>
@@ -329,6 +330,7 @@ body.modal-open{overflow:hidden;}
     <button class="ghost small gear-btn" onclick="toggleGearMenu(event)" title="Menu" aria-label="Menu">⚙</button>
     <div class="gear-menu" id="gearMenu">
       <button onclick="gearGo(openSettings)">☁&nbsp; Cloud Sync…</button>
+      <button onclick="gearGo(openQuotes)">🎭&nbsp; Joke library…</button>
       <button onclick="gearGo(function(){openModal('guideModalBg')})">❔&nbsp; Guide</button>
       <div class="divider"></div>
       <div class="menu-label">Backup &amp; export</div>
@@ -351,7 +353,7 @@ body.modal-open{overflow:hidden;}
     <div id="openGlassList"></div>
     <div class="list-head"><span class="glyph">○</span> Rubber <span class="cnt" id="openRubberCnt"></span></div>
     <div id="openRubberList"></div>
-    <div class="open-forge-hint">Tap any task to load it in the Forge — timer set, ready to start.</div>
+    <div class="open-forge-hint">Tap any ball to load it in the Forge — timer set, ready to start.</div>
     <div style="display:flex;gap:9px;margin-top:16px;flex-wrap:wrap">
       <button class="ghost" onclick="switchMain('calendar')">Open the Calendar</button>
       <button class="ghost" onclick="switchMain('forge')">Just the timer</button>
@@ -367,7 +369,7 @@ body.modal-open{overflow:hidden;}
       <div class="cal-title" id="calTitle">Month</div>
       <button class="ghost small" onclick="calShift(1)" aria-label="Next month">›</button>
       <button class="ghost small" onclick="calToday()">Today</button>
-      <button class="cal-add" onclick="openTaskModal(null)" title="New task" aria-label="New task">+</button>
+      <button class="cal-add" onclick="openTaskModal(null)" title="New ball" aria-label="New ball">+</button>
     </div>
     <div class="cal-grid" id="calGrid"></div>
 
@@ -406,7 +408,7 @@ body.modal-open{overflow:hidden;}
     <div class="task-window" onclick="openPicker()" id="taskWindow">
       <span class="tw-glyph" id="twGlyph">◉</span>
       <span style="flex:1;min-width:0">
-        <div class="tw-label" id="twLabel">Select a task to start</div>
+        <div class="tw-label" id="twLabel">Select a ball to start</div>
         <div class="tw-sub" id="twSub">Pick one of the day's balls — its time block loads into the timer.</div>
       </span>
       <span class="muted">▾</span>
@@ -444,7 +446,7 @@ body.modal-open{overflow:hidden;}
         <span><span class="bell-carrot" id="repCarrot">▸</span> 📈 Month report <span class="muted" id="repMonthLbl"></span></span>
       </h3>
       <div class="body" id="reportBody" style="display:none"></div>
-      <div class="hint" id="reportHint" style="display:none">Completed tasks vs. their time blocks — ahead means it took less than budgeted. Early days; this view will grow.</div>
+      <div class="hint" id="reportHint" style="display:none">Caught balls vs. their time blocks — ahead means it took less than budgeted. Early days; this view will grow.</div>
     </div>
   </div>
 </div>
@@ -466,13 +468,30 @@ body.modal-open{overflow:hidden;}
   </div>
 </div>
 
+<!-- ============================= DEV NOTES ============================= -->
+<!-- Joelle's direct line to the builder: quick capture in the house list
+     style, a composer for details, copy-all to text the batch, clear after
+     sending. Notes sync, so a phone note reaches the desktop too. -->
+<div class="main-pane" id="main-devnotes">
+  <div class="wrap">
+    <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:6px">
+      <div class="cal-title" style="min-width:0">Dev Notes</div>
+      <span style="flex:1"></span>
+      <button class="ghost small" onclick="copyDevNotes()">⧉ Copy all</button>
+      <button class="ghost small" onclick="clearDevNotes()">Clear notes</button>
+    </div>
+    <p class="muted" style="margin:0 0 14px;line-height:1.6">Something broken, weird, or wished-for? Name it below — a composer opens for the details. When you've got a batch, <b>Copy all</b> and text it to Chad, then <b>Clear</b>.</p>
+    <div id="devList"></div>
+  </div>
+</div>
+
 <!-- ============================= MODALS ============================= -->
 
 <!-- Task create / edit — the iPhone-Reminders-style form. Name is the only
      required field (plus the day it lands on). -->
 <div class="modal-bg" id="taskModalBg"><div class="modal">
   <button class="x-btn" onclick="closeModal('taskModalBg')" aria-label="Close">✕</button>
-  <h2 id="taskModalTitle">New task</h2>
+  <h2 id="taskModalTitle">New ball</h2>
   <div class="field"><label>Name</label>
     <input id="tmName" placeholder="What needs doing?" onkeydown="if(event.key==='Enter')taskModalSave()"></div>
   <div class="field"><label>Day</label>
@@ -492,30 +511,37 @@ body.modal-open{overflow:hidden;}
       <option value="biweekly">Every other week</option>
       <option value="monthly">Monthly</option>
     </select></div>
+  <div class="field hidden" id="tmScopeField"><label>Apply changes to</label>
+    <div class="seg">
+      <button type="button" id="tmScopeOne" onclick="tmSetScope('one')">This day only</button>
+      <button type="button" id="tmScopeAll" onclick="tmSetScope('all')">All future repeats</button>
+    </div>
+    <p class="sync-note" style="margin-top:6px">"All future" applies the name and minutes to every not-yet-caught repeat. Day and priority always edit this day only.</p></div>
   <p class="sync-note" id="tmMsg" style="min-height:16px;color:var(--danger)"></p>
   <div class="modal-actions">
     <button class="ghost danger-slot hidden" id="tmDeleteBtn" onclick="taskModalDelete()">Delete</button>
+    <button class="ghost hidden" id="tmEndRepeatBtn" onclick="taskModalEndRepeat()">End repeat</button>
     <span style="flex:1"></span>
     <button class="ghost" onclick="closeModal('taskModalBg')">Cancel</button>
-    <button onclick="taskModalSave()" id="tmSaveBtn">Add task</button>
+    <button onclick="taskModalSave()" id="tmSaveBtn">Add ball</button>
   </div>
 </div></div>
 
 <!-- Forge task picker -->
 <div class="modal-bg" id="pickerModalBg"><div class="modal">
   <button class="x-btn" onclick="closeModal('pickerModalBg')" aria-label="Close">✕</button>
-  <h2>Select a task</h2>
+  <h2>Select a ball</h2>
   <p class="muted" id="pickerDayLbl" style="margin-top:0"></p>
   <div id="pickerList"></div>
   <div class="modal-actions">
-    <button class="ghost" onclick="pickTask(null)">No task — just the timer</button>
+    <button class="ghost" onclick="pickTask(null)">No ball — just the timer</button>
   </div>
 </div></div>
 
 <!-- Push a project step onto a day -->
 <div class="modal-bg" id="pushModalBg"><div class="modal">
   <button class="x-btn" onclick="closeModal('pushModalBg')" aria-label="Close">✕</button>
-  <h2>Send step to a day</h2>
+  <h2>Send ball to a day</h2>
   <p class="muted" id="pushStepLbl" style="margin-top:0"></p>
   <div class="field"><label>Day</label><input type="date" id="pushDate"></div>
   <div class="field"><label>As</label>
@@ -548,7 +574,7 @@ body.modal-open{overflow:hidden;}
   <h2 id="finishTitle">Time's up</h2>
   <p style="margin-top:0" id="finishTaskLbl"></p>
   <div class="modal-actions" style="justify-content:center;flex-direction:column;align-items:stretch">
-    <button onclick="finishComplete()">✓ Task complete</button>
+    <button onclick="finishComplete()">✓ Ball caught</button>
     <button class="ghost" onclick="finishStillWork()">Still needs work…</button>
   </div>
 </div></div>
@@ -592,6 +618,43 @@ body.modal-open{overflow:hidden;}
     <button class="ghost" onclick="closeModal('quoteBg');switchMain('closing')">→ Closing</button>
     <button onclick="closeModal('quoteBg')">Done</button>
   </div>
+</div></div>
+
+<!-- Dev note composer — X and the round check both SAVE and close; a jotted
+     bug report is never lost to a stray tap. -->
+<div class="modal-bg" id="devNoteBg"><div class="modal">
+  <button class="x-btn" onclick="devNoteConfirm()" aria-label="Save and close">✕</button>
+  <div class="field"><label>Dev note</label>
+    <input id="dnTitle" placeholder="What happened / what you wish for"></div>
+  <div class="field"><label>Details</label>
+    <textarea id="dnBody" style="min-height:140px" placeholder="What you did, what you expected, what actually happened — anything helps."></textarea></div>
+  <div class="modal-actions" style="justify-content:space-between;align-items:center">
+    <button class="ghost small" onclick="devNoteDelete()">Delete</button>
+    <button onclick="devNoteConfirm()" title="Save &amp; close" aria-label="Save and close" style="width:54px;height:54px;border-radius:50%;font-size:22px;padding:0">✓</button>
+  </div>
+</div></div>
+
+<!-- Joke library — the user-curated pool. The shipped starter set always
+     plays; entries here (the show quotes) add to it, sync, and export. -->
+<div class="modal-bg" id="quotesModalBg"><div class="modal wide">
+  <button class="x-btn" onclick="closeModal('quotesModalBg')" aria-label="Close">✕</button>
+  <h2 style="margin-top:0">🎭 Joke library</h2>
+  <p class="muted" style="margin-top:0">Your own lines — Arcane, Friends, Star Wars, ITYSL, SNL, whatever makes you two laugh. They sync across devices and ride along in backups. Paste several at once, one per line. (Meme images: a v2 slot is reserved.)</p>
+  <div class="sync-row">
+    <h3>Start jokes <span class="muted" id="qStartCnt"></span></h3>
+    <p class="sync-note">Wry, sarcastic-about-work — one pops when a timer starts.</p>
+    <div id="qStartList" style="margin-top:8px"></div>
+    <textarea id="qStartAdd" style="margin-top:8px;min-height:56px" placeholder="Add start joke(s) — one per line"></textarea>
+    <div style="margin-top:8px"><button class="small" onclick="addQuotes('start')">Add</button></div>
+  </div>
+  <div class="sync-row">
+    <h3>Finish encouragements <span class="muted" id="qFinishCnt"></span></h3>
+    <p class="sync-note">Dry but genuinely encouraging — one pops on the second Complete tap.</p>
+    <div id="qFinishList" style="margin-top:8px"></div>
+    <textarea id="qFinishAdd" style="margin-top:8px;min-height:56px" placeholder="Add finish line(s) — one per line"></textarea>
+    <div style="margin-top:8px"><button class="small" onclick="addQuotes('finish')">Add</button></div>
+  </div>
+  <div class="modal-actions"><button class="ghost" onclick="closeModal('quotesModalBg')">Close</button></div>
 </div></div>
 
 <!-- Import confirm -->
@@ -707,7 +770,7 @@ body.modal-open{overflow:hidden;}
   <h2 style="margin-top:0">❔ The Glass Ball — a short guide</h2>
   <div style="font-size:13.5px;line-height:1.7;color:var(--text)">
     <p><strong>The idea.</strong> Some tasks are <strong>◉ glass balls</strong> — drop them and something real breaks (enrollment paperwork before the deadline). Most are <strong>○ rubber balls</strong> — they feel urgent, but they bounce back fine tomorrow (the dishes). Each day holds at most <strong>3 glass</strong> and <strong>5 rubber</strong>. That's not a limitation, it's the point: three glass balls is a winnable day.</p>
-    <p><strong>The rooms.</strong> <strong>Opening</strong> shows today at a glance — tap any task and the Forge loads it, timer set. <strong>Calendar</strong> is the heart: pick a day, type into an empty line to add a ball, or use ⋯ / + for the full form (repeats, time blocks). <strong>Projects</strong> holds bigger multi-step things — any step can be sent onto a day as a ball. <strong>The Forge</strong> is where you work: pick a task, the timer loads its minutes, start. <strong>Closing</strong> is the exhale.</p>
+    <p><strong>The rooms.</strong> <strong>Opening</strong> shows today at a glance — tap any ball and the Forge loads it, timer set. <strong>Calendar</strong> is the heart: pick a day, type into an empty line to add a ball, or use ⋯ / + for the full form (repeats, time blocks). <strong>Projects</strong> holds bigger multi-step things — any step can be sent onto a day as a ball. <strong>The Forge</strong> is where you work: pick a ball, the timer loads its minutes, start. <strong>Closing</strong> is the exhale. <strong>Dev Notes</strong> is the suggestion box: spot a bug or wish for something, jot it there, then Copy-all and text the batch to Chad.</p>
     <p><strong>The game.</strong> Every glass ball caught earns a <strong>sticker ✦</strong>. Catch all of a day's glass and the day gets a <strong>gold star ★</strong> on the calendar. Rubber gets the satisfying check — and zero guilt when it bounces. No streaks, ever. When the glass is caught, you're done. Go rest.</p>
     <p><strong>Your data.</strong> Everything saves on this device automatically. Gear ⚙ → Export backup any time. Cloud sync (optional) keeps phone + computer as two views of the same days.</p>
   </div>
@@ -717,7 +780,14 @@ body.modal-open{overflow:hidden;}
 <input type="file" id="importFile" accept="application/json" style="display:none">
 <script>
 /* =====================================================================
-   The Glass Ball · v0.1.1 — Joelle's task & schedule app.
+   The Glass Ball · v0.2.0 — Joelle's task & schedule app.
+   v0.2.0: everything is a BALL (naming sweep — tasks and project steps
+   alike); new Dev Notes room (quick capture → auto-open composer →
+   copy-all batch → clear after sending; synced); joke library editor
+   (gear 🎭) for the Chad/Joelle-curated lines; the project bridge closes
+   (catching a ball checks its project step, and unchecking unchecks);
+   recurring edits gain this-day-only vs all-future + End repeat; month
+   report gains worked-vs-budgeted totals.
    v0.1.1: sync settings — once a journal is connected, the create/join
    blocks fold behind a "Switch or recover a journal…" carrot (multiple
    journals under one Worker are supported on purpose; the fold keeps the
@@ -781,7 +851,7 @@ const STORE_KEY = 'glassball_v1';   // Glass Ball's own key — never the CTT si
 const SCHEMA    = 'glassball-1';
 const CAPS = { glass:3, rubber:5 };   // the caps ARE the product — no override
 let db = {
-  version:'0.1.1', schema:SCHEMA, lastEdit:0,
+  version:'0.2.0', schema:SCHEMA, lastEdit:0,
   days:{},        // 'YYYY-MM-DD' → {glass:[task], rubber:[task], note:'', skipRecur:[], enough:false}
   recurring:[],   // repeat templates: {id,name,priority,blockMin,freq,anchor}
   projects:[],    // {id,name,notes,archived,createdDate,modifiedDate,steps:[{id,text,done,pushedTo}]}
@@ -824,6 +894,7 @@ function mergeDefaults(p){
   p.projects=Array.isArray(p.projects)?p.projects:[];
   p.projects.forEach(pr=>{ pr.steps=Array.isArray(pr.steps)?pr.steps:[]; if(pr.notes==null) pr.notes=''; });
   p.quotes=Object.assign({start:[],finish:[]}, p.quotes||{});
+  p.devnotes=Array.isArray(p.devnotes)?p.devnotes:[];   // Dev Notes room: [{id,title,note,at}] — SCHEMA LOCKSTEP with the sibling repo
   p.settings=Object.assign({forgeVis:'moon'}, p.settings||{});
   p.sync=Object.assign({journalId:null,journalName:'',auto:false,lastSync:null,myHash:null}, p.sync||{});
   return p;
@@ -838,7 +909,8 @@ function normalize(p){ p=mergeDefaults(p); if(p.schema!==SCHEMA){ /* future migr
 /* ---------- the day model: glass & rubber ---------- */
 function getDay(ds,create=true){ if(!db.days[ds]&&create) db.days[ds]={glass:[],rubber:[],note:'',skipRecur:[]}; return db.days[ds]; }
 function makeTask(name,opts){ opts=opts||{}; return {id:uid(),name:name||'',done:false,doneAt:null,
-  blockMin:opts.blockMin||null,actualMin:null,recurId:opts.recurId||null,fromProject:opts.fromProject||null,createdAt:Date.now()}; }
+  blockMin:opts.blockMin||null,actualMin:null,recurId:opts.recurId||null,
+  fromProject:opts.fromProject||null,fromStep:opts.fromStep||null,createdAt:Date.now()}; }
 function realTasks(list){ return (list||[]).filter(t=>(t.name||'').trim()); }
 
 /* Recurring tasks: templates in db.recurring, instances materialized lazily
@@ -924,9 +996,10 @@ function switchMain(m){
   if(m==='projects') renderProjects();
   if(m==='forge') renderForge();
   if(m==='closing') renderClosing();
+  if(m==='devnotes') renderDevNotes();
   window.scrollTo(0,0);
 }
-function renderAll(){ renderOpening(); renderCalendar(); renderProjects(); renderForge(); renderClosing(); }
+function renderAll(){ renderOpening(); renderCalendar(); renderProjects(); renderForge(); renderClosing(); renderDevNotes(); }
 
 /* =====================================================================
    CALENDAR — the heart. A month of tappable day cards (gold stars on the
@@ -1007,7 +1080,7 @@ function buildBallRow(ds,t,priority,isNew){
       row.appendChild(st); }
     if(t.blockMin){ const bm=document.createElement('span'); bm.className='block-min'; bm.textContent=t.blockMin+'m'; row.appendChild(bm); }
     const menu=document.createElement('button'); menu.type='button'; menu.className='row-menu'; menu.textContent='⋯';
-    menu.title='Edit task'; menu.onclick=e=>{ e.stopPropagation(); openTaskModal({ds:ds,id:t.id}); };
+    menu.title='Edit ball'; menu.onclick=e=>{ e.stopPropagation(); openTaskModal({ds:ds,id:t.id}); };
     row.appendChild(menu);
     bindCommit(tx,()=>{ const f=findTask(ds,t.id); if(f && f.task.name!==tx.value){ f.task.name=tx.value; save(); } });
   }else{
@@ -1023,32 +1096,45 @@ function buildBallRow(ds,t,priority,isNew){
   return row;
 }
 /* setTaskDone — the one seam every completion flows through (calendar check,
-   opening check, Forge complete). Keeps stickers/gold stars honest. */
+   opening check, Forge complete). Keeps stickers/gold stars honest. The
+   project bridge closes here too: catching a ball that came from a project
+   checks its step back home (and unchecking unchecks it). */
 function setTaskDone(ds,id,dn,actualMin){
   const f=findTask(ds,id); if(!f) return;
   f.task.done=dn; f.task.doneAt=dn?Date.now():null;
   if(actualMin!=null && dn) f.task.actualMin=actualMin;
+  if(f.task.fromStep){ const pr=db.projects.find(p=>p.id===f.task.fromProject);
+    const st=pr&&pr.steps.find(x=>x.id===f.task.fromStep); if(st&&st.done!==dn){ st.done=dn; pr.modifiedDate=now(); } }
   save();
   // re-render everything but let the checkbox animation play out first
-  setTimeout(()=>{ renderDayLists(); renderOpening(); if(document.getElementById('main-closing').classList.contains('active')) renderClosing(); },1200);
+  setTimeout(()=>{ renderDayLists(); renderOpening();
+    if(document.getElementById('main-projects').classList.contains('active')) renderProjects();
+    if(document.getElementById('main-closing').classList.contains('active')) renderClosing(); },1200);
 }
 
 /* ---------- task creation / editing modal ---------- */
 let tmCtx=null;   // null = create; {ds,id} = edit
 let tmPriority='glass';
+let tmScope='one';   // recurring edits: 'one' (this day) | 'all' (template + future repeats)
 function tmSetPriority(p){ tmPriority=p;
   document.getElementById('tmGlass').className=(p==='glass')?'on glassy':'';
   document.getElementById('tmRubber').className=(p==='rubber')?'on':''; }
+function tmSetScope(sc){ tmScope=sc;
+  document.getElementById('tmScopeOne').className=(sc==='one')?'on':'';
+  document.getElementById('tmScopeAll').className=(sc==='all')?'on':''; }
 function openTaskModal(ctx,prefill){
   tmCtx=ctx||null;
   const isEdit=!!(ctx&&ctx.id);
-  document.getElementById('taskModalTitle').textContent=isEdit?'Edit task':'New task';
-  document.getElementById('tmSaveBtn').textContent=isEdit?'Save':'Add task';
+  document.getElementById('taskModalTitle').textContent=isEdit?'Edit ball':'New ball';
+  document.getElementById('tmSaveBtn').textContent=isEdit?'Save':'Add ball';
   document.getElementById('tmDeleteBtn').classList.toggle('hidden',!isEdit);
   document.getElementById('tmMsg').textContent='';
-  let name='',date=calSel||todayStr(),block='',recur='',pr='glass';
+  let name='',date=calSel||todayStr(),block='',recur='',pr='glass',isRecur=false;
   if(isEdit){ const f=findTask(ctx.ds,ctx.id);
-    if(f){ name=f.task.name; date=ctx.ds; block=f.task.blockMin||''; pr=f.priority; recur=''; } }
+    if(f){ name=f.task.name; date=ctx.ds; block=f.task.blockMin||''; pr=f.priority; recur=''; isRecur=!!f.task.recurId; } }
+  document.getElementById('tmScopeField').classList.toggle('hidden',!isRecur);
+  document.getElementById('tmEndRepeatBtn').classList.toggle('hidden',!isRecur);
+  tmSetScope('one');
   if(prefill){ name=prefill.name!=null?prefill.name:name; date=prefill.date||date;
     block=prefill.blockMin!=null?prefill.blockMin:block; pr=prefill.priority||pr; }
   document.getElementById('tmName').value=name;
@@ -1067,7 +1153,7 @@ function taskModalSave(){
   const blockMin=(isNaN(block)||block<1)?null:Math.min(block,720);
   const freq=document.getElementById('tmRecur').value;
   const msg=document.getElementById('tmMsg');
-  if(!name){ msg.textContent='A name is the one thing a task needs.'; return; }
+  if(!name){ msg.textContent='A name is the one thing a ball needs.'; return; }
   if(tmCtx && tmCtx.id){   // ----- edit (may move day/priority)
     const f=findTask(tmCtx.ds,tmCtx.id); if(!f){ closeModal('taskModalBg'); return; }
     const moved=(date!==tmCtx.ds)||(tmPriority!==f.priority);
@@ -1078,6 +1164,14 @@ function taskModalSave(){
       const t=f.task; deleteTaskNoTombstone(tmCtx.ds,tmCtx.id);
       t.name=name; t.blockMin=blockMin; target[tmPriority].push(t);
     }else{ f.task.name=name; f.task.blockMin=blockMin; }
+    // "All future repeats": the template learns the new name/minutes, and so
+    // does every not-yet-caught instance already materialized on other days.
+    if(tmScope==='all' && f.task.recurId){
+      const tpl=db.recurring.find(t=>t.id===f.task.recurId);
+      if(tpl){ tpl.name=name; tpl.blockMin=blockMin; }
+      Object.values(db.days).forEach(day=>['glass','rubber'].forEach(prk=>day[prk].forEach(t=>{
+        if(t.recurId===f.task.recurId && !t.done){ t.name=name; t.blockMin=blockMin; } })));
+    }
   }else{                    // ----- create
     const day=getDay(date);
     if(realTasks(day[tmPriority]).length>=CAPS[tmPriority]){
@@ -1095,6 +1189,19 @@ function taskModalDelete(){
   if(!(tmCtx&&tmCtx.id)) return;
   deleteTask(tmCtx.ds,tmCtx.id);
   save(); closeModal('taskModalBg'); renderDayLists(); renderOpening();
+}
+/* End repeat: the template stops, and every not-yet-caught instance from this
+   day forward is removed. Past days keep what actually happened. */
+function taskModalEndRepeat(){
+  if(!(tmCtx&&tmCtx.id)) return;
+  const f=findTask(tmCtx.ds,tmCtx.id); if(!f||!f.task.recurId) return;
+  if(!confirm('End this repeat? It stops from '+tmCtx.ds+' forward; earlier days keep what happened.')) return;
+  const rid=f.task.recurId;
+  db.recurring=db.recurring.filter(t=>t.id!==rid);
+  Object.keys(db.days).forEach(ds=>{ if(ds<tmCtx.ds) return;
+    const day=db.days[ds];
+    ['glass','rubber'].forEach(prk=>{ day[prk]=day[prk].filter(t=>!(t.recurId===rid && !t.done)); }); });
+  save(); closeModal('taskModalBg'); renderCalendar(); renderOpening();
 }
 
 /* =====================================================================
@@ -1159,14 +1266,14 @@ function addProject(){
 }
 function deleteProject(id){
   const p=db.projects.find(x=>x.id===id); if(!p) return;
-  if(!confirm('Delete project "'+p.name+'"? Steps already sent to calendar days stay on their days.')) return;
+  if(!confirm('Delete project "'+p.name+'"? Balls already sent to calendar days stay on their days.')) return;
   db.projects=db.projects.filter(x=>x.id!==id); save(); renderProjects();
 }
 function renderProjects(){
   const el=document.getElementById('projList'); el.innerHTML='';
   if(!db.projects.length){
     const e=document.createElement('div'); e.className='open-empty';
-    e.textContent='No projects yet. A project is a bigger thing with steps — name one above, then send its steps onto days as glass or rubber balls.';
+    e.textContent='No projects yet. A project is a bigger thing made of balls — name one above, then send them onto days as glass or rubber balls.';
     el.appendChild(e); return;
   }
   db.projects.forEach(p=>{
@@ -1193,7 +1300,7 @@ function buildStepRow(p,s,isNew){
   const row=document.createElement('div'); row.className='step-row';
   const lw=document.createElement('span'); lw.className='ck-label'+(s&&s.done?' ck-done':'');
   const tx=document.createElement('input'); tx.type='text'; tx.value=s?(s.text||''):'';
-  tx.placeholder=isNew?'add a step…':'';
+  tx.placeholder=isNew?'add a ball…':'';
   lw.appendChild(tx);
   const ck=makeCheck(!!(s&&s.done), lw, dn=>{ if(!s) return; s.done=dn; p.modifiedDate=now(); save();
     setTimeout(renderProjects,1200); });
@@ -1205,7 +1312,7 @@ function buildStepRow(p,s,isNew){
       pu.style.cursor='pointer'; pu.onclick=()=>{ calSelect(s.pushedTo); switchMain('calendar'); };
       row.appendChild(pu); }
     const send=document.createElement('button'); send.type='button'; send.className='ghost small';
-    send.textContent='→ day'; send.title='Send this step onto a calendar day as a ball';
+    send.textContent='→ day'; send.title='Send this ball onto a calendar day';
     send.onclick=()=>openPushModal(p.id,s.id);
     row.appendChild(send);
     bindCommit(tx,()=>{ if(s.text!==tx.value){ s.text=tx.value; p.modifiedDate=now(); save(); } });
@@ -1242,7 +1349,7 @@ function pushStepSave(){
   const day=getDay(ds);
   if(realTasks(day[pushPriority]).length>=CAPS[pushPriority]){
     msg.textContent='That day already holds '+CAPS[pushPriority]+' '+pushPriority+' ball'+(CAPS[pushPriority]>1?'s':'')+'.'; return; }
-  day[pushPriority].push(makeTask(s.text,{fromProject:p.id}));
+  day[pushPriority].push(makeTask(s.text,{fromProject:p.id,fromStep:s.id}));
   s.pushedTo=ds; p.modifiedDate=now();
   save(); closeModal('pushModalBg'); renderProjects();
   flash('Sent to '+ds);
@@ -1276,7 +1383,7 @@ function renderForge(){
     sub.textContent=(f.task.blockMin?('Time block: '+f.task.blockMin+' min'):'No time block — set minutes freely')
       +(f.task.done?' · already caught ✓':'');
   }else{
-    forgeTask=null; gl.textContent='◉'; lbl.textContent='Select a task to start';
+    forgeTask=null; gl.textContent='◉'; lbl.textContent='Select a ball to start';
     sub.textContent="Pick one of the day's balls — its time block loads into the timer.";
   }
   document.getElementById('repMonthLbl').textContent='· '+fromISO(forgeDay).toLocaleDateString(undefined,{month:'long',year:'numeric'});
@@ -1384,7 +1491,7 @@ function bellClearRung(){ bell.rung=false; const e=bellEls(); e.vis.classList.re
 function bellSet(mins,label){ bellStop(); bellClearRung();
   bell.total=Math.max(1,Math.round(mins))*60; bell.left=bell.total; bell.label=label||'';
   const e=bellEls(); e.dur.value=String(Math.round(bell.total/60)); e.start.textContent='Start';
-  e.forEl.textContent=label?('Keeping time for: '+label):'Pick a task above, or set minutes and run it standalone.';
+  e.forEl.textContent=label?('Keeping time for: '+label):'Pick a ball above, or set minutes and run it standalone.';
   bellToggle(true); }
 /* Start is the fun moment: a fresh start on a real task draws a wry line
    first. Never blocks — X, backdrop, and the button all start the work. */
@@ -1421,7 +1528,7 @@ function forgeStopPressed(){
 function bellReset(){ bellStop(); bellClearRung();
   bell.total=bellMins()*60; bell.left=bell.total; const e=bellEls();
   e.start.textContent='Start';
-  e.forEl.textContent=bell.label?('Keeping time for: '+bell.label):'Pick a task above, or set minutes and run it standalone.';
+  e.forEl.textContent=bell.label?('Keeping time for: '+bell.label):'Pick a ball above, or set minutes and run it standalone.';
   bellVisPaint(true); bellPaint(); }
 function bellTick(){ if(!bell.running) return;
   bell.left=Math.max(0,Math.round((bell.endAt-Date.now())/1000)); bellPaint();
@@ -1542,7 +1649,7 @@ function renderReport(){
   Object.keys(db.days).filter(ds=>ds.startsWith(month)).sort().forEach(ds=>{
     ['glass','rubber'].forEach(pr=>realTasks(db.days[ds][pr]).forEach(t=>{ if(t.done) rows.push({ds,pr,t}); }));
   });
-  if(!rows.length){ el.innerHTML='<div class="open-empty">Nothing caught this month yet — the report fills itself as you complete tasks.</div>'; return; }
+  if(!rows.length){ el.innerHTML='<div class="open-empty">Nothing caught this month yet — the report fills itself as you catch balls.</div>'; return; }
   let ahead=0, behind=0;
   rows.forEach(({ds,pr,t})=>{
     const card=document.createElement('div'); card.className='repcard';
@@ -1560,8 +1667,12 @@ function renderReport(){
       +delta+'</div>';
     el.appendChild(card);
   });
+  let worked=0,budget=0;
+  rows.forEach(({t})=>{ if(t.actualMin!=null) worked+=t.actualMin; if(t.blockMin) budget+=t.blockMin; });
   const sum=document.createElement('p'); sum.className='sync-note';
-  sum.textContent=rows.length+' caught this month'+((ahead||behind)?(' · '+ahead+' ahead of budget, '+behind+' behind'):'');
+  sum.textContent=rows.length+' caught this month'
+    +((ahead||behind)?(' · '+ahead+' ahead of budget, '+behind+' behind'):'')
+    +(worked?(' · '+worked+'m worked'+(budget?(' vs '+budget+'m budgeted'):'')):'');
   el.prepend(sum);
 }
 
@@ -1589,6 +1700,59 @@ function renderClosing(){
   host.appendChild(ck.wrap);
   document.getElementById('ceCaption').textContent= day.enough?'It was enough. Rest well.':'It was enough.';
 }
+
+/* =====================================================================
+   DEV NOTES — Joelle's direct line to the builder. Quick capture in the
+   house list style: naming a note auto-opens the composer for details;
+   the round check (and the X, and the backdrop) all SAVE and close — a
+   jotted bug report is never lost to a stray tap. Copy-all formats the
+   batch for a text message; Clear empties after sending. Synced like
+   everything else, exported in backups.
+   ===================================================================== */
+let devCtx=null;
+function renderDevNotes(){
+  const el=document.getElementById('devList'); if(!el) return; el.innerHTML='';
+  db.devnotes.forEach(n=>{
+    const row=document.createElement('div'); row.className='ball-row'; row.style.cursor='pointer';
+    row.innerHTML='<span style="flex:0 0 auto">✎</span>'
+      +'<span class="ck-label" style="padding:4px 2px;font-size:14px">'+escapeHtml(n.title||'(untitled)')+'</span>'
+      +(((n.note||'').trim())?'<span class="muted" style="flex:0 0 auto">· details</span>':'');
+    row.onclick=()=>openDevNote(n.id);
+    el.appendChild(row);
+  });
+  const row=document.createElement('div'); row.className='ball-row';
+  const lw=document.createElement('span'); lw.className='ck-label';
+  const tx=document.createElement('input'); tx.type='text'; tx.placeholder='name a bug, a wish, a weirdness…';
+  lw.appendChild(tx); row.appendChild(lw);
+  bindCommit(tx,()=>{ const v=(tx.value||'').trim(); if(!v) return;
+    const n={id:uid(),title:v,note:'',at:Date.now()}; db.devnotes.push(n); tx.value='';
+    save(); renderDevNotes(); openDevNote(n.id); });
+  tx.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); tx.dispatchEvent(new Event('change')); } });
+  el.appendChild(row);
+}
+function openDevNote(id){ const n=db.devnotes.find(x=>x.id===id); if(!n) return; devCtx=id;
+  document.getElementById('dnTitle').value=n.title||'';
+  document.getElementById('dnBody').value=n.note||'';
+  openModal('devNoteBg');
+  setTimeout(()=>{ try{ document.getElementById('dnBody').focus(); }catch(_){} },60); }
+function devNoteConfirm(){ const n=db.devnotes.find(x=>x.id===devCtx);
+  if(n){ const t=(document.getElementById('dnTitle').value||'').trim();
+    if(t) n.title=t; n.note=document.getElementById('dnBody').value; save(); }
+  devCtx=null; closeModal('devNoteBg'); renderDevNotes(); }
+function devNoteDelete(){ if(devCtx==null) return;
+  db.devnotes=db.devnotes.filter(x=>x.id!==devCtx);
+  devCtx=null; save(); closeModal('devNoteBg'); renderDevNotes(); }
+function copyDevNotes(){
+  if(!db.devnotes.length){ flash('No notes yet'); return; }
+  const lines=['Glass Ball dev notes — '+todayStr()];
+  db.devnotes.forEach((n,i)=>{ lines.push((i+1)+'. '+(n.title||'(untitled)'));
+    if((n.note||'').trim()) lines.push('   '+n.note.trim().replace(/\n/g,'\n   ')); });
+  navigator.clipboard.writeText(lines.join('\n'))
+    .then(()=>flash('Notes copied — text them over'),()=>flash('Copy failed — select manually'));
+}
+function clearDevNotes(){ if(!db.devnotes.length) return;
+  if(!confirm('Clear all dev notes? (Copy them first if you haven\'t sent them.)')) return;
+  db.devnotes=[]; save(); renderDevNotes(); }
 
 /* =====================================================================
    QUOTES — the joke mechanism. v1 is text; each entry is {text, img}
@@ -1634,6 +1798,29 @@ function drawQuote(kind){
   _lastQuote[kind]=pick.text;
   return pick.text;
 }
+/* ---- the joke library editor (gear 🎭) — user entries only; the shipped
+   starter set always plays and never appears here. Bulk add: one per line. */
+function openQuotes(){ renderQuotes(); openModal('quotesModalBg'); }
+function renderQuotes(){ ['start','finish'].forEach(k=>{
+  const el=document.getElementById(k==='start'?'qStartList':'qFinishList'); if(!el) return;
+  el.innerHTML='';
+  const arr=db.quotes[k]||[];
+  if(!arr.length) el.innerHTML='<p class="sync-note" style="margin:0">Nothing custom yet — the starter set carries the show.</p>';
+  arr.forEach((q,i)=>{ const t=typeof q==='string'?q:((q&&q.text)||'');
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:8px;padding:5px 2px;border-bottom:1px solid var(--border)';
+    const sp=document.createElement('span'); sp.style.cssText='flex:1;min-width:0;font-size:13px'; sp.textContent=t;
+    const del=document.createElement('button'); del.className='ghost small'; del.textContent='✕'; del.title='Remove';
+    del.onclick=()=>{ db.quotes[k].splice(i,1); save(); renderQuotes(); };
+    row.append(sp,del); el.appendChild(row); });
+  const cnt=document.getElementById(k==='start'?'qStartCnt':'qFinishCnt');
+  if(cnt) cnt.textContent=arr.length?('· '+arr.length):'';
+}); }
+function addQuotes(k){ const ta=document.getElementById(k==='start'?'qStartAdd':'qFinishAdd');
+  const lines=(ta.value||'').split('\n').map(s=>s.trim()).filter(Boolean);
+  if(!lines.length) return;
+  lines.forEach(t=>db.quotes[k].push({text:t}));
+  ta.value=''; save(); renderQuotes(); flash(lines.length+' added'); }
 
 /* =====================================================================
    IMPORT / EXPORT — one-tap export from day one; import keeps an undo
@@ -1918,11 +2105,14 @@ function cancelPendingConflict(){ if(conflictResolver){ const r=conflictResolver
 document.addEventListener('click',()=>closeGearMenu());
 document.querySelectorAll('.modal-bg').forEach(bg=>bg.addEventListener('mousedown',e=>{ if(e.target===bg){
   if(bg.id==='startJokeBg'){ startJokeGo(); return; }   // never blocks — dismissing starts the work
+  if(bg.id==='devNoteBg'){ devNoteConfirm(); return; }  // never lose a jotted note to a stray tap
   bg.classList.remove('open'); bg.style.zIndex=''; updateModalLock();
   if(bg.id==='conflictModalBg') cancelPendingConflict(); } }));
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeGearMenu();
   const joke=document.getElementById('startJokeBg');
   if(joke.classList.contains('open')){ startJokeGo(); return; }
+  const dn=document.getElementById('devNoteBg');
+  if(dn.classList.contains('open')){ devNoteConfirm(); return; }
   document.querySelectorAll('.modal-bg.open').forEach(m=>{ m.classList.remove('open'); m.style.zIndex=''; });
   updateModalLock(); cancelPendingConflict(); } });
 

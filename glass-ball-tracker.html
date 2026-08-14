@@ -149,11 +149,10 @@
       </ol>
       <div class="backlog-label">Backlog</div>
       <ul class="backlog">
-        <li>Month report growth (weekly view, streaks-free totals) — mechanism shipped, stub-level</li>
-        <li>Meme/image joke library (format is image-ready; show quotes are Chad/Joelle-curated data)</li>
-        <li>Projects ↔ Calendar bridge polish (step completion ↔ ball completion linkage)</li>
-        <li>Recurring-task edit edge cases (one vs. all occurrences)</li>
+        <li>Meme/image jokes (v2 — text library editor shipped; images likely hosted URLs)</li>
         <li>Closing surface refinement once the game is felt in real use</li>
+        <li>Month report growth beyond totals (weekly view) — if it earns it</li>
+        <li>Sync conflict handling beyond last-write-wins</li>
       </ul>
     </div>
 
@@ -192,13 +191,13 @@
         { "title": "Custom domains (optional)", "note": "Pages.dev works today; sync fields take absolute URLs, so a domain move is safe." }
       ],
       "backlog": [
-        "Month report growth — mechanism shipped, stub-level",
-        "Meme/image joke library (format image-ready; show quotes are user-curated data)",
-        "Projects ↔ Calendar bridge polish (step ↔ ball completion linkage)",
-        "Recurring-task edit edge cases (one vs. all)",
-        "Closing surface refinement after real use"
+        "Meme/image jokes (v2 — text library editor shipped; images likely hosted URLs)",
+        "Closing surface refinement once the game is felt in real use",
+        "Month report growth beyond totals (weekly view) — if it earns it",
+        "Sync conflict handling beyond last-write-wins"
       ],
       "shipped": [
+        { "date": "2026-08-14", "what": "v0.2.0 — the pre-Joelle release: balls naming sweep everywhere; Dev Notes room (capture → composer → copy-all → clear, synced); joke library editor (gear); project bridge closes (catching a ball checks its step); recurring edits this-day vs all-future + End repeat; month report totals.", "tags": ["release", "devnotes", "recurrence", "bridge"] },
         { "date": "2026-08-14", "what": "v0.1.1 — sync live same-day (Worker + journal joelle, both surfaces synced); create/join journal blocks now fold behind a Switch-or-recover carrot once connected.", "tags": ["sync", "settings"] },
         { "date": "2026-08-14", "what": "Founded the pair from the CTT import: full separation surgery (identity, sync worker, no CTT keys) + Glass Ball v0.1.0 — five rooms, month-calendar heart with hard glass/rubber caps, task creation with recurrence + time blocks, Forge timer (Moon + pixel grid) with start-joke and complete/still-needs-work/follow-up flow, stickers + gold stars, projects with push-to-day, KV sync client (GLASS1-), PWA shell, and a schema-lockstep suite proven to fail on one-sided drift.", "tags": ["founding", "port", "pwa", "sync", "testing"], "learned": "A lockstep guard isn't real until you've watched it go red on a deliberate one-sided change." }
       ]
