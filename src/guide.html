@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FBFAF6">
+<title>The Glass Ball — the guide</title>
+<meta name="description" content="A juggler's secret, in app form. Catch the glass, let the rubber bounce.">
+<meta property="og:title" content="The Glass Ball">
+<meta property="og:description" content="Catch the glass. Let the rubber bounce.">
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><radialGradient id="g" cx="38%25" cy="30%25" r="75%25"><stop offset="0%25" stop-color="%23BFDCEC"/><stop offset="55%25" stop-color="%236FA8C9"/><stop offset="100%25" stop-color="%232E6284"/></radialGradient></defs><circle cx="32" cy="33" r="24" fill="url(%23g)"/><ellipse cx="24" cy="23" rx="8" ry="5" fill="white" opacity=".75" transform="rotate(-25 24 23)"/></svg>'>
+<style>
+/* =====================================================================
+   The Glass Ball · the guide — a scrollytelling tour, daylight edition.
+   Same bones as the PJT scrolly page (sticky 100svh pins, progress from
+   the pin's own height so the collapsing iPhone URL bar can't jitter it,
+   rAF-driven choreography, honest reduced-motion fallback) re-lit for
+   Glass Ball: cream field, ink type, glass-blue and gold light. Every
+   scene is drawn live — no screenshots — so the page is one file and
+   caches for offline like the app itself.
+   ===================================================================== */
+:root{
+  --cream:#FBFAF6; --panel:#FFFFFF; --ink:#191919; --muted:#6E675A;
+  --border:#E4E0D3; --group:#F3F0E7;
+  --glass:#39749B; --glass-deep:#2A5B7C; --glass-light:#7FB0CE;
+  --gold:#D9A21B; --gold-deep:#B8860B;
+  --sans:'Avenir Next','Avenir',Seravek,'Trebuchet MS','Segoe UI',Verdana,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{background:var(--cream);}
+body{background:var(--cream);color:var(--ink);font-family:var(--sans);
+  overflow-x:hidden;-webkit-font-smoothing:antialiased;}
+
+/* daylight through two windows: a blue wash and a gold one */
+.glow{position:fixed;inset:0;pointer-events:none;z-index:0;}
+.glow::before,.glow::after{content:'';position:absolute;border-radius:50%;filter:blur(110px);}
+.glow::before{width:62vw;height:62vw;left:-18vw;top:-12vw;background:var(--glass-light);opacity:.16;}
+.glow::after{width:48vw;height:48vw;right:-16vw;bottom:-14vw;background:var(--gold);opacity:.10;}
+
+.scene{position:relative;z-index:1;}
+.pin{position:sticky;top:0;height:100vh;height:100svh;display:flex;align-items:center;
+  justify-content:center;overflow:hidden;
+  padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);}
+.mid{width:min(1080px,90vw);margin:0 auto;}
+
+.kicker{font-size:11px;font-weight:700;letter-spacing:.28em;text-transform:uppercase;
+  color:var(--glass);margin-bottom:20px;}
+.big{font-weight:800;letter-spacing:-.035em;line-height:.96;
+  font-size:clamp(40px,8.6vw,124px);}
+.mid-t{font-weight:800;letter-spacing:-.025em;line-height:1.04;
+  font-size:clamp(30px,5.6vw,74px);}
+.sub{font-size:clamp(14px,1.6vw,17px);color:var(--muted);line-height:1.75;
+  margin-top:22px;max-width:38ch;}
+.accent{color:var(--glass);} .accent-au{color:var(--gold-deep);}
+
+/* the app's back door — always reachable, standalone-PWA safe */
+.home-pill{position:fixed;z-index:50;top:calc(12px + env(safe-area-inset-top,0px));
+  left:calc(14px + env(safe-area-inset-left,0px));
+  font-size:13px;font-weight:600;text-decoration:none;color:var(--ink);
+  background:rgba(255,255,255,.85);border:1px solid var(--border);border-radius:100px;
+  padding:9px 16px;backdrop-filter:blur(6px);transition:transform .15s ease;}
+.home-pill:hover{transform:translateY(-2px);}
+
+/* ── hero ─────────────────────────────────────────────────────────── */
+#hero .pin{flex-direction:column;text-align:center;}
+.hero-orb{width:126px;height:126px;margin:0 auto 34px;position:relative;
+  opacity:0;animation:orbdrop .9s .15s cubic-bezier(.25,1.4,.4,1) forwards;}
+.hero-orb .ball{width:100%;height:100%;border-radius:50%;
+  background:radial-gradient(circle at 36% 30%, #E8F3F9 0 9px, #7FB0CE 34%, var(--glass-deep) 92%);
+  box-shadow:inset -6px -12px 22px rgba(0,0,0,.20), 0 18px 40px -14px rgba(42,91,124,.55);}
+.hero-orb .shine{position:absolute;left:20%;top:13%;width:26px;height:16px;border-radius:50%;
+  background:rgba(255,255,255,.9);transform:rotate(-25deg);}
+.hero-orb .shadow{position:absolute;left:50%;bottom:-22px;transform:translateX(-50%);
+  width:76%;height:14px;border-radius:50%;background:rgba(25,25,25,.14);filter:blur(4px);}
+@keyframes orbdrop{0%{opacity:0;transform:translateY(-70px) scale(.7);}
+  60%{opacity:1;transform:translateY(6px) scale(1.02);}100%{opacity:1;transform:none;}}
+.hero-title{opacity:0;animation:up .8s .75s cubic-bezier(.2,.8,.2,1) forwards;}
+.hero-sub{opacity:0;animation:up .8s 1.0s cubic-bezier(.2,.8,.2,1) forwards;}
+@keyframes up{from{opacity:0;transform:translateY(26px);}to{opacity:1;transform:none;}}
+.scroll-hint{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.3em;
+  color:var(--muted);opacity:0;animation:up .8s 1.5s forwards;}
+.scroll-hint span{display:block;width:1px;height:34px;margin:12px auto 0;
+  background:linear-gradient(var(--muted),transparent);}
+
+/* ── glass vs rubber ─────────────────────────────────────────────── */
+.pair{display:flex;justify-content:center;align-items:flex-end;gap:clamp(48px,12vw,150px);
+  height:clamp(200px,30vh,300px);margin-top:8vh;}
+.juggle{position:relative;width:clamp(86px,14vw,128px);}
+.juggle .b{width:100%;aspect-ratio:1;border-radius:50%;position:relative;will-change:transform;}
+.juggle.glassb .b{background:radial-gradient(circle at 36% 30%, #E8F3F9 0 8px, #7FB0CE 34%, var(--glass-deep) 92%);
+  box-shadow:inset -5px -10px 18px rgba(0,0,0,.20), 0 14px 30px -12px rgba(42,91,124,.5);}
+.juggle.glassb .b::after{content:'';position:absolute;left:20%;top:13%;width:24%;height:13%;
+  border-radius:50%;background:rgba(255,255,255,.88);transform:rotate(-25deg);}
+.juggle.rubberb .b{background:#8B8578;box-shadow:inset 0 -6px 12px rgba(0,0,0,.14);}
+.juggle .floor{position:absolute;left:50%;bottom:-18px;transform:translateX(-50%);
+  width:78%;height:12px;border-radius:50%;background:rgba(25,25,25,.13);filter:blur(4px);
+  will-change:transform,opacity;}
+.juggle .tag{margin-top:34px;text-align:center;font-size:11px;font-weight:800;
+  letter-spacing:.22em;text-transform:uppercase;}
+.juggle.glassb .tag{color:var(--glass);}
+.juggle.rubberb .tag{color:var(--muted);}
+.juggle .tag small{display:block;margin-top:7px;font-size:12px;font-weight:500;
+  letter-spacing:.01em;text-transform:none;color:var(--muted);line-height:1.6;}
+
+/* ── the caps ─────────────────────────────────────────────────────── */
+.slots{display:flex;justify-content:center;gap:clamp(10px,2.4vw,22px);margin-top:6vh;}
+.slots.rubber{margin-top:3.5vh;}
+.slot{border-radius:50%;border:2px dashed var(--border);position:relative;will-change:transform;}
+.slots.glass .slot{width:clamp(64px,10vw,104px);height:clamp(64px,10vw,104px);}
+.slots.rubber .slot{width:clamp(40px,6.4vw,64px);height:clamp(40px,6.4vw,64px);}
+.slot i{position:absolute;inset:5px;border-radius:50%;opacity:0;transform:scale(.3);will-change:transform,opacity;}
+.slots.glass .slot i{background:radial-gradient(circle at 36% 30%, #E8F3F9 0 6px, #7FB0CE 34%, var(--glass-deep) 92%);
+  box-shadow:inset -4px -8px 14px rgba(0,0,0,.18);}
+.slots.rubber .slot i{background:#8B8578;}
+.slot-lab{display:flex;justify-content:center;gap:14px;margin-top:14px;
+  font-size:11px;font-weight:800;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);}
+.caps-line{margin-top:5vh;font-size:clamp(15px,1.8vw,19px);color:var(--muted);
+  opacity:0;transform:translateY(18px);will-change:opacity,transform;}
+.caps-line b{color:var(--ink);}
+
+/* ── the rooms ────────────────────────────────────────────────────── */
+.rooms{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;
+  width:min(880px,90vw);margin:6vh auto 0;}
+.room{background:var(--panel);border:1px solid var(--border);border-radius:18px;
+  padding:24px 20px;text-align:left;box-shadow:0 18px 44px -22px rgba(25,25,25,.18);
+  opacity:0;will-change:transform,opacity;}
+.room b{display:block;font-size:clamp(16px,1.9vw,20px);font-weight:800;letter-spacing:-.01em;}
+.room span{display:block;margin-top:8px;font-size:13px;line-height:1.6;color:var(--muted);}
+.room .glyph{font-size:20px;display:block;margin-bottom:10px;}
+
+/* ── the forge / moon ─────────────────────────────────────────────── */
+.forgewrap{display:flex;align-items:center;justify-content:center;gap:clamp(30px,7vw,96px);flex-wrap:wrap;}
+.moon{width:clamp(180px,26vw,280px);height:auto;}
+.clock{font-weight:800;font-size:clamp(54px,10vw,128px);letter-spacing:-.05em;
+  font-variant-numeric:tabular-nums;line-height:1;}
+
+/* ── stickers & the gold star ─────────────────────────────────────── */
+.stickrow{display:flex;justify-content:center;gap:clamp(14px,3vw,28px);margin-top:6vh;}
+.stick{width:clamp(64px,9.5vw,96px);height:clamp(64px,9.5vw,96px);border-radius:50%;
+  border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;
+  font-size:clamp(26px,4.2vw,42px);color:transparent;will-change:transform;position:relative;}
+.stick.on{border:2px solid var(--gold);background:#F8ECCB;color:var(--gold-deep);
+  box-shadow:0 0 24px rgba(217,162,27,.35);}
+.goldstar{margin-top:5vh;font-size:clamp(64px,11vw,132px);line-height:1;color:var(--gold);
+  text-shadow:0 6px 24px rgba(184,134,11,.45);opacity:0;transform:scale(.2) rotate(-40deg);
+  will-change:transform,opacity;}
+.star-line{margin-top:2.5vh;font-size:clamp(15px,1.8vw,19px);color:var(--muted);
+  opacity:0;transform:translateY(16px);will-change:opacity,transform;}
+.star-line b{color:var(--gold-deep);}
+
+/* ── arrive ───────────────────────────────────────────────────────── */
+#get .pin{flex-direction:column;text-align:center;}
+.btns{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:38px;}
+.btn{font-size:15px;font-weight:700;letter-spacing:.02em;text-decoration:none;
+  padding:17px 34px;border-radius:100px;transition:transform .18s ease;}
+.btn-1{background:var(--ink);color:var(--cream);}
+.btn-1:hover{transform:translateY(-3px);}
+.fine{font-size:12.5px;color:var(--muted);margin-top:32px;line-height:2;}
+a:focus-visible{outline:2px solid var(--glass);outline-offset:4px;}
+
+/* ── phones: same acts, shorter rooms, cheaper light ─────────────── */
+@media(max-width:760px){
+  #hero{height:150vh !important;}
+  #s-idea{height:300vh !important;}
+  #s-caps{height:300vh !important;}
+  #s-rooms{height:340vh !important;}
+  #s-forge{height:300vh !important;}
+  #s-game{height:320vh !important;}
+  #s-pledge{height:230vh !important;}
+  #get{height:180vh !important;}
+  .glow::before{width:110vw;height:110vw;left:-30vw;filter:blur(60px);}
+  .glow::after{width:90vw;height:90vw;right:-28vw;filter:blur(60px);}
+  .mid{width:92vw;}
+  .hero-orb{width:96px;height:96px;margin-bottom:26px;}
+  .sub{max-width:32ch;}
+  .pair{gap:44px;height:clamp(180px,26vh,240px);margin-top:6vh;}
+  .rooms{grid-template-columns:1fr 1fr;gap:10px;width:92vw;}
+  .room{padding:16px 14px;border-radius:14px;}
+  .room .glyph{font-size:17px;margin-bottom:6px;}
+  .room span{font-size:11.5px;line-height:1.5;}
+  .home-pill{padding:8px 14px;font-size:12px;}
+  .btns{flex-direction:column;align-items:stretch;padding:0 9vw;}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .hero-orb,.hero-title,.hero-sub,.scroll-hint{animation:none;opacity:1;}
+  /* IDs, not .scene — the phone height rules above are #id !important and
+     would out-rank a class here, leaving a motion-averse reader 30k px of
+     empty scroll */
+  #hero,#s-idea,#s-caps,#s-rooms,#s-forge,#s-game,#s-pledge,#get{height:auto !important;}
+  .pin{position:relative;height:auto;padding:14vh 0;}
+  .btn:hover,.home-pill:hover{transform:none;}
+}
+</style>
+</head>
+<body>
+
+<div class="glow" aria-hidden="true"></div>
+<a class="home-pill" href="./">← the app</a>
+<!-- ── 1. hero ────────────────────────────────────────────────────── -->
+<section class="scene" id="hero" style="height:200vh">
+  <div class="pin">
+    <div id="heroInner" style="display:flex;flex-direction:column;align-items:center;will-change:transform,opacity">
+      <div class="hero-orb" id="heroOrb" aria-hidden="true">
+        <div class="shadow"></div><div class="ball"></div><div class="shine"></div>
+      </div>
+      <h1 class="big hero-title">The Glass Ball</h1>
+      <p class="sub hero-sub" style="margin-left:auto;margin-right:auto;text-align:center;max-width:36ch">
+        A juggler's secret, in app form.<br>Made for Joelle.</p>
+    </div>
+    <div id="hintWrap" style="position:absolute;bottom:34px;left:0;right:0;text-align:center;will-change:opacity">
+      <div class="scroll-hint">SCROLL<span></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 2. the idea: glass vs rubber ───────────────────────────────── -->
+<section class="scene" id="s-idea" style="height:400vh">
+  <div class="pin">
+    <div class="mid" style="text-align:center">
+      <div class="kicker">The whole idea</div>
+      <div class="mid-t" data-words>Only one of these breaks.</div>
+      <div class="pair" aria-hidden="true">
+        <div class="juggle glassb">
+          <div class="b" id="glassBall"></div><div class="floor" id="glassFloor"></div>
+          <div class="tag">Glass<small>Real consequences if it drops.<br>School forms. The appointment.</small></div>
+        </div>
+        <div class="juggle rubberb">
+          <div class="b" id="rubberBall"></div><div class="floor" id="rubberFloor"></div>
+          <div class="tag">Rubber<small>Feels urgent. Bounces back<br>tomorrow just fine. The dishes.</small></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 3. the caps ────────────────────────────────────────────────── -->
+<section class="scene" id="s-caps" style="height:400vh">
+  <div class="pin">
+    <div class="mid" style="text-align:center">
+      <div class="kicker">The rules of the game</div>
+      <div class="mid-t" data-words>Three glass. Five rubber.<br>That&rsquo;s the whole day.</div>
+      <div class="slots glass" id="glassSlots" aria-hidden="true"></div>
+      <div class="slot-lab">max 3 glass</div>
+      <div class="slots rubber" id="rubberSlots" aria-hidden="true"></div>
+      <div class="slot-lab">max 5 rubber</div>
+      <p class="caps-line" id="capsLine">The cap isn&rsquo;t a limit — it&rsquo;s what makes the day <b>winnable</b>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── 4. the rooms ───────────────────────────────────────────────── -->
+<section class="scene" id="s-rooms" style="height:440vh">
+  <div class="pin">
+    <div class="mid" style="text-align:center">
+      <div class="kicker">Six rooms</div>
+      <div class="mid-t" data-words>Small house. Good bones.</div>
+      <div class="rooms" id="rooms">
+        <div class="room"><span class="glyph">🌅</span><b>Opening</b><span>Your day at a glance. Tap a ball and the timer&rsquo;s already set.</span></div>
+        <div class="room"><span class="glyph">🗓</span><b>Calendar</b><span>The heart. Pick any day, type a ball onto its list, done.</span></div>
+        <div class="room"><span class="glyph">🧺</span><b>Projects</b><span>Big things, broken into balls — send one to any day.</span></div>
+        <div class="room"><span class="glyph">🔥</span><b>The Forge</b><span>Where balls get caught. A timer, a joke, and one honest question.</span></div>
+        <div class="room"><span class="glyph">🌙</span><b>Closing</b><span>The exhale. It will tell you when you&rsquo;ve done enough.</span></div>
+        <div class="room"><span class="glyph">✎</span><b>Dev Notes</b><span>Something weird? Tell on us here and text Chad the batch.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 5. the forge ───────────────────────────────────────────────── -->
+<section class="scene" id="s-forge" style="height:400vh">
+  <div class="pin">
+    <div class="mid">
+      <div class="forgewrap">
+        <svg class="moon" id="moonSvg" viewBox="0 0 220 152" aria-hidden="true"></svg>
+        <div style="max-width:44ch">
+          <div class="kicker">The Forge</div>
+          <div class="clock" id="clock">25:00</div>
+          <p class="sub">Pick a ball and the moon keeps its time — half-lit means halfway.<br><br>
+            It opens with a <span class="accent">joke</span> (always skippable) and ends with the only
+            honest question: <em>did you finish?</em> Say &ldquo;still needs work&rdquo; and it offers more
+            minutes — or rolls the rest onto another day, on purpose.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 6. the game ────────────────────────────────────────────────── -->
+<section class="scene" id="s-game" style="height:420vh">
+  <div class="pin">
+    <div class="mid" style="text-align:center">
+      <div class="kicker">The game</div>
+      <div class="mid-t" data-words>Every glass ball caught<br>earns a sticker.</div>
+      <div class="stickrow" aria-hidden="true">
+        <div class="stick" id="stick1">✦</div>
+        <div class="stick" id="stick2">✦</div>
+        <div class="stick" id="stick3">✦</div>
+      </div>
+      <div class="goldstar" id="goldStar" aria-hidden="true">★</div>
+      <p class="star-line" id="starLine">All three → a <b>gold star</b> on the calendar, forever. That&rsquo;s the whole game. Then you rest.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── 7. the pledge ──────────────────────────────────────────────── -->
+<section class="scene" id="s-pledge" style="height:320vh">
+  <div class="pin">
+    <div class="mid" style="text-align:center">
+      <div class="big" data-words>No streaks.<br>No red dots.<br>No guilt.</div>
+      <p class="sub" style="margin-left:auto;margin-right:auto;text-align:center">Rubber that bounces
+        isn&rsquo;t failure — it&rsquo;s Tuesday. This app celebrates <span class="accent-au">finishing</span>,
+        never opening. When the glass is caught, you&rsquo;re done. Actually done.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── 8. arrive ──────────────────────────────────────────────────── -->
+<section class="scene" id="get" style="height:220vh">
+  <div class="pin">
+    <div class="mid" style="text-align:center">
+      <div id="arrive" style="will-change:transform,opacity">
+        <div class="big">Go catch today.</div>
+        <div class="btns">
+          <a class="btn btn-1" href="./">Open The Glass Ball</a>
+        </div>
+        <p class="fine">Built by Chad, for Joelle · co-designed by both<br>
+          Catch the glass. Let the rubber bounce. 🔮</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+  var reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  var clamp = function(v,a,b){ return v<a?a:v>b?b:v; };
+  var ease  = function(t){ return t<.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2; };
+  var pad   = function(n){ return (n<10?'0':'')+n; };
+
+  /* split [data-words] so lines arrive word by word */
+  var wordSets = [];
+  [].forEach.call(document.querySelectorAll('[data-words]'), function(el){
+    var parts = el.innerHTML.split(/(<br\s*\/?>)/i), out='';
+    parts.forEach(function(chunk){
+      if(/^<br/i.test(chunk)){ out += chunk; return; }
+      chunk.split(/\s+/).filter(Boolean).forEach(function(w){
+        out += '<span class="w" style="display:inline-block;will-change:transform,opacity">'+w+'</span> ';
+      });
+    });
+    el.innerHTML = out;
+    wordSets.push({ words:[].slice.call(el.querySelectorAll('.w')), scene:el.closest('.scene') });
+  });
+
+  /* build the cap slots: 3 glass, 5 rubber */
+  var gSlots=[], rSlots=[];
+  var gWrap=document.getElementById('glassSlots'), rWrap=document.getElementById('rubberSlots');
+  if(gWrap) for(var i=0;i<3;i++){ var s=document.createElement('div'); s.className='slot';
+    s.appendChild(document.createElement('i')); gWrap.appendChild(s); gSlots.push(s); }
+  if(rWrap) for(var j=0;j<5;j++){ var s2=document.createElement('div'); s2.className='slot';
+    s2.appendChild(document.createElement('i')); rWrap.appendChild(s2); rSlots.push(s2); }
+
+  /* progress, measured against the pin itself — the collapsing iPhone URL
+     bar changes window.innerHeight mid-gesture; the 100svh pin does not */
+  function prog(scene){
+    var r = scene.getBoundingClientRect();
+    var pin = scene.querySelector('.pin');
+    var vh = (pin && pin.offsetHeight) || window.innerHeight;
+    var span = scene.offsetHeight - vh;
+    if(span <= 0) return r.top <= 0 ? 1 : 0;
+    return clamp(-r.top / span, 0, 1);
+  }
+  var VW = window.innerWidth, VH = window.innerHeight;
+  var ideaAmp = null;   // bounce headroom, measured, refreshed on real resizes
+  function remeasure(){
+    if(Math.abs(window.innerWidth-VW)<2 && Math.abs(window.innerHeight-VH)<140) return;
+    VW = window.innerWidth; VH = window.innerHeight; ideaAmp = null;
+  }
+
+  var S = {
+    hero:  document.getElementById('hero'),
+    idea:  document.getElementById('s-idea'),
+    caps:  document.getElementById('s-caps'),
+    rooms: document.getElementById('s-rooms'),
+    forge: document.getElementById('s-forge'),
+    game:  document.getElementById('s-game'),
+    get:   document.getElementById('get')
+  };
+  var heroInner=document.getElementById('heroInner'), heroOrb=document.getElementById('heroOrb'),
+      hintWrap=document.getElementById('hintWrap');
+  var glassBall=document.getElementById('glassBall'), rubberBall=document.getElementById('rubberBall'),
+      rubberFloor=document.getElementById('rubberFloor');
+  var capsLine=document.getElementById('capsLine');
+  var rooms=[].slice.call(document.querySelectorAll('.room'));
+  var moonSvg=document.getElementById('moonSvg'), clock=document.getElementById('clock');
+  var sticks=[document.getElementById('stick1'),document.getElementById('stick2'),document.getElementById('stick3')];
+  var goldStar=document.getElementById('goldStar'), starLine=document.getElementById('starLine');
+  var arrive=document.getElementById('arrive');
+
+  function words(set,p){
+    var n=set.words.length;
+    set.words.forEach(function(w,i){
+      var e=ease(clamp((p - i/(n+2))/0.22, 0, 1));
+      w.style.opacity=e; w.style.transform='translateY('+((1-e)*30)+'px)';
+    });
+  }
+
+  /* the moon, drawn exactly the way the app draws it: half-lit = halfway */
+  function paintMoon(p){
+    if(!moonSvg) return;
+    var cx=110, cy=76, R=54;
+    var rx=(R*Math.abs(1-2*p)).toFixed(1), sw=(p<0.5)?0:1;
+    var o='<circle cx="'+cx+'" cy="'+cy+'" r="'+R+'" fill="#F3F0E7" stroke="#E4E0D3" stroke-width="1.5"/>';
+    if(p>=0.999) o+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(R+28)+'" fill="rgba(217,162,27,.18)"/>';
+    if(p>0.004) o+='<path d="M '+cx+','+(cy-R)+' A '+R+','+R+' 0 0,1 '+cx+','+(cy+R)+
+      ' A '+rx+','+R+' 0 0,'+sw+' '+cx+','+(cy-R)+' Z" fill="#39749B"/>';
+    o+='<line x1="'+cx+'" y1="'+(cy-R-13)+'" x2="'+cx+'" y2="'+(cy-R-6)+'" stroke="#E4E0D3" stroke-width="2"/>';
+    moonSvg.innerHTML=o;
+  }
+
+  function frame(){
+    /* hero: answers the first pixel of scroll — the orb leans, hint fades */
+    if(S.hero){
+      var hp = prog(S.hero);
+      if(heroOrb) heroOrb.style.transform='translateY('+(hp*-16)+'px) rotate('+(hp*18)+'deg)';
+      if(hintWrap) hintWrap.style.opacity = clamp(1 - hp*5, 0, 1);
+      if(heroInner){
+        var out = ease(clamp((hp-0.5)/0.5, 0, 1));
+        heroInner.style.opacity = 1-out;
+        heroInner.style.transform = 'translateY('+(-out*44)+'px) scale('+(1-out*0.06)+')';
+      }
+    }
+
+    wordSets.forEach(function(set){ if(set.scene) words(set, prog(set.scene)); });
+
+    /* the idea: rubber bounces with decaying joy; glass is held perfectly still */
+    if(S.idea && rubberBall){
+      var ip = prog(S.idea);
+      var live = ease(clamp((ip-0.14)/0.7, 0, 1));
+      var t = live*4;                                     // four bounces across the scene
+      var arc = Math.abs(Math.sin(t*Math.PI));            // 0 at floor, 1 at top
+      /* never let the apex cross into the headline. The flex column puts the
+         tag inside the ball's own column, so the rest position can't be
+         derived from box heights — measure the real gap between the resting
+         ball and the headline once, and cap the amplitude to it. */
+      if(ideaAmp===null){
+        rubberBall.style.transform='none';
+        var _bt=rubberBall.getBoundingClientRect().top;
+        var _tt=document.querySelector('#s-idea .mid-t').getBoundingClientRect().bottom;
+        ideaAmp=Math.max(34, Math.min(120, _bt - _tt - 16));
+      }
+      var amp = ideaAmp*(1-live*0.35);
+      var y = -arc*amp;
+      var squash = (arc<0.12 && live>0.01 && live<0.99) ? 0.82 : 1;   // contact squash
+      rubberBall.style.transform='translateY('+y.toFixed(1)+'px) scaleY('+squash+') scaleX('+(2-squash)*1+')';
+      if(rubberFloor){ var near=1-arc; rubberFloor.style.transform='translateX(-50%) scale('+(0.7+0.3*near).toFixed(2)+')';
+        rubberFloor.style.opacity=(0.4+0.6*near).toFixed(2); }
+      if(glassBall){ glassBall.style.transform='translateY('+(Math.sin(ip*Math.PI*2)*-3).toFixed(1)+'px)'; }
+    }
+
+    /* the caps: slots pop one at a time, glass first, then the line lands */
+    if(S.caps && gSlots.length){
+      var cp = prog(S.caps);
+      gSlots.forEach(function(s,i){
+        var e=ease(clamp((cp-0.16-i*0.07)/0.10, 0, 1));
+        s.firstChild.style.opacity=e; s.firstChild.style.transform='scale('+(0.3+0.7*e)+')';
+        s.style.borderColor = e>0.8 ? 'transparent' : '';
+      });
+      rSlots.forEach(function(s,i){
+        var e=ease(clamp((cp-0.42-i*0.05)/0.09, 0, 1));
+        s.firstChild.style.opacity=e; s.firstChild.style.transform='scale('+(0.3+0.7*e)+')';
+        s.style.borderColor = e>0.8 ? 'transparent' : '';
+      });
+      var le=ease(clamp((cp-0.72)/0.14, 0, 1));
+      if(capsLine){ capsLine.style.opacity=le; capsLine.style.transform='translateY('+((1-le)*18)+'px)'; }
+    }
+
+    /* the rooms: six cards rise in, staggered */
+    if(S.rooms && rooms.length){
+      var rp = prog(S.rooms);
+      rooms.forEach(function(card,i){
+        var e=ease(clamp((rp-0.16-i*0.075)/0.13, 0, 1));
+        card.style.opacity=e;
+        card.style.transform='translateY('+((1-e)*54)+'px) scale('+(0.92+0.08*e)+')';
+      });
+    }
+
+    /* the forge: the moon fills as the clock runs down */
+    if(S.forge){
+      var fp = ease(clamp((prog(S.forge)-0.12)/0.72, 0, 1));
+      paintMoon(fp);
+      if(clock){ var left=Math.round((1-fp)*1500);
+        clock.textContent=Math.floor(left/60)+':'+pad(left%60); }
+    }
+
+    /* the game: three stickers, then the star arrives spinning */
+    if(S.game && sticks[0]){
+      var gp = prog(S.game);
+      sticks.forEach(function(s,i){
+        var e=ease(clamp((gp-0.18-i*0.10)/0.10, 0, 1));
+        s.classList.toggle('on', e>0.5);
+        s.style.transform='scale('+(1+(e>0.5?Math.sin(e*Math.PI)*0.25:0))+')';
+      });
+      var se=ease(clamp((gp-0.56)/0.16, 0, 1));
+      if(goldStar){ goldStar.style.opacity=se;
+        goldStar.style.transform='scale('+(0.2+0.8*se)+') rotate('+((1-se)*-40)+'deg)'; }
+      var sl=ease(clamp((gp-0.70)/0.14, 0, 1));
+      if(starLine){ starLine.style.opacity=sl; starLine.style.transform='translateY('+((1-sl)*16)+'px)'; }
+    }
+
+    /* arrive: from the distance, into your hands */
+    if(S.get && arrive){
+      var ap = ease(clamp(prog(S.get)/0.5, 0, 1));
+      arrive.style.opacity=ap;
+      arrive.style.transform='scale('+(0.5+0.5*ap).toFixed(3)+')';
+    }
+    ticking=false;
+  }
+
+  var ticking=false;
+  function onScroll(){ if(ticking) return; ticking=true; requestAnimationFrame(frame); }
+
+  if(!reduce){
+    window.addEventListener('scroll', onScroll, {passive:true});
+    window.addEventListener('resize', function(){ remeasure(); onScroll(); });
+    if(window.visualViewport) window.visualViewport.addEventListener('resize', onScroll);
+    frame();
+  } else {
+    /* static, legible fallback — everything visible, nothing pinned */
+    wordSets.forEach(function(s){ s.words.forEach(function(w){ w.style.opacity=1; w.style.transform='none'; }); });
+    gSlots.concat(rSlots).forEach(function(s){ s.firstChild.style.opacity=1; s.firstChild.style.transform='none'; s.style.borderColor='transparent'; });
+    if(capsLine){ capsLine.style.opacity=1; capsLine.style.transform='none'; }
+    rooms.forEach(function(c){ c.style.opacity=1; c.style.transform='none'; });
+    paintMoon(0.5); if(clock) clock.textContent='12:30';
+    sticks.forEach(function(s){ if(s) s.classList.add('on'); });
+    if(goldStar){ goldStar.style.opacity=1; goldStar.style.transform='none'; }
+    if(starLine){ starLine.style.opacity=1; starLine.style.transform='none'; }
+    if(arrive){ arrive.style.opacity=1; arrive.style.transform='none'; }
+    if(rubberBall) rubberBall.style.transform='none';
+    if(hintWrap) hintWrap.style.display='none';
+  }
+})();
+</script>
+</body>
+</html>

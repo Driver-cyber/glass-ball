@@ -370,7 +370,7 @@ body.modal-open{overflow:hidden;}
 <body>
 
 <div class="appbar">
-  <div class="brand"><span class="brand-orb" aria-hidden="true"></span><span>The Glass Ball<small>catch the glass · v0.4.0</small></span></div>
+  <div class="brand"><span class="brand-orb" aria-hidden="true"></span><span>The Glass Ball<small>catch the glass · v0.5.0</small></span></div>
   <div class="maintabs">
     <div class="maintab active" data-m="opening" onclick="switchMain('opening')">Opening</div>
     <div class="maintab" data-m="calendar" onclick="switchMain('calendar')">Calendar</div>
@@ -387,7 +387,7 @@ body.modal-open{overflow:hidden;}
     <div class="gear-menu" id="gearMenu">
       <button onclick="gearGo(openSettings)">☁&nbsp; Cloud Sync…</button>
       <button onclick="gearGo(openQuotes)">🎭&nbsp; Joke library…</button>
-      <button onclick="gearGo(function(){openModal('guideModalBg')})">❔&nbsp; Guide</button>
+      <button onclick="gearGo(function(){ location.href='guide.html'; })">❔&nbsp; Guide</button>
       <div class="divider"></div>
       <div class="menu-label">Backup &amp; export</div>
       <button onclick="gearGo(exportBackup)">💾&nbsp; Export backup</button>
@@ -834,23 +834,19 @@ body.modal-open{overflow:hidden;}
   </div>
 </div></div>
 
-<!-- Guide -->
-<div class="modal-bg" id="guideModalBg"><div class="modal wide">
-  <h2 style="margin-top:0">❔ The Glass Ball — a short guide</h2>
-  <div style="font-size:13.5px;line-height:1.7;color:var(--text)">
-    <p><strong>The idea.</strong> Some tasks are <strong>◉ glass balls</strong> — drop them and something real breaks (enrollment paperwork before the deadline). Most are <strong>○ rubber balls</strong> — they feel urgent, but they bounce back fine tomorrow (the dishes). Each day holds at most <strong>3 glass</strong> and <strong>5 rubber</strong>. That's not a limitation, it's the point: three glass balls is a winnable day.</p>
-    <p><strong>The rooms.</strong> <strong>Opening</strong> shows today at a glance — tap any ball and the Forge loads it, timer set. <strong>Calendar</strong> is the heart: pick a day, type into an empty line to add a ball, or use ⋯ / + for the full form (repeats, time blocks). <strong>Projects</strong> holds bigger multi-step things — any step can be sent onto a day as a ball. <strong>The Forge</strong> is where you work: pick a ball, the timer loads its minutes, start. <strong>Closing</strong> is the exhale. <strong>Dev Notes</strong> is the suggestion box: spot a bug or wish for something, jot it there, then Copy-all and text the batch to Chad.</p>
-    <p><strong>The game.</strong> Every glass ball caught earns a <strong>sticker ✦</strong>. Catch all of a day's glass and the day gets a <strong>gold star ★</strong> on the calendar. Rubber gets the satisfying check — and zero guilt when it bounces. No streaks, ever. When the glass is caught, you're done. Go rest.</p>
-    <p><strong>Jokes &amp; memes.</strong> Gear ⚙ → <strong>Joke library</strong> holds your own lines and memes — paste, drag, or pick images right into it. They pop when a timer starts and when a ball is caught, and they sync to every device.</p>
-    <p><strong>Your data.</strong> Everything saves on this device automatically. Gear ⚙ → Export backup any time. Cloud sync (optional) keeps phone + computer as two views of the same days.</p>
-  </div>
-  <div class="modal-actions"><button class="ghost" onclick="closeModal('guideModalBg')">Close</button></div>
-</div></div>
-
 <input type="file" id="importFile" accept="application/json" style="display:none">
 <script>
 /* =====================================================================
-   The Glass Ball · v0.4.0 — Joelle's task & schedule app.
+   The Glass Ball · v0.5.0 — Joelle's task & schedule app.
+   v0.5.0: the guide becomes a page of its own — guide.html (/guide on
+   Pages), a scrollytelling tour in the app's daylight language: the
+   bouncing rubber ball vs the held glass one, the caps filling, six
+   room cards, the moon running a block down, stickers → gold star, the
+   no-guilt pledge. Every scene is drawn live (no screenshots), cached
+   by the service worker for offline, with a reduced-motion fallback and
+   a fixed "← the app" pill so a standalone install always has a way
+   back. The old in-app guide modal is retired.
+   v0.4.0
    v0.4.0 (pre-handoff polish): a running timer now survives iOS
    discarding the backgrounded PWA — wall-clock endAt is kept in a
    device-local key (never synced) and picked up on boot, ringing on
@@ -985,7 +981,7 @@ const STORE_KEY = 'glassball_v1';   // Glass Ball's own key — never the CTT si
 const SCHEMA    = 'glassball-1';
 const CAPS = { glass:3, rubber:5 };   // the caps ARE the product — no override
 let db = {
-  version:'0.4.0', schema:SCHEMA, lastEdit:0,
+  version:'0.5.0', schema:SCHEMA, lastEdit:0,
   days:{},        // 'YYYY-MM-DD' → {glass:[task], rubber:[task], note:'', skipRecur:[], enough:false}
   recurring:[],   // repeat templates: {id,name,priority,blockMin,freq,anchor}
   projects:[],    // {id,name,notes,archived,createdDate,modifiedDate,steps:[{id,text,done,pushedTo}]}
