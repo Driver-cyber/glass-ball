@@ -701,6 +701,31 @@
       joined shelf) is what made it look broken.
     * *Verified:* 261 browser checks green across nine suites, lockstep 16/16.
 
+* **[2026-08-15] v0.9.7 — polish pass before the handoff.** No new behaviour;
+  the release that makes the previous six honest.
+    * *The guide caught up to v0.9.* Its ball-pit scene still described the
+      v0.8 shelf. It now says what the shelf actually is — **every new ball
+      starts there**, unfinished project steps turn up too, and a ball is
+      either shared or **🔒 just mine** — and the mock shows a project ball
+      alongside a shared one. "How it works" gained the one sentence a new
+      reader needs about the **+**: name a day, or leave it blank and it waits
+      in the pit. The rooms cards were re-worded for the merged calendar and
+      the pit's real job.
+    * *Dead weight removed:* `.task-window` / `.forge-top` CSS orphaned when
+      the Forge became a mode (v0.7.0), the `.pit-lock` badge retired in
+      v0.9.6, and `drawQuote()` — a wrapper the app stopped calling, kept
+      alive only by a test that now calls `drawQuoteEntry()` directly. Dead
+      app code should not survive because a test props it up.
+    * *Audited, not assumed:* every visible button carries an accessible name
+      across seven surfaces; no focusable control computes under 16px on
+      touch; no horizontal overflow at phone width. All three are now standing
+      checks rather than one-off sweeps.
+    * *Version judgement:* stays in 0.9.x. **v1.0 belongs to Joelle** — it
+      should mark a week of real use and her design calls landing (typeface,
+      glass-vs-rubber treatment, sticker art), not a tidy-up by the builder.
+    * *Verified:* 261 browser checks green across nine suites, lockstep 16/16,
+      guide verified per-scene on phone and desktop plus reduced-motion.
+
 ## 🤔 Pending Joelle (open design calls)
 * Body/UI typeface pick: Atkinson Hyperlegible vs. Karla vs. Alegreya Sans
   (or another direction she prefers)
