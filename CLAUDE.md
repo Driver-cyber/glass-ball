@@ -103,7 +103,10 @@ the most frequent act and the best feeling in the app — it never gets buried.
 ### 3. Projects
 Multi-step, longer-term things, ported from CTT's projects surface.
 **The bridge:** a project step can be pushed onto a day as a glass or rubber
-ball; catching that ball checks the step back home.
+ball; catching that ball checks the step back home. **Steps with no day yet
+also show on the ball pit shelf (v0.9.5)** under "From your projects" — the
+shelf is where "what still needs a day?" gets asked. They're *derived*, never
+copied: one source of truth, and they never enter the shared upload.
 
 ### 3b. The ball pit (v0.8.0) — a shelf two journals share
 A collapsed section below the month on Today, and the app's only multi-person

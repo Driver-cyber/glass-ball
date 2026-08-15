@@ -44,7 +44,12 @@ select,input,textarea{border:1px solid var(--border);background:var(--panel);col
   border-radius:9px;padding:8px;font-family:inherit;font-size:14px;width:100%;}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--glass);}
 .muted{color:var(--muted);font-size:12px;}
-.hidden{display:none}
+/* A utility has to actually win. Plain `.hidden{display:none}` loses to any
+   later same-specificity rule that sets display — which is exactly how the
+   ball pit's solo notice stayed on screen next to a joined shelf, saying
+   "there's no shared shelf yet" under its name. The .timer-bar.hidden patch
+   below was the same collision, treated locally instead of at the root. */
+.hidden{display:none !important;}
 
 /* App chrome — sticky appbar; safe areas honored for the iPhone install
    (viewport-fit=cover + standalone). env() is 0 everywhere else. */
@@ -114,6 +119,7 @@ body{padding-left:env(safe-area-inset-left, 0px);padding-right:env(safe-area-ins
 .timer-bar{position:fixed;left:0;right:0;bottom:0;z-index:60;display:flex;align-items:center;gap:10px;
   padding:11px 16px calc(11px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--btn-ink);
   cursor:pointer;box-shadow:0 -8px 24px -12px rgba(0,0,0,.4);}
+/* (redundant since .hidden is !important — kept harmlessly explicit) */
 .timer-bar.hidden{display:none;}
 .timer-bar .tb-glyph{font-size:15px;}
 .timer-bar .tb-time{font-variant-numeric:tabular-nums;font-weight:800;font-size:16px;}
@@ -329,6 +335,11 @@ body.has-timerbar{padding-bottom:64px;}
   font-size:13px;cursor:pointer;padding:4px 7px;border-radius:7px;line-height:1;}
 .pit-del:hover,.pit-vis:hover{background:var(--glass-soft);color:var(--text);}
 .pit-add{background:transparent;border-style:dashed;}
+.pit-sub{font-size:10.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--muted);margin:14px 2px 7px;}
+.pit-sub:first-child{margin-top:2px;}
+/* derived from Projects, so it can't be shared or deleted from here */
+.pit-row.from-proj{background:transparent;border-style:dashed;}
 .ball-row .pit-mark{flex:0 0 auto;font-size:12px;line-height:1;opacity:.75;}
 /* a bonus sticker is a gift, not a slot — different glyph, outside the three */
 .stick-sep{color:var(--muted);font-size:12px;margin:0 1px;}
@@ -466,7 +477,7 @@ body.modal-open{overflow:hidden;}
 <body>
 
 <div class="appbar">
-  <div class="brand"><span class="brand-orb" aria-hidden="true"></span><span>The Glass Ball<small>catch the glass · v0.9.4</small></span></div>
+  <div class="brand"><span class="brand-orb" aria-hidden="true"></span><span>The Glass Ball<small>catch the glass · v0.9.5</small></span></div>
   <div class="maintabs">
     <div class="maintab active" data-m="today" onclick="switchMain('today')">Today</div>
     <div class="maintab" data-m="projects" onclick="switchMain('projects')">Projects</div>
@@ -1058,7 +1069,25 @@ body.modal-open{overflow:hidden;}
 <input type="file" id="importFile" accept="application/json" style="display:none">
 <script>
 /* =====================================================================
-   The Glass Ball · v0.9.4 — Joelle's task & schedule app.
+   The Glass Ball · v0.9.5 — Joelle's task & schedule app.
+   v0.9.5: project balls with no day appear on the shelf, and .hidden
+   actually hides. Chad found the second one by reading the screen: the
+   pit said "Chad & Joelle — shared shelf" and, directly beneath, "there's
+   no shared shelf yet." Both were rendering correctly — `.hidden` was
+   just losing. `.hidden{display:none}` sits at the top of the sheet and
+   any later same-specificity rule that sets display beats it, which
+   `.pit-solo{display:flex}` did. The v0.9.1 test asserted the CLASS was
+   applied, which it always was; it never asked whether the element was
+   visible. Fixed at the root (.hidden is !important now — a utility has
+   to win) and the suite now asserts computed display. Note the
+   .timer-bar.hidden rule further down: the same collision, patched
+   locally once instead of at the source.
+   And Projects feed the shelf: any step that isn't done and has no day
+   shows under "From your projects — no day yet", with Take it to assign
+   one. DERIVED, never copied — one source of truth, so renames and
+   deletions in Projects just appear here, and nothing local can leak
+   into the shared upload.
+   v0.9.4
    v0.9.4: today opens under the calendar like every other day. It used
    to be hidden there — "today already has its own section above", which
    was true and still made the month lie: tapping the 15th opened
@@ -1327,7 +1356,7 @@ const STORE_KEY = 'glassball_v1';   // Glass Ball's own key — never the CTT si
 const SCHEMA    = 'glassball-1';
 const CAPS = { glass:3, rubber:5 };   // the caps ARE the product — no override
 let db = {
-  version:'0.9.4', schema:SCHEMA, lastEdit:0,
+  version:'0.9.5', schema:SCHEMA, lastEdit:0,
   days:{},        // 'YYYY-MM-DD' → {glass:[task], rubber:[task], note:'', skipRecur:[], enough:false}
   recurring:[],   // repeat templates: {id,name,priority,blockMin,freq,anchor}
   projects:[],    // {id,name,notes,archived,createdDate,modifiedDate,steps:[{id,text,done,pushedTo}]}
@@ -1943,10 +1972,20 @@ function renderPit(){
   const el=document.getElementById('pitList'); el.innerHTML='';
   const me=pitMe();
   const items=pitLive().sort((a,b)=>(a.done?1:0)-(b.done?1:0) || (b.createdAt||0)-(a.createdAt||0));
-  if(!items.length){
+  // Project steps with no day belong here too — the shelf is where "what still
+  // needs a day?" gets asked. DERIVED, never copied: one source of truth, so
+  // renames and deletions in Projects just appear, and nothing local leaks
+  // into the shared upload.
+  const waiting=[];
+  (db.projects||[]).forEach(pr=>{ if(pr.archived) return;
+    (pr.steps||[]).forEach(st=>{ if(!st.done && !st.pushedTo && (st.text||'').trim()) waiting.push({pr,st}); }); });
+  if(!items.length && !waiting.length){
     const e=document.createElement('div'); e.className='open-empty';
     e.textContent='The shelf is empty. Park a ball here when you know it matters but not yet when — or ask for one.';
     el.appendChild(e);
+  }
+  if(items.length && waiting.length){
+    const h=document.createElement('div'); h.className='pit-sub'; h.textContent='🧺 Parked here'; el.appendChild(h);
   }
   items.forEach(it=>{
     const row=document.createElement('div'); row.className='pit-row'+(it.done?' done':'');
@@ -1989,6 +2028,28 @@ function renderPit(){
     row.appendChild(del);
     el.appendChild(row);
   });
+  if(waiting.length){
+    const head=document.createElement('div'); head.className='pit-sub';
+    head.textContent='📚 From your projects — no day yet';
+    el.appendChild(head);
+    waiting.forEach(({pr,st})=>{
+      const row=document.createElement('div'); row.className='pit-row from-proj';
+      const lw=document.createElement('span'); lw.className='ck-label';
+      const nm=document.createElement('span'); nm.className='ball-name'; nm.textContent=st.text;
+      lw.appendChild(nm);
+      const ck=makeCheck(false, lw, dn=>{ st.done=dn; pr.modifiedDate=now(); save();
+        setTimeout(()=>{ renderPit(); renderProjects(); },1200); });
+      ck.wrap.addEventListener('click',e=>e.stopPropagation());
+      row.append(ck.wrap, lw);
+      const who=document.createElement('span'); who.className='pit-by'; who.textContent=pr.name;
+      row.appendChild(who);
+      const take=document.createElement('button'); take.type='button'; take.className='ghost small pit-take';
+      take.textContent='Take it'; take.title='Put this project ball on one of my days';
+      take.onclick=e=>{ e.stopPropagation(); openPushModal(pr.id, st.id); };
+      row.appendChild(take);
+      el.appendChild(row);
+    });
+  }
   // brain-dump line: the fastest way in
   const add=document.createElement('div'); add.className='pit-row pit-add';
   const lw=document.createElement('span'); lw.className='ck-label';
@@ -2392,7 +2453,7 @@ function pushStepSave(){
     msg.textContent='That day already holds '+CAPS[pushPriority]+' '+pushPriority+' ball'+(CAPS[pushPriority]>1?'s':'')+'.'; return; }
   day[pushPriority].push(makeTask(s.text,{fromProject:p.id,fromStep:s.id}));
   s.pushedTo=ds; p.modifiedDate=now();
-  save(); closeModal('pushModalBg'); renderProjects();
+  save(); closeModal('pushModalBg'); renderProjects(); renderPit(); renderOpening(); renderDayLists();
   flash('Sent to '+ds);
 }
 

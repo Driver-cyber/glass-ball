@@ -637,6 +637,38 @@
       unused name). Two v0.7.0 assertions updated to the new truth. 238
       browser checks green across eight suites; lockstep 16/16.
 
+* **[2026-08-15] v0.9.5 — projects feed the shelf, and `.hidden` actually
+  hides.** Two from Chad reading his own screen.
+    * *The contradiction he spotted:* the pit header said "Chad & Joelle —
+      shared shelf" and directly beneath it "there's no shared shelf yet."
+      Both were rendering **correctly** — `.hidden` was losing. It sits at the
+      top of the stylesheet as `.hidden{display:none}`, so any later
+      same-specificity rule that sets `display` beats it, and
+      `.pit-solo{display:flex}` did. **My v0.9.1 test asserted the class was
+      applied — which it always was — and never asked whether the element was
+      visible.** Fixed at the root (`.hidden` is `!important`; a utility has to
+      win) and the suite now asserts computed display, proven by a canary that
+      reverts the CSS and turns it red. The `.timer-bar.hidden` rule further
+      down the sheet was the same collision, patched locally once instead of at
+      the source — that was the missed signal.
+    * *Decision — project steps with no day appear on the shelf*, under
+      "📚 From your projects — no day yet", with **Take it** opening the
+      existing push-to-day form. The shelf is where the "what still needs a
+      day?" question gets asked, so a Friday planning pass sees everything in
+      one place.
+    * *Decision — derived, never copied.* They are read live from
+      `db.projects`, not duplicated into `db.pit.items`. One source of truth:
+      renames and deletions in Projects just appear, checking one off checks
+      the step, assigning a day removes it from the shelf, and **nothing local
+      leaks into the shared KV upload** (asserted). Rendered dashed and
+      labelled with their project so they never read as parked balls.
+    * *Verified:* new 20-check v0.9.5 suite (the visibility regression with its
+      canary; only not-done, not-yet-scheduled steps listed; project labels;
+      no copy into pit data; nothing in the shared upload; Take it → day and
+      off the shelf; rename and delete flowing through; section headers only
+      when both kinds are present; no empty state while anything is listed).
+      258 browser checks green across nine suites; lockstep 16/16.
+
 ## 🤔 Pending Joelle (open design calls)
 * Body/UI typeface pick: Atkinson Hyperlegible vs. Karla vs. Alegreya Sans
   (or another direction she prefers)
