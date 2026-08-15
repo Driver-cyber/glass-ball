@@ -300,6 +300,46 @@
       sweeping the whole scene at 3% steps on both widths (min gap 4px phone /
       15px desktop, and it still bounces).
 
+* **[2026-08-14] v0.6.0 — carry forward: the → on every ball.** Chad's answer
+  to the open "what happens to uncaught glass?" question, and a better one
+  than the nudge I proposed: instead of the app surfacing yesterday's misses,
+  *she* hands a ball to another day deliberately, and the day closes clean.
+    * *Behaviour:* every unfinished ball row (Opening + Calendar, glass and
+      rubber) gains a **→**. It opens a small sheet — **Tomorrow** in one tap,
+      or pick a day. The ball **stays on today**, struck through and settled,
+      showing "→ Sun, Aug 16"; a real ball lands on the target day
+      (`carriedFrom` recorded). Nothing vanishes, nothing is left hanging.
+    * *Decision — moving is not catching.* A moved ball earns **no sticker**
+      and **holds back the gold star**: the star means "every glass ball
+      caught", and per the founding rule a marker must mirror real state. The
+      alternative (excluding moved balls from the tally so the day still
+      stars) would let a month of gold stars mean nothing.
+    * *Decision — but the day must still be able to close.* `dayInfo()` gains
+      `moved` and `settled`; when every glass ball is caught-or-moved, Opening
+      shows a quiet **settled banner** and Closing says "N caught, N moved
+      forward on purpose. Nothing was dropped and nothing is hanging. Go
+      rest." Peace comes from the placement, not from a false star.
+    * *Decision — caps stay hard on the target day.* A full day refuses the
+      move and says which day it is. Moving is not an escape hatch around the
+      constraint; carried balls also still occupy their original day's slot,
+      because the cap governs what you *committed to*, not what you finished.
+    * *Undo:* tapping the → badge on a settled ball offers **Bring it back** —
+      it removes the copy (only if still uncaught over there) and re-opens the
+      ball here. A mis-tap on a phone is real.
+    * *Schema (lockstep):* `task.carried` / `task.carriedFrom`, normalized
+      onto legacy balls in `mergeDefaults()`.
+    * *DOM-clarity fix found by the regression suite:* the new → initially
+      shared the `.row-menu` class with ⋯, so that selector silently meant two
+      things and the old suite clicked the wrong ball's menu. The carry button
+      now has its own `.row-carry`; styling is shared explicitly.
+    * *Pending Joelle:* whether a deliberately-moved day should earn some
+      marker of its own (a quiet "settled" mark, distinct from gold) — logged
+      rather than invented.
+    * *Verified:* 21-check carry suite (settled record, real landing, sticker
+      and star honesty, banner + Closing copy, cap refusal, bring-back both
+      sides, past-date refusal, legacy normalization) plus both prior suites
+      re-run green.
+
 ## 🤔 Pending Joelle (open design calls)
 * Body/UI typeface pick: Atkinson Hyperlegible vs. Karla vs. Alegreya Sans
   (or another direction she prefers)
@@ -307,6 +347,9 @@
   alone)
 * Sticker & gold star art direction
 * App display name/branding ("The Glass Ball" working title)
+* Should a fully-*settled* day (all glass caught or deliberately moved) earn a
+  marker of its own, distinct from the gold star? Today it earns a quiet
+  banner and no star.
 
 ## 💡 The Parking Lot (Future Ideas)
 * Month report analytics (ahead/behind time-block budget) — mechanism stubbed

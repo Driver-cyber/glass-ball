@@ -1,5 +1,5 @@
 /* =====================================================================
-   The Glass Ball · service worker · v0.5.0
+   The Glass Ball · service worker · v0.6.0
    The offline shelf. Strategy, in keeping with the storage seam:
 
    - The app's data never passes through here. All state lives in
@@ -14,7 +14,7 @@
    - Bump CACHE with the app version on release-worthy builds — same
      convention as the subtitle + JS header.
    ===================================================================== */
-const CACHE = 'glass-ball-v0.5.0';
+const CACHE = 'glass-ball-v0.6.0';
 const SHELL = [
   './',
   './index.html',
