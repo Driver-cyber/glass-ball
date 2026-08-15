@@ -462,7 +462,7 @@ body.modal-open{overflow:hidden;}
 <body>
 
 <div class="appbar">
-  <div class="brand"><span class="brand-orb" aria-hidden="true"></span><span>The Glass Ball<small>catch the glass · v0.9.1</small></span></div>
+  <div class="brand"><span class="brand-orb" aria-hidden="true"></span><span>The Glass Ball<small>catch the glass · v0.9.2</small></span></div>
   <div class="maintabs">
     <div class="maintab active" data-m="today" onclick="switchMain('today')">Today</div>
     <div class="maintab" data-m="projects" onclick="switchMain('projects')">Projects</div>
@@ -987,9 +987,14 @@ body.modal-open{overflow:hidden;}
       <p class="sync-note" id="switchNote" style="display:none;margin:0 0 10px">Switching repoints <em>this device</em> only — the current cloud copy stays safe in KV under its Journal ID, rejoinable anytime.</p>
       <div class="sync-row">
         <h3>Create a new journal</h3>
-        <p class="sync-note">First device? Create the journal — it uploads the current data to your Cloudflare KV.</p>
         <input id="newJournalName" placeholder="Journal name (e.g. joelle)" style="margin-top:8px" />
-        <div style="margin-top:8px"><button class="small" onclick="createJournal()">Create my journal</button></div>
+        <div class="field" style="margin-top:10px"><label>What is this journal?</label>
+          <div class="seg">
+            <button type="button" id="cjClone" onclick="cjSetMode('clone')">Mine — bring my data<span class="seg-check" aria-hidden="true">✓</span></button>
+            <button type="button" id="cjEmpty" onclick="cjSetMode('empty')">Someone else's — start empty<span class="seg-check" aria-hidden="true">✓</span></button>
+          </div></div>
+        <p class="sync-note" id="cjNote" style="margin-top:6px"></p>
+        <div style="margin-top:8px"><button class="small" onclick="createJournal()">Create the journal</button></div>
       </div>
       <div class="sync-row">
         <h3>Join an existing journal</h3>
@@ -1051,7 +1056,26 @@ body.modal-open{overflow:hidden;}
 <input type="file" id="importFile" accept="application/json" style="display:none">
 <script>
 /* =====================================================================
-   The Glass Ball · v0.9.1 — Joelle's task & schedule app.
+   The Glass Ball · v0.9.2 — Joelle's task & schedule app.
+   v0.9.2: creating a journal for a SECOND PERSON stops cloning the
+   first one's board. Chad hit it setting up his own journal: "Create a
+   new journal" only ever did one thing — upload the current db under
+   the new key — so his fresh journal arrived holding Joelle's days,
+   dev notes and her name on the pit. Creation now asks what it is:
+   "Mine — bring my data" (the old behaviour, still the default, right
+   for a first device or a recovery) or "Someone else's — start empty",
+   which begins blank, keeps the shared pit membership and the joke
+   library, and drops the other person's identity and parked balls (the
+   next pit pull refills the shared lane by itself).
+   Before wiping anything the empty path SECURES the current board under
+   its own journal key — the confirm dialog promises the old journal is
+   safe in the cloud, and that promise was only true if you'd happened
+   to sync. If it can't be secured, nothing changes.
+   And renaming yourself no longer steals credit: re-signing pit items
+   now only adopts the PLACEHOLDER ('' or 'me') left by balls parked
+   before you had a name. A ball signed with a real name stays theirs,
+   so correcting an inherited name can't rewrite their attribution.
+   v0.9.1
    v0.9.1: the solo shelf stops being a dead end. Chad hit it live: a
    parked ball showed a 🔒 with no way to unlock it, because the lane
    toggle only exists once a shared pit does. Now the shelf says why —
@@ -1278,7 +1302,7 @@ const STORE_KEY = 'glassball_v1';   // Glass Ball's own key — never the CTT si
 const SCHEMA    = 'glassball-1';
 const CAPS = { glass:3, rubber:5 };   // the caps ARE the product — no override
 let db = {
-  version:'0.9.1', schema:SCHEMA, lastEdit:0,
+  version:'0.9.2', schema:SCHEMA, lastEdit:0,
   days:{},        // 'YYYY-MM-DD' → {glass:[task], rubber:[task], note:'', skipRecur:[], enough:false}
   recurring:[],   // repeat templates: {id,name,priority,blockMin,freq,anchor}
   projects:[],    // {id,name,notes,archived,createdDate,modifiedDate,steps:[{id,text,done,pushedTo}]}
@@ -1952,11 +1976,18 @@ function shareToPit(ds,id){
    signature matches. Partner items keep their author's name untouched. */
 function pitSetMe(newMe){
   newMe=(newMe||'').trim(); if(!newMe) return;
-  const old=db.pit.me||'me';
-  if(old!==newMe){
+  const old=(db.pit.me||'').trim();
+  // Only ever adopt the PLACEHOLDER. Balls parked before you had a name are
+  // signed '' or 'me' and are genuinely yours to claim. A ball signed with a
+  // real name belongs to whoever that is — renaming yourself (or correcting
+  // a name inherited from a cloned journal) must never rewrite their credit.
+  const placeholder = (!old || old==='me');
+  if(placeholder){
     (db.pit.items||[]).forEach(it=>{
-      if(it.by===old || (!it.by && old==='me')){ it.by=newMe; pitTouch(it); }
-      if(it.doneBy===old){ it.doneBy=newMe; pitTouch(it); }
+      const by=(it.by||'').trim();
+      if(!by || by==='me'){ it.by=newMe; pitTouch(it); }
+      const dby=(it.doneBy||'').trim();
+      if(dby==='me'){ it.doneBy=newMe; pitTouch(it); }
     });
   }
   db.pit.me=newMe;
@@ -1982,6 +2013,7 @@ function savePitMe(){
   pitSetMe(v); save(); renderPit(); renderPitSettings(); pitMsg('Saved — your catches sign as “'+v+'”.');
 }
 function renderPitSettings(){
+  cjSetMode(cjMode);
   const row=document.getElementById('pitSetupRow'); if(!row) return;
   const on=pitOn();
   document.getElementById('pitStateLbl').textContent = on? ('· '+(db.pit.name||'joined')) : '· not set up';
@@ -3050,19 +3082,58 @@ async function kvFetch(method, journal, body){
   let text=''; try{ text=await r.text(); }catch(_){}
   return {status:r.status, text:text};
 }
+/* Creating a journal means one of two very different things, and the old
+   single button silently did the first: it uploaded the CURRENT db under the
+   new key, so making a journal for a second person cloned the first person's
+   whole board — days, stickers, dev notes, and their name on the pit. */
+let cjMode='clone';   // 'clone' = my own device/recovery | 'empty' = a different person
+function cjSetMode(m){ cjMode=m;
+  segState('cjClone', m==='clone', false);
+  segState('cjEmpty', m==='empty', false);
+  const n=document.getElementById('cjNote');
+  if(n) n.textContent = (m==='clone')
+    ? 'Your current board is uploaded into it — right for your own first device, or recovering after a wipe.'
+    : 'Starts blank, for a different person. Your current board is NOT copied — it stays in the cloud under its own Journal ID, rejoinable anytime. The ball pit and the joke library carry over; the days do not.';
+}
 async function createJournal(){
   if(!isConfigured()){ syncMsg('Connect to your Cloudflare sync first (above).',true); return; }
   const name=(document.getElementById('newJournalName').value||'').trim();
   const id=(name? name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'') : '') || newJournalId();
+  if(cjMode==='empty' && !confirm('Start “'+(name||id)+'” as an EMPTY journal?\n\nThis device switches to it and its board begins blank. Your current journal is untouched in the cloud under its own Journal ID — rejoin anytime from "Switch or recover".')) return;
   syncing=true; setSyncDot('busy'); syncMsg('Creating your journal…');
   try{
+    if(cjMode==='empty'){
+      // The confirm promised the old journal stays safe in the cloud. Make
+      // that true before wiping anything: secure the current board under its
+      // own key first, and if that fails, change NOTHING.
+      if(isConnected()){
+        try{
+          const prev=JSON.stringify(dbWithoutSecrets());
+          const w=await kvFetch('PUT', db.sync.journalId, prev);
+          if(w.status!==200 && w.status!==204) throw new Error('Worker returned '+w.status);
+        }catch(e){
+          throw new Error('Could not save your current journal first, so nothing was changed. ('+e.message+')');
+        }
+      }
+      // A different person's board. The shared shelf carries over (that's the
+      // point of a pit) but their identity and their parked balls do not —
+      // the next pit pull refills the shared lane on its own.
+      const pitId=db.pit.id, pitName=db.pit.name;
+      db.days={}; db.recurring=[]; db.projects=[]; db.devnotes=[];
+      db.pit={ id:pitId, name:pitName, me:'', items:[], lastSync:null };
+      db=normalize(db);
+    }
     db.sync.journalId=id; db.sync.journalName=name||('Journal '+id); db.sync.auto=true;
     const content=JSON.stringify(dbWithoutSecrets());
     const r=await kvFetch('PUT', id, content);
     if(r.status!==200 && r.status!==204) throw new Error('Worker returned '+r.status+(r.text?(': '+r.text.slice(0,120)):''));
     db.sync.myHash=hashStr(content); db.sync.lastSync=Date.now();
-    document.getElementById('newJournalName').value=''; save(); renderSync(); setSyncDot('on');
-    syncMsg('Journal created and uploaded. Copy your Sync code above to set up another device in one paste.');
+    document.getElementById('newJournalName').value=''; save();
+    renderAll(); renderSync(); renderPitSettings(); setSyncDot('on');
+    syncMsg(cjMode==='empty'
+      ? 'Empty journal created. Put your own name on the ball pit below so your catches are signed.'
+      : 'Journal created and uploaded. Copy your Sync code above to set up another device in one paste.');
+    if(cjMode==='empty' && pitOn()) pitPull(false);
   }catch(e){ db.sync.journalId=null; setSyncDot('err'); syncMsg(e.message,true); }
   finally{ syncing=false; }
 }

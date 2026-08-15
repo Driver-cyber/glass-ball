@@ -538,6 +538,42 @@
       opens settings aimed at the pit, and all of it reversing once a pit is
       joined); 194 browser checks green across six suites, lockstep 16/16.
 
+* **[2026-08-15] v0.9.2 — a second person's journal stops cloning the first
+  one's board.** Chad hit it setting up his own journal for the pit: he created
+  `chad`, and it arrived carrying Joelle's days, her dev notes, and *her name
+  on the pit*. The name was the visible symptom; the clone was the disease.
+    * *Root cause:* `createJournal()` had exactly one behaviour — upload
+      `dbWithoutSecrets()` under the new key. That is correct for the case it
+      was written for (first device, or recovery) and silently wrong for "a
+      journal for someone else."
+    * *Decision — creation asks what it is.* "Mine — bring my data" (the old
+      behaviour, still the default) or "Someone else's — start empty". Empty
+      begins blank and keeps only what is genuinely shared: **pit membership**
+      (the whole point of a shelf) and the **joke library** (curated culture,
+      not a board). Days, projects, recurrences, dev notes, the other person's
+      identity and their parked balls all stay behind; the next pit pull
+      refills the shared lane on its own.
+    * *Decision — secure before wiping.* The confirm promises the old journal
+      is safe in the cloud under its own ID. That was only true if you happened
+      to have synced, so the empty path now **pushes the current board to its
+      own key first** and aborts the whole operation if that push fails.
+      A promise in a dialog is a feature, not copy.
+    * *Fix — renaming must not steal credit.* v0.9.0's `pitSetMe` re-signed
+      every item matching your old name, which was right for its purpose
+      (adopting balls parked before you had a name) and dangerous for this
+      one: correcting an inherited "Joelle" to "Chad" would have re-attributed
+      her parked balls to him. Re-signing now adopts **only the placeholder**
+      (`''` or `'me'`). A ball signed with a real name stays theirs; the cost
+      is that a genuine self-rename leaves your older items under the old
+      name, which is the honest trade.
+    * *Verified:* new 22-check v0.9.2 suite (mode picker and its copy, empty
+      journal carrying none of her board/notes/identity/private balls but
+      keeping pit membership, the uploaded blob actually empty, her board
+      secured in the cloud *including* her private lane before the wipe,
+      shared lane refilling still signed to her, naming yourself leaving her
+      credit intact, the placeholder rescue still working, and the clone path
+      unchanged). 216 browser checks green across seven suites; lockstep 16/16.
+
 ## 🤔 Pending Joelle (open design calls)
 * Body/UI typeface pick: Atkinson Hyperlegible vs. Karla vs. Alegreya Sans
   (or another direction she prefers)
