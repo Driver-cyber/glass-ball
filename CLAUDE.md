@@ -82,8 +82,10 @@ One surface, one scroll:
 - **The month** below it — a full month of tappable day cards, gold stars on
   the days where all glass was caught. Planning sits *below* the work.
 - **The day you tap** opens in a framed panel beneath the calendar, clearly a
-  different place — so "today" never moves out from under her. Tapping Today
-  closes it again.
+  different place — so "today" never moves out from under her. **Today opens
+  there too (v0.9.4)**, carrying a "today" chip: every card in the month
+  behaves identically, so browsing days never means scrolling back to the top.
+  The glance and the calendar copy are the same day, live in both directions.
 - **Inline entry** on every list (type into the empty line to add), and a
   **+** for the full iPhone-Reminders-style form: name (the only required
   field), day, priority, time block in minutes, recurrence.

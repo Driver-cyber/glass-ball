@@ -607,6 +607,36 @@
       named `chad` holding a db whose old `me` said "Joelle" now signs as
       Chad). 220 browser checks green across seven suites; lockstep 16/16.
 
+* **[2026-08-15] v0.9.4 — today opens under the calendar too.** Chad, using
+  it: *"if I'm down in the calendar I don't want to scroll back up to see the
+  current day."* This **revises the v0.7.0 rule** that hid today's panel.
+    * *Why the old rule was wrong:* "today already has its own section above"
+      was true, and it still made the month lie — every other card opened when
+      tapped and the 15th opened nothing. Consistency of the calendar beats
+      avoiding a duplicate.
+    * *Decision — duplicate on purpose, and label it.* The glance stays pinned
+      at the top; the calendar copy carries a **today** chip so it reads as the
+      same day seen twice rather than two different days. Both copies are live:
+      catching, adding, or noting in either repaints the other (the notes
+      drawer needed an explicit cross-paint, since two textareas now point at
+      one day).
+    * *Consequence:* the **Today** button no longer closes the panel — it
+      returns you to today with the panel still open, which is what "Today"
+      should have meant all along.
+    * *Also — creating a journal can no longer silently clobber one.* A name
+      that slugs onto an existing key now warns, naming how many days of
+      history are at stake, before replacing it. It is the one operation in
+      the app with no undo. (Found while working out how Chad could reuse the
+      name `chad` for a clean journal: he doesn't need to delete anything —
+      recreating it empty overwrites the clone, and now says so first.)
+    * *Verified:* new 18-check v0.9.4 suite (today panel open and labelled,
+      the ball in both copies, catching in one lighting the sticker in the
+      other, un-catching back the other way, adding below appearing above,
+      notes crossing, other days unchanged, Today keeping the panel, the
+      overwrite warning firing with a history count and staying silent for an
+      unused name). Two v0.7.0 assertions updated to the new truth. 238
+      browser checks green across eight suites; lockstep 16/16.
+
 ## 🤔 Pending Joelle (open design calls)
 * Body/UI typeface pick: Atkinson Hyperlegible vs. Karla vs. Alegreya Sans
   (or another direction she prefers)

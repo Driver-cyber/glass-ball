@@ -94,6 +94,10 @@ body{padding-left:env(safe-area-inset-left, 0px);padding-right:env(safe-area-ins
 .other-day{border:1px solid var(--border);border-radius:16px;background:var(--panel);
   padding:14px 14px 16px;margin-top:16px;box-shadow:0 14px 34px -24px rgba(25,25,25,.3);}
 .other-day .day-title{margin-top:2px;}
+/* today appears twice on purpose — label the calendar copy so it reads as
+   the same day, not a second one */
+.day-today{font-size:10.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--glass);border:1px solid var(--glass);border-radius:999px;padding:2px 9px;}
 /* ball sheet */
 .modal.sheet{width:420px;}
 .sheet-acts{display:flex;flex-direction:column;gap:9px;margin-top:14px;}
@@ -462,7 +466,7 @@ body.modal-open{overflow:hidden;}
 <body>
 
 <div class="appbar">
-  <div class="brand"><span class="brand-orb" aria-hidden="true"></span><span>The Glass Ball<small>catch the glass · v0.9.3</small></span></div>
+  <div class="brand"><span class="brand-orb" aria-hidden="true"></span><span>The Glass Ball<small>catch the glass · v0.9.4</small></span></div>
   <div class="maintabs">
     <div class="maintab active" data-m="today" onclick="switchMain('today')">Today</div>
     <div class="maintab" data-m="projects" onclick="switchMain('projects')">Projects</div>
@@ -1054,7 +1058,18 @@ body.modal-open{overflow:hidden;}
 <input type="file" id="importFile" accept="application/json" style="display:none">
 <script>
 /* =====================================================================
-   The Glass Ball · v0.9.3 — Joelle's task & schedule app.
+   The Glass Ball · v0.9.4 — Joelle's task & schedule app.
+   v0.9.4: today opens under the calendar like every other day. It used
+   to be hidden there — "today already has its own section above", which
+   was true and still made the month lie: tapping the 15th opened
+   nothing, so browsing days meant scrolling back to the top to see
+   today. The glance stays pinned; this is the same day rendered again,
+   on purpose, carrying a "today" chip so the duplicate reads as one day
+   and not two. Both copies are live: catch, add, or note in either and
+   the other follows. Also: creating a journal whose name slugs onto an
+   EXISTING key now says so — with how many days of history are at
+   stake — before replacing it. That is the one operation with no undo.
+   v0.9.3
    v0.9.3: your name on the pit is DERIVED from the journal, not stored.
    Chad's call, and it deletes the whole bug class: a stored name was a
    field you had to set, could forget, and — worst — travelled when a
@@ -1312,7 +1327,7 @@ const STORE_KEY = 'glassball_v1';   // Glass Ball's own key — never the CTT si
 const SCHEMA    = 'glassball-1';
 const CAPS = { glass:3, rubber:5 };   // the caps ARE the product — no override
 let db = {
-  version:'0.9.3', schema:SCHEMA, lastEdit:0,
+  version:'0.9.4', schema:SCHEMA, lastEdit:0,
   days:{},        // 'YYYY-MM-DD' → {glass:[task], rubber:[task], note:'', skipRecur:[], enough:false}
   recurring:[],   // repeat templates: {id,name,priority,blockMin,freq,anchor}
   projects:[],    // {id,name,notes,archived,createdDate,modifiedDate,steps:[{id,text,done,pushedTo}]}
@@ -1659,8 +1674,9 @@ let calMonth=todayStr().slice(0,7);    // viewed 'YYYY-MM'
 function calShift(n){ const [y,m]=calMonth.split('-').map(Number);
   const d=new Date(y,m-1+n,1); calMonth=iso(d).slice(0,7); renderCalendar(); }
 function calToday(){ calMonth=todayStr().slice(0,7); calSelect(todayStr()); }
+/* selecting any day now opens the panel, today included */
 function calSelect(ds){ calSel=ds; if(!ds.startsWith(calMonth)){ calMonth=ds.slice(0,7); } renderCalendar();
-  if(ds!==todayStr()) scrollToDay(); }
+  scrollToDay(); }
 /* The tapped day opens below the month — on a phone that's past the fold, so
    bring it up. 'nearest' means no jolt when it's already in view. */
 function scrollToDay(){ const p=document.getElementById('otherDay');
@@ -1688,14 +1704,20 @@ function renderCalendar(){
   }
   renderDayLists();
 }
+/* v0.9.4: today shows here too. It used to be hidden — "today already has
+   its own section above" — which was true and still made the calendar lie:
+   tap the 15th and nothing opened, so browsing days meant scrolling back to
+   the top to see today. The glance stays pinned up there; this is the same
+   day rendered again, deliberately, so every card in the month behaves
+   identically. Both copies are live and repaint together. */
 function renderDayLists(){
   const panel=document.getElementById('otherDay');
   const isToday=(calSel===todayStr());
-  panel.classList.toggle('hidden',isToday);      // today already has its own section above
-  if(isToday) return;
+  panel.classList.remove('hidden');
   ensureRecurring(calSel);
   const info=dayInfo(calSel);
   document.getElementById('dayTitle').innerHTML=escapeHtml(dowName(calSel))
+    +(isToday?' <span class="day-today">today</span>':'')
     +(info.gold?' <span class="goldstar" title="All glass caught">★ gold star</span>':'');
   buildBallList('calGlassList','glass',calSel);
   buildBallList('calRubberList','rubber',calSel);
@@ -1711,7 +1733,10 @@ function paintNotes(which,ds){
   btn.innerHTML='✎ notes'+((((day.note)||'').trim())?' <span class="note-dot">·</span>':'');
   if(document.activeElement!==ta){ ta.value=day.note||''; ta.style.display='none'; }
   if(!ta.dataset.bound){ ta.dataset.bound='1';
-    bindCommit(ta,()=>{ const d=getDay(ta.dataset.ds||ds); if(d.note!==ta.value){ d.note=ta.value; save(); } }); }
+    bindCommit(ta,()=>{ const d=getDay(ta.dataset.ds||ds);
+      if(d.note!==ta.value){ d.note=ta.value; save();
+        // today can be on screen twice — keep the other drawer honest
+        paintNotes(which==='today'?'other':'today', which==='today'?calSel:todayStr()); } }); }
   ta.dataset.ds=ds;
 }
 function toggleNotes(which){ const ta=document.getElementById(which==='today'?'todayNote':'dayNote');
@@ -3119,6 +3144,17 @@ async function createJournal(){
   if(!isConfigured()){ syncMsg('Connect to your Cloudflare sync first (above).',true); return; }
   const name=(document.getElementById('newJournalName').value||'').trim();
   const id=(name? name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'') : '') || newJournalId();
+  // A name that slugs onto an existing key would overwrite that journal
+  // wholesale. Ask — this is the one operation with no undo.
+  if(isConfigured()){
+    try{
+      const ex=await kvFetch('GET', id);
+      if(ex.status===200 && ex.text && id!==db.sync.journalId){
+        let n=0; try{ const j=JSON.parse(ex.text); n=Object.keys(j.days||{}).length; }catch(_){}
+        if(!confirm('A journal already lives under “'+id+'”'+(n?(' with '+n+' day'+(n>1?'s':'')+' of history'):'')+'.\n\nCreating it again REPLACES that journal. Continue?')) return;
+      }
+    }catch(_){ /* can't check — the create below will surface any real problem */ }
+  }
   if(cjMode==='empty' && !confirm('Start “'+(name||id)+'” as an EMPTY journal?\n\nThis device switches to it and its board begins blank. Your current journal is untouched in the cloud under its own Journal ID — rejoin anytime from "Switch or recover".')) return;
   syncing=true; setSyncDot('busy'); syncMsg('Creating your journal…');
   try{
