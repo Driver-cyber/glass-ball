@@ -130,9 +130,9 @@ body{padding-left:env(safe-area-inset-left, 0px);padding-right:env(safe-area-ins
 .ball-row input::placeholder{color:var(--muted);opacity:.7}
 .ball-row input:focus{outline:none;border-bottom-color:var(--glass);}
 .ball-row .block-min{flex:0 0 auto;font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;}
-.ball-row .row-menu{flex:0 0 auto;background:transparent;border:none;color:var(--muted);font-size:16px;
-  cursor:pointer;padding:2px 7px;border-radius:7px;line-height:1;}
-.ball-row .row-menu:hover{background:var(--glass-soft);color:var(--text);}
+.ball-row .row-menu,.ball-row .row-carry{flex:0 0 auto;background:transparent;border:none;color:var(--muted);
+  font-size:16px;cursor:pointer;padding:2px 7px;border-radius:7px;line-height:1;}
+.ball-row .row-menu:hover,.ball-row .row-carry:hover{background:var(--glass-soft);color:var(--text);}
 .ball-row .stick{flex:0 0 auto;font-size:15px;line-height:1;}
 .list-head{display:flex;align-items:baseline;gap:8px;margin:14px 2px 8px;font-weight:700;font-size:13px;
   letter-spacing:.05em;text-transform:uppercase;color:var(--muted);}
@@ -140,6 +140,17 @@ body{padding-left:env(safe-area-inset-left, 0px);padding-right:env(safe-area-ins
 .list-head .cnt{font-weight:500;font-size:11.5px;letter-spacing:0;text-transform:none;}
 .list-head .glyph{font-size:14px;}
 .cap-note{font-size:11.5px;color:var(--muted);font-style:italic;padding:2px 4px 0;}
+/* a ball handed to another day: settled, not caught — quiet, never red */
+.ball-row.carried{background:var(--group);border-style:dashed;opacity:.85;}
+.ball-row.carried input{color:var(--muted);}
+.carry-mark{flex:0 0 auto;width:22px;text-align:center;color:var(--glass);font-weight:800;font-size:15px;}
+.row-carry{color:var(--glass);font-weight:800;}
+.carry-badge{flex:0 0 auto;background:transparent;border:1px solid var(--border);color:var(--muted);
+  border-radius:999px;padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;}
+.carry-badge:hover{border-color:var(--glass);color:var(--glass);background:var(--glass-soft);}
+.settled-banner{display:flex;align-items:center;gap:9px;border:1px solid var(--border);background:var(--group);
+  border-radius:12px;padding:9px 13px;font-size:13.5px;color:var(--muted);margin-bottom:14px;}
+.settled-banner span{color:var(--glass);font-weight:800;}
 /* Dev Notes compose row: a door, not a field */
 .dev-add{cursor:pointer;border-style:dashed;}
 .dev-add:hover,.dev-add:focus-visible{border-color:var(--glass);background:var(--glass-soft);outline:none;}
@@ -362,7 +373,7 @@ body.modal-open{overflow:hidden;}
   .ck{position:relative;}
   .ck::after{content:'';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
     width:44px;height:44px;border-radius:12px;}
-  .ball-row .row-menu{padding:8px 12px;}
+  .ball-row .row-menu,.ball-row .row-carry{padding:8px 12px;}
   .ball-row input,.step-row input,.proj-name{font-size:16px;}
 }
 </style>
@@ -370,7 +381,7 @@ body.modal-open{overflow:hidden;}
 <body>
 
 <div class="appbar">
-  <div class="brand"><span class="brand-orb" aria-hidden="true"></span><span>The Glass Ball<small>catch the glass · v0.5.0</small></span></div>
+  <div class="brand"><span class="brand-orb" aria-hidden="true"></span><span>The Glass Ball<small>catch the glass · v0.6.0</small></span></div>
   <div class="maintabs">
     <div class="maintab active" data-m="opening" onclick="switchMain('opening')">Opening</div>
     <div class="maintab" data-m="calendar" onclick="switchMain('calendar')">Calendar</div>
@@ -581,6 +592,33 @@ body.modal-open{overflow:hidden;}
     <button class="ghost" onclick="closeModal('taskModalBg')">Cancel</button>
     <button onclick="taskModalSave()" id="tmSaveBtn">Add ball</button>
   </div>
+</div></div>
+
+<!-- Move a ball forward — the "worked on it, didn't finish, but I'm done
+     for today" door. Never a failure state; just a deliberate placement. -->
+<div class="modal-bg" id="carryModalBg"><div class="modal">
+  <button class="x-btn" onclick="closeModal('carryModalBg')" aria-label="Close">✕</button>
+  <h2 id="carryTitle">Move it forward</h2>
+  <p style="margin-top:0;font-weight:600" id="carryName"></p>
+  <p class="sync-note" id="carryWhere" style="margin-top:2px"></p>
+  <div id="carryPickWrap">
+    <div class="modal-actions" style="justify-content:stretch;margin-top:16px">
+      <button style="flex:1" id="carryTomorrow" onclick="doCarry(tomorrowOf(carryCtx.ds))">Tomorrow</button>
+    </div>
+    <div class="field" style="margin-top:14px"><label>Or pick a day</label>
+      <input type="date" id="carryDate"></div>
+    <div class="modal-actions">
+      <button class="ghost" onclick="closeModal('carryModalBg')">Cancel</button>
+      <button onclick="doCarry(document.getElementById('carryDate').value)">Move it there</button>
+    </div>
+  </div>
+  <div id="carryBack" class="hidden">
+    <div class="modal-actions">
+      <button class="ghost" onclick="closeModal('carryModalBg')">Leave it there</button>
+      <button onclick="undoCarry()">Bring it back</button>
+    </div>
+  </div>
+  <p class="sync-note" id="carryMsg" style="min-height:16px;color:var(--danger)"></p>
 </div></div>
 
 <!-- Forge task picker -->
@@ -837,7 +875,15 @@ body.modal-open{overflow:hidden;}
 <input type="file" id="importFile" accept="application/json" style="display:none">
 <script>
 /* =====================================================================
-   The Glass Ball · v0.5.0 — Joelle's task & schedule app.
+   The Glass Ball · v0.6.0 — Joelle's task & schedule app.
+   v0.6.0: carry forward. Every ball row (Opening + Calendar) gains a →
+   for "worked on it, didn't finish, and I'm done for today": the ball
+   stays here settled and struck through, and a real one lands on the
+   day you pick. Schema gains task.carried / task.carriedFrom. A moved
+   ball earns no sticker and holds back the gold star — moving is not
+   catching — but the day can still close: dayInfo() gains `settled`,
+   and Opening/Closing say so kindly instead of counting a miss.
+   v0.5.0
    v0.5.0: the guide becomes a page of its own — guide.html (/guide on
    Pages), a scrollytelling tour in the app's daylight language: the
    bouncing rubber ball vs the held glass one, the caps filling, six
@@ -981,7 +1027,7 @@ const STORE_KEY = 'glassball_v1';   // Glass Ball's own key — never the CTT si
 const SCHEMA    = 'glassball-1';
 const CAPS = { glass:3, rubber:5 };   // the caps ARE the product — no override
 let db = {
-  version:'0.5.0', schema:SCHEMA, lastEdit:0,
+  version:'0.6.0', schema:SCHEMA, lastEdit:0,
   days:{},        // 'YYYY-MM-DD' → {glass:[task], rubber:[task], note:'', skipRecur:[], enough:false}
   recurring:[],   // repeat templates: {id,name,priority,blockMin,freq,anchor}
   projects:[],    // {id,name,notes,archived,createdDate,modifiedDate,steps:[{id,text,done,pushedTo}]}
@@ -1031,7 +1077,10 @@ function mergeDefaults(p){
   if(p.lastEdit==null) p.lastEdit=0;
   p.days=p.days||{};
   Object.values(p.days).forEach(d=>{ d.glass=Array.isArray(d.glass)?d.glass:[]; d.rubber=Array.isArray(d.rubber)?d.rubber:[];
-    if(d.note==null) d.note=''; if(!Array.isArray(d.skipRecur)) d.skipRecur=[]; });
+    if(d.note==null) d.note=''; if(!Array.isArray(d.skipRecur)) d.skipRecur=[];
+    // carry-forward fields, explicit on every ball so both siblings agree
+    d.glass.concat(d.rubber).forEach(t=>{ if(t.carried===undefined) t.carried=null;
+      if(t.carriedFrom===undefined) t.carriedFrom=null; }); });
   p.recurring=Array.isArray(p.recurring)?p.recurring:[];
   p.projects=Array.isArray(p.projects)?p.projects:[];
   p.projects.forEach(pr=>{ pr.steps=Array.isArray(pr.steps)?pr.steps:[]; if(pr.notes==null) pr.notes=''; });
@@ -1052,7 +1101,8 @@ function normalize(p){ p=mergeDefaults(p); if(p.schema!==SCHEMA){ /* future migr
 function getDay(ds,create=true){ if(!db.days[ds]&&create) db.days[ds]={glass:[],rubber:[],note:'',skipRecur:[]}; return db.days[ds]; }
 function makeTask(name,opts){ opts=opts||{}; return {id:uid(),name:name||'',done:false,doneAt:null,
   blockMin:opts.blockMin||null,actualMin:null,recurId:opts.recurId||null,
-  fromProject:opts.fromProject||null,fromStep:opts.fromStep||null,createdAt:Date.now()}; }
+  fromProject:opts.fromProject||null,fromStep:opts.fromStep||null,
+  carried:opts.carried||null,carriedFrom:opts.carriedFrom||null,createdAt:Date.now()}; }
 function realTasks(list){ return (list||[]).filter(t=>(t.name||'').trim()); }
 
 /* Recurring tasks: templates in db.recurring, instances materialized lazily
@@ -1096,8 +1146,14 @@ function dayInfo(ds){
   const day=db.days[ds]||{glass:[],rubber:[]};
   const g=realTasks(day.glass);
   const done=g.filter(t=>t.done).length, total=g.length;
+  const moved=g.filter(t=>t.carried && !t.done).length;
+  // A moved ball is SETTLED, not caught: it costs no guilt and blocks nothing,
+  // but it earns no sticker and it holds back the gold star — the star means
+  // "every glass ball caught", and a marker that mirrors real state is the
+  // whole point. `settled` is the honest, kinder thing to say instead.
   const gold=total>0 && done===total;
-  return {total,done,gold,stickers: gold?3:done};
+  const settled=total>0 && (done+moved)===total;
+  return {total,done,moved,gold,settled,stickers: gold?3:done};
 }
 
 /* ---------- happy checkbox (ported from CTT) ---------- */
@@ -1205,22 +1261,42 @@ function buildBallList(elId, priority, ds){
     el.appendChild(n); }
 }
 function buildBallRow(ds,t,priority,isNew){
-  const row=document.createElement('div'); row.className='ball-row '+priority;
-  const lw=document.createElement('span'); lw.className='ck-label'+(t&&t.done?' ck-done':'');
+  const row=document.createElement('div'); row.className='ball-row '+priority+((t&&t.carried&&!t.done)?' carried':'');
+  const lw=document.createElement('span'); lw.className='ck-label'+((t&&(t.done||(t.carried&&!t.done)))?' ck-done':'');
   const tx=document.createElement('input'); tx.type='text'; tx.value=t?(t.name||''):'';
   tx.placeholder=isNew?(priority==='glass'?'add a glass ball…':'add a rubber ball…'):'';
   lw.appendChild(tx);
-  const ck=makeCheck(!!(t&&t.done), lw, dn=>{
-    if(!t){ return; }
-    setTaskDone(ds,t.id,dn,null);
-  });
-  if(isNew) ck.box.disabled=true;
-  row.appendChild(ck.wrap); row.appendChild(lw);
+  // A moved ball is settled, so it shows a → in the box's place rather than a
+  // checkmark it never earned — and its text can't be edited from here.
+  if(t && t.carried && !t.done){
+    const mark=document.createElement('span'); mark.className='carry-mark'; mark.textContent='→';
+    mark.title='Moved to '+shortDay(t.carried);
+    row.appendChild(mark); tx.readOnly=true;
+  }else{
+    const ck=makeCheck(!!(t&&t.done), lw, dn=>{ if(!t) return; setTaskDone(ds,t.id,dn,null); });
+    if(isNew) ck.box.disabled=true;
+    row.appendChild(ck.wrap);
+  }
+  row.appendChild(lw);
   if(t){
-    if(priority==='glass'){ const st=document.createElement('span'); st.className='stick';
-      st.innerHTML=t.done?'<span class="stick-earned" title="Sticker earned">✦</span>':'';
-      row.appendChild(st); }
-    if(t.blockMin){ const bm=document.createElement('span'); bm.className='block-min'; bm.textContent=t.blockMin+'m'; row.appendChild(bm); }
+    if(t.carried && !t.done){
+      const badge=document.createElement('button'); badge.type='button'; badge.className='carry-badge';
+      badge.textContent='→ '+shortDay(t.carried); badge.title='Waiting on '+shortDay(t.carried)+' — tap to bring it back';
+      badge.onclick=e=>{ e.stopPropagation(); openCarry(ds,t.id); };
+      row.appendChild(badge);
+    }else{
+      if(priority==='glass'){ const st=document.createElement('span'); st.className='stick';
+        st.innerHTML=t.done?'<span class="stick-earned" title="Sticker earned">✦</span>':'';
+        row.appendChild(st); }
+      if(t.blockMin){ const bm=document.createElement('span'); bm.className='block-min'; bm.textContent=t.blockMin+'m'; row.appendChild(bm); }
+      if(!t.done){
+        const fwd=document.createElement('button'); fwd.type='button'; fwd.className='row-carry';
+        fwd.textContent='→'; fwd.title='Not finished? Move it to another day';
+        fwd.setAttribute('aria-label','Move to another day');
+        fwd.onclick=e=>{ e.stopPropagation(); openCarry(ds,t.id); };
+        row.appendChild(fwd);
+      }
+    }
     const menu=document.createElement('button'); menu.type='button'; menu.className='row-menu'; menu.textContent='⋯';
     menu.title='Edit ball'; menu.onclick=e=>{ e.stopPropagation(); openTaskModal({ds:ds,id:t.id}); };
     row.appendChild(menu);
@@ -1251,6 +1327,71 @@ function setTaskDone(ds,id,dn,actualMin){
   setTimeout(()=>{ renderDayLists(); renderOpening();
     if(document.getElementById('main-projects').classList.contains('active')) renderProjects();
     if(document.getElementById('main-closing').classList.contains('active')) renderClosing(); },1200);
+}
+
+/* =====================================================================
+   CARRY FORWARD — the → on every ball row. Worked on it, didn't finish,
+   and it's time to stop: hand it to another day rather than leave it
+   hanging or fake a catch. Today keeps a settled record (struck through,
+   "→ Sat 16") so nothing vanishes, and a real ball lands on the target
+   day. It earns no sticker — moving is not catching — but it also costs
+   nothing: the day can close, which is the entire point.
+   ===================================================================== */
+let carryCtx=null;
+function tomorrowOf(ds){ const d=fromISO(ds); d.setDate(d.getDate()+1); return iso(d); }
+function shortDay(ds){ return fromISO(ds).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'}); }
+function openCarry(ds,id){
+  const f=findTask(ds,id); if(!f) return;
+  carryCtx={ds:ds,id:id};
+  const already=f.task.carried;
+  document.getElementById('carryTitle').textContent= already?'Already moved forward':'Move it forward';
+  document.getElementById('carryName').textContent='“'+f.task.name+'”';
+  document.getElementById('carryMsg').textContent='';
+  document.getElementById('carryBack').classList.toggle('hidden',!already);
+  document.getElementById('carryPickWrap').classList.toggle('hidden',!!already);
+  const lbl=document.getElementById('carryWhere');
+  lbl.textContent= already ? ('It’s waiting on '+shortDay(f.task.carried)+'. This day is settled.')
+    : 'It stays here, settled and struck through, and a fresh one lands on the day you pick.';
+  document.getElementById('carryDate').value=tomorrowOf(ds);
+  document.getElementById('carryTomorrow').textContent='Tomorrow · '+shortDay(tomorrowOf(ds));
+  openModal('carryModalBg');
+}
+function doCarry(targetDs){
+  if(!carryCtx) return;
+  const f=findTask(carryCtx.ds,carryCtx.id); if(!f){ closeModal('carryModalBg'); return; }
+  const msg=document.getElementById('carryMsg');
+  if(!targetDs || targetDs<=carryCtx.ds){ msg.textContent='Pick a day after this one.'; return; }
+  ensureRecurring(targetDs);
+  const day=getDay(targetDs);
+  if(realTasks(day[f.priority]).length>=CAPS[f.priority]){
+    msg.textContent=shortDay(targetDs)+' already holds '+CAPS[f.priority]+' '+f.priority+' ball'
+      +(CAPS[f.priority]>1?'s':'')+'. Try another day — the cap is the point.'; return; }
+  const copy=makeTask(f.task.name,{blockMin:f.task.blockMin, fromProject:f.task.fromProject,
+    fromStep:f.task.fromStep, carriedFrom:carryCtx.ds});
+  day[f.priority].push(copy);
+  f.task.carried=targetDs; f.task.done=false; f.task.doneAt=null;
+  save(); closeModal('carryModalBg');
+  renderDayLists(); renderOpening(); renderCalendar();
+  if(document.getElementById('main-closing').classList.contains('active')) renderClosing();
+  flash('Moved to '+shortDay(targetDs));
+  carryCtx=null;
+}
+/* Undo, because a mis-tap on a phone is real: take back the copy (only if it
+   hasn't been caught over there) and re-open the ball on this day. */
+function undoCarry(){
+  if(!carryCtx) return;
+  const f=findTask(carryCtx.ds,carryCtx.id); if(!f||!f.task.carried){ closeModal('carryModalBg'); return; }
+  const t=f.task.carried, day=db.days[t];
+  if(day){
+    ['glass','rubber'].forEach(pr=>{
+      const i=day[pr].findIndex(x=>x.carriedFrom===carryCtx.ds && x.name===f.task.name && !x.done);
+      if(i>=0) day[pr].splice(i,1);
+    });
+  }
+  f.task.carried=null;
+  save(); closeModal('carryModalBg');
+  renderDayLists(); renderOpening(); renderCalendar();
+  flash('Brought it back'); carryCtx=null;
 }
 
 /* ---------- task creation / editing modal ---------- */
@@ -1365,11 +1506,13 @@ function renderOpening(){
     s.textContent=i<info.stickers?'✦':'·'; sticks.appendChild(s); }
   document.getElementById('openGoldNote').textContent= info.gold?'':(info.total?'':'no glass named yet');
   document.getElementById('openGoldBanner').innerHTML= info.gold
-    ? '<div class="gold-banner"><span class="goldstar" style="font-size:19px">★</span> Gold star day — every glass ball caught. The rest is optional.</div>' : '';
+    ? '<div class="gold-banner"><span class="goldstar" style="font-size:19px">★</span> Gold star day — every glass ball caught. The rest is optional.</div>'
+    : (info.settled ? '<div class="settled-banner"><span>→</span> Every glass ball is settled — caught or deliberately moved. Nothing is hanging.</div>' : '');
   const day=db.days[today]||{glass:[],rubber:[]};
   buildOpenList('openGlassList', realTasks(day.glass), 'glass', today);
   buildOpenList('openRubberList', realTasks(day.rubber), 'rubber', today);
-  document.getElementById('openGlassCnt').textContent= info.total? (info.done+' of '+info.total+' caught') : '';
+  document.getElementById('openGlassCnt').textContent= info.total
+    ? (info.done+' of '+info.total+' caught'+(info.moved?(' · '+info.moved+' moved forward'):'')) : '';
   const r=realTasks(day.rubber);
   document.getElementById('openRubberCnt').textContent= r.length? (r.filter(t=>t.done).length+' of '+r.length) : '';
 }
@@ -1383,17 +1526,38 @@ function buildOpenList(elId,list,priority,ds){
     el.appendChild(e); return;
   }
   list.forEach(t=>{
-    const row=document.createElement('div'); row.className='ball-row open-row '+priority;
-    const lw=document.createElement('span'); lw.className='ck-label'+(t.done?' ck-done':'');
+    const moved=!!(t.carried && !t.done);
+    const row=document.createElement('div'); row.className='ball-row open-row '+priority+(moved?' carried':'');
+    const lw=document.createElement('span'); lw.className='ck-label'+((t.done||moved)?' ck-done':'');
     const span=document.createElement('span'); span.textContent=t.name; span.style.cssText='display:block;padding:4px 2px;font-size:14px';
     lw.appendChild(span);
-    const ck=makeCheck(!!t.done, lw, dn=>setTaskDone(ds,t.id,dn,null));
-    ck.box.addEventListener('click',e=>e.stopPropagation());
-    row.appendChild(ck.wrap); row.appendChild(lw);
-    if(priority==='glass'&&t.done){ const st=document.createElement('span'); st.className='stick';
-      st.innerHTML='<span class="stick-earned">✦</span>'; row.appendChild(st); }
-    if(t.blockMin){ const bm=document.createElement('span'); bm.className='block-min'; bm.textContent=t.blockMin+'m'; row.appendChild(bm); }
-    row.onclick=()=>openForgeWithTask(ds,t.id);
+    if(moved){
+      const mark=document.createElement('span'); mark.className='carry-mark'; mark.textContent='→';
+      mark.title='Moved to '+shortDay(t.carried); row.appendChild(mark);
+    }else{
+      const ck=makeCheck(!!t.done, lw, dn=>setTaskDone(ds,t.id,dn,null));
+      ck.box.addEventListener('click',e=>e.stopPropagation());
+      row.appendChild(ck.wrap);
+    }
+    row.appendChild(lw);
+    if(moved){
+      const badge=document.createElement('button'); badge.type='button'; badge.className='carry-badge';
+      badge.textContent='→ '+shortDay(t.carried); badge.title='Waiting on '+shortDay(t.carried)+' — tap to bring it back';
+      badge.onclick=e=>{ e.stopPropagation(); openCarry(ds,t.id); };
+      row.appendChild(badge);
+    }else{
+      if(priority==='glass'&&t.done){ const st=document.createElement('span'); st.className='stick';
+        st.innerHTML='<span class="stick-earned">✦</span>'; row.appendChild(st); }
+      if(t.blockMin){ const bm=document.createElement('span'); bm.className='block-min'; bm.textContent=t.blockMin+'m'; row.appendChild(bm); }
+      if(!t.done){
+        const fwd=document.createElement('button'); fwd.type='button'; fwd.className='row-carry';
+        fwd.textContent='→'; fwd.title='Not finished? Move it to another day';
+        fwd.setAttribute('aria-label','Move to another day');
+        fwd.onclick=e=>{ e.stopPropagation(); openCarry(ds,t.id); };
+        row.appendChild(fwd);
+      }
+    }
+    if(!moved) row.onclick=()=>openForgeWithTask(ds,t.id);
     el.appendChild(row);
   });
 }
@@ -1882,7 +2046,8 @@ function renderClosing(){
     ? '<div class="gold-banner" style="justify-content:center"><span class="goldstar" style="font-size:19px">★</span> Gold star day.</div>' : '';
   const line=document.getElementById('closeLine');
   if(info.gold) line.textContent='Every glass ball caught. Whatever is left today is rubber — and rubber keeps. Go be where your feet are.';
-  else if(info.total) line.textContent=info.done+' of '+info.total+' glass caught. The rest is still glass tomorrow — held here, not hanging over you.';
+  else if(info.settled) line.textContent=info.done+' caught, '+info.moved+' moved forward on purpose. Nothing was dropped and nothing is hanging — the day is settled. Go rest.';
+  else if(info.total) line.textContent=info.done+' of '+info.total+' glass caught'+(info.moved?(', '+info.moved+' moved forward'):'')+'. The rest is still glass tomorrow — held here, not hanging over you.';
   else line.textContent='No glass was named today. Quiet days count too.';
   const host=document.getElementById('closeEnoughCk'); host.innerHTML='';
   const day=db.days[today]||{};
