@@ -122,6 +122,11 @@ surface.
   through the ordinary **hard caps**. A full day refuses a shared ball.
 - **Whoever catches it, catches it for both.** The other side's copy closes on
   its next sync, signed with who caught it.
+- **Who you are is derived, never stored (v0.9.3):** your signature is the
+  Journal ID, title-cased (`joelle` → Joelle). Unique per journal by
+  construction, so it can't be forgotten, gone stale, or travel when a journal
+  is cloned. Signatures already on balls are snapshots and are never rewritten
+  — only the `me` placeholder from pre-journal parking is ever adopted.
 - **Ask for help asynchronously.** Chad and Joelle are often too busy to
   explain a task out loud; a ball on the shelf is the explanation.
 - **It is a shelf, never an inbox.** Collapsed by default, no badge, no count
