@@ -669,6 +669,38 @@
       when both kinds are present; no empty state while anything is listed).
       258 browser checks green across nine suites; lockstep 16/16.
 
+* **[2026-08-15] v0.9.6 — the iOS focus-zoom, killed at the root.** Chad's
+  phone zoomed in mid-use and stayed there ("I just swiped my fingers and it
+  was resolved").
+    * *Cause:* Mobile Safari zooms the page on focusing any control under 16px
+      and never zooms back. The touch media query already carried
+      `select,input,textarea{font-size:16px}` — but a **bare element selector
+      loses to every class-scoped rule**, so `.ball-row input` (14px),
+      `.step-row input` (13.5px), `.pit-row input` (14px) and `.proj-notes`
+      (13px) each beat it. Two had been patched *by name* in earlier releases;
+      the pit's entry field was added in v0.8.0 and never joined the list.
+    * *Decision — declare it as a floor.* `!important` inside the touch query,
+      and the by-name enumeration deleted. Losing here is not cosmetic, and
+      the enumeration approach had already failed twice. **Same lesson as
+      `.hidden` in v0.9.5: a rule that must win has to say so.**
+    * *A permanent audit, not a spot fix:* the suite now walks ten surfaces
+      (Today, Projects, Dev Notes, task modal, settings, timer, push, carry,
+      quotes, closing) asserting no focusable control computes under 16px and
+      the document never overflows sideways. Canaried: reverting the
+      `!important` turns it red and names all three offenders.
+    * *Also — the pit's lane control is worded.* "🤝 share" / "🔒 unshare" as a
+      bordered chip, and the redundant 🔒 state badge is gone (the row already
+      says "just yours"). A state glyph sitting beside an action glyph
+      pointing the opposite way is precisely what made "how do I share this?"
+      a fair question two releases ago.
+    * *Confirmed working, for the record:* the shared pit **is** syncing across
+      journals — Chad's own read was right. Joelle's "Test ball" was parked
+      before a pit existed, so it defaulted to the private lane and never
+      uploaded; balls parked after joining default to shared and cross fine.
+      The v0.9.5 `.hidden` bug ("there's no shared shelf yet" showing beneath a
+      joined shelf) is what made it look broken.
+    * *Verified:* 261 browser checks green across nine suites, lockstep 16/16.
+
 ## 🤔 Pending Joelle (open design calls)
 * Body/UI typeface pick: Atkinson Hyperlegible vs. Karla vs. Alegreya Sans
   (or another direction she prefers)

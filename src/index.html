@@ -331,9 +331,14 @@ body.has-timerbar{padding-bottom:64px;}
 .pit-take{flex:0 0 auto;white-space:nowrap;}
 /* two different verbs, two different selectors — a shared class is how the
    ⋯/→ collision bit us in v0.6.0 */
-.pit-del,.pit-vis{flex:0 0 auto;background:transparent;border:none;color:var(--muted);
+.pit-del{flex:0 0 auto;background:transparent;border:none;color:var(--muted);
   font-size:13px;cursor:pointer;padding:4px 7px;border-radius:7px;line-height:1;}
-.pit-del:hover,.pit-vis:hover{background:var(--glass-soft);color:var(--text);}
+.pit-del:hover{background:var(--glass-soft);color:var(--text);}
+/* a lane toggle is an action, so it looks like one — bordered and worded */
+.pit-vis{flex:0 0 auto;background:transparent;border:1px solid var(--border);color:var(--muted);
+  font-size:11px;font-weight:700;white-space:nowrap;cursor:pointer;padding:4px 9px;
+  border-radius:999px;line-height:1;}
+.pit-vis:hover{border-color:var(--glass);color:var(--glass);background:var(--glass-soft);}
 .pit-add{background:transparent;border-style:dashed;}
 .pit-sub{font-size:10.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
   color:var(--muted);margin:14px 2px 7px;}
@@ -458,7 +463,12 @@ body.modal-open{overflow:hidden;}
    Mobile Safari auto-zooms on any control under 16px and never zooms back.
    16px on touch pointers is the cure; pinch-zoom stays available. */
 @media (pointer: coarse){
-  select,input,textarea{font-size:16px;}
+  /* !important on purpose: this is a floor, not a preference. A plain
+     element selector loses to any class-scoped rule (.ball-row input,
+     .pit-row input, .proj-notes …), and every time one was added the zoom
+     came back and had to be patched by name. Losing here isn't cosmetic —
+     iOS zooms the page in and never zooms back. */
+  select,input,textarea{font-size:16px !important;}
   /* a 22px checkbox is a 22px target for a thumb — grow the hit area to the
      44px Apple asks for, invisibly, without touching the drawn box */
   .ck{position:relative;}
@@ -470,14 +480,13 @@ body.modal-open{overflow:hidden;}
   .pit-by{order:5;flex-basis:100%;padding-left:33px;}
   .ball-row{padding:11px 10px;}
   .ball-row .ball-name{font-size:15px;}
-  .ball-row input,.step-row input,.proj-name{font-size:16px;}
 }
 </style>
 </head>
 <body>
 
 <div class="appbar">
-  <div class="brand"><span class="brand-orb" aria-hidden="true"></span><span>The Glass Ball<small>catch the glass · v0.9.5</small></span></div>
+  <div class="brand"><span class="brand-orb" aria-hidden="true"></span><span>The Glass Ball<small>catch the glass · v0.9.6</small></span></div>
   <div class="maintabs">
     <div class="maintab active" data-m="today" onclick="switchMain('today')">Today</div>
     <div class="maintab" data-m="projects" onclick="switchMain('projects')">Projects</div>
@@ -1069,7 +1078,22 @@ body.modal-open{overflow:hidden;}
 <input type="file" id="importFile" accept="application/json" style="display:none">
 <script>
 /* =====================================================================
-   The Glass Ball · v0.9.5 — Joelle's task & schedule app.
+   The Glass Ball · v0.9.6 — Joelle's task & schedule app.
+   v0.9.6: the iOS focus-zoom, killed at the root. Chad's phone zoomed
+   in and stayed there; the cause was the pit's entry field at 14px.
+   Mobile Safari zooms any control under 16px and never zooms back. The
+   media query already said `select,input,textarea{font-size:16px}` —
+   but a bare element selector loses to every class-scoped rule
+   (.ball-row input, .pit-row input, .proj-notes), so each new one
+   silently reintroduced the bug and got patched by name. It is a floor
+   now (!important) and an audit sweeps ten surfaces, asserting nothing
+   focusable computes under 16px and nothing overflows sideways. Same
+   lesson as .hidden last release: a rule that must win has to say so.
+   Also, the shelf's lane control is worded: "🤝 share" / "🔒 unshare"
+   as a bordered chip, and the redundant 🔒 badge is gone — a state
+   glyph beside an action glyph pointing the opposite way was the thing
+   that made "how do I share this?" a fair question.
+   v0.9.5
    v0.9.5: project balls with no day appear on the shelf, and .hidden
    actually hides. Chad found the second one by reading the screen: the
    pit said "Chad & Joelle — shared shelf" and, directly beneath, "there's
@@ -1356,7 +1380,7 @@ const STORE_KEY = 'glassball_v1';   // Glass Ball's own key — never the CTT si
 const SCHEMA    = 'glassball-1';
 const CAPS = { glass:3, rubber:5 };   // the caps ARE the product — no override
 let db = {
-  version:'0.9.5', schema:SCHEMA, lastEdit:0,
+  version:'0.9.6', schema:SCHEMA, lastEdit:0,
   days:{},        // 'YYYY-MM-DD' → {glass:[task], rubber:[task], note:'', skipRecur:[], enough:false}
   recurring:[],   // repeat templates: {id,name,priority,blockMin,freq,anchor}
   projects:[],    // {id,name,notes,archived,createdDate,modifiedDate,steps:[{id,text,done,pushedTo}]}
@@ -2001,14 +2025,14 @@ function renderPit(){
       ? ('caught by '+(pitIsMine(it.doneBy)?'you':(it.doneBy||'someone')))
       : (!pitOn() ? '' : (priv ? 'just yours' : ('from '+(pitIsMine(it.by)?'you':(it.by||'—')))));
     if(who.textContent) row.appendChild(who);
-    // the lock only means something once there's a shared lane to contrast it
-    // with; solo it was a padlock with no keyhole
-    if(priv && pitOn()){ const lk=document.createElement('span'); lk.className='pit-lock'; lk.textContent='🔒';
-      lk.title='Just yours — never leaves your journal'; row.appendChild(lk); }
+    // No lock badge: the row already says "just yours", and a badge glyph
+    // sitting beside a button glyph made them read as one confusing pair —
+    // the state and the action pointing opposite ways. One labelled control.
     if(pitOn() && !it.done){
       const vt=document.createElement('button'); vt.type='button'; vt.className='pit-vis';
-      vt.textContent = priv ? '🤝' : '🔒';
-      vt.title = priv ? 'Share it — put it on the shared shelf' : 'Make it just yours';
+      vt.textContent = priv ? '🤝 share' : '🔒 unshare';
+      vt.title = priv ? 'Put it on the shared shelf so either of you can catch it'
+                      : 'Make it just yours — it leaves the shared shelf';
       vt.onclick=e=>{ e.stopPropagation(); pitToggleVis(it.id); };
       row.appendChild(vt);
     }
