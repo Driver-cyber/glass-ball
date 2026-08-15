@@ -4,6 +4,6 @@
   "private": true,
   "description": "The Glass Ball — Joelle's task & schedule app. Catch the glass, let the rubber bounce.",
   "scripts": {
-    "test": "node --test test/"
+    "test": "node --test \"test/*.test.js\""
   }
 }

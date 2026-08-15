@@ -253,13 +253,13 @@ a:focus-visible{outline:2px solid var(--glass);outline-offset:4px;}
 <section class="scene" id="s-rooms" style="height:440vh">
   <div class="pin">
     <div class="mid" style="text-align:center">
-      <div class="kicker">Six rooms</div>
+      <div class="kicker">Three rooms and a few tools</div>
       <div class="mid-t" data-words>Small house. Good bones.</div>
       <div class="rooms" id="rooms">
-        <div class="room"><span class="glyph">🌅</span><b>Opening</b><span>Your day at a glance. Tap a ball and the timer&rsquo;s already set.</span></div>
-        <div class="room"><span class="glyph">🗓</span><b>Calendar</b><span>The heart. Pick any day, type a ball onto its list, done.</span></div>
+        <div class="room"><span class="glyph">🌅</span><b>Today</b><span>Your day at a glance. Keep scrolling and it&rsquo;s the whole month.</span></div>
+        <div class="room"><span class="glyph">◉</span><b>Any ball</b><span>One tap opens it: start it, catch it, or move it forward.</span></div>
         <div class="room"><span class="glyph">🧺</span><b>Projects</b><span>Big things, broken into balls — send one to any day.</span></div>
-        <div class="room"><span class="glyph">🔥</span><b>The Forge</b><span>Where balls get caught. A timer, a joke, and one honest question.</span></div>
+        <div class="room"><span class="glyph">⏳</span><b>The timer</b><span>Not a place you go. It starts anywhere and follows you.</span></div>
         <div class="room"><span class="glyph">🌙</span><b>Closing</b><span>The exhale. It will tell you when you&rsquo;ve done enough.</span></div>
         <div class="room"><span class="glyph">✎</span><b>Dev Notes</b><span>Something weird? Tell on us here and text Chad the batch.</span></div>
       </div>
@@ -274,15 +274,17 @@ a:focus-visible{outline:2px solid var(--glass);outline-offset:4px;}
       <div class="forgewrap">
         <svg class="moon" id="moonSvg" viewBox="0 0 220 152" aria-hidden="true"></svg>
         <div style="max-width:44ch">
-          <div class="kicker">The Forge</div>
+          <div class="kicker">The timer</div>
           <div class="clock" id="clock">25:00</div>
-          <p class="sub">Pick a ball and the moon keeps its time — half-lit means halfway.<br><br>
+          <p class="sub">Tap a ball, tap <span class="accent">&#9654; Start it</span>, and the moon keeps
+            its time — half-lit means halfway. Close the window and it keeps running; a little bar
+            rides along the bottom until you tap it again.<br><br>
             It opens with a <span class="accent">joke</span> (always skippable) and ends with the only
             honest question: <em>did you finish?</em> Say &ldquo;still needs work&rdquo; and it offers more
             minutes — or rolls the rest onto another day, on purpose.<br><br>
-            Didn&rsquo;t finish and you&rsquo;re done for today? Every ball has a
-            <span class="accent">&rarr;</span> — hand it to another day. It stays here, settled, and
-            lands there for real. Nothing dropped, nothing hanging.</p>
+            Didn&rsquo;t finish and you&rsquo;re done for today? Every ball offers
+            <span class="accent">&rarr; Move it forward</span> — hand it to another day. It stays here,
+            settled, and lands there for real. Nothing dropped, nothing hanging.</p>
         </div>
       </div>
     </div>

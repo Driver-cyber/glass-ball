@@ -31,9 +31,10 @@ zero nagging feeling that she should be doing more.
 For every screen, tool, and feature, answer two questions:
 
 1. **Does it help catch glass?** Fewer taps between opening the app and doing
-   the thing that matters. The Opening dashboard deep-links straight into the
-   Forge — that's the standard: **one tap from "I opened the app" to "the timer
-   is running on my task."**
+   the thing that matters. The app opens on Today with her balls already in
+   front of her, and a ball is one tap from its three verbs — that's the
+   standard: **from "I opened the app" to "the timer is running on my ball"
+   in two taps, from anywhere.**
 2. **Does it let rubber bounce guiltlessly?** No feature may punish, badge,
    redden, or pile up uncompleted rubber tasks. Incomplete rubber is a neutral
    fact, not a failure state.
@@ -62,72 +63,69 @@ for its own sake. The gamification celebrates *completion*, never *engagement*.
 
 ---
 
-## 🗺 Product Spec — The Five Tabs
+## 🗺 Product Spec — Three Rooms
 
-**Opening · Calendar · Projects · The Forge · Closing**
+**Today · Projects · Closing** — plus two utilities in the header (⏳ the
+focus timer, ✎ Dev Notes) and the gear ⚙ for sync, the joke library, backup,
+and the guide.
 
-### 1. Opening (default on launch)
-Today-at-a-glance dashboard: today's glass balls (with their stickers, earned
-or pending), rubber balls below, gold-star status. **Tapping any task
-deep-links into the Forge with that task loaded and its time block set.** This
-is the launch ramp, not a lobby — zero friction between opening the app and
-starting work.
+*Revised 2026-08-15 (v0.7.0).* The founding spec had five tabs — Opening,
+Calendar, Projects, The Forge, Closing. Opening and Calendar turned out to
+render the same day twice, and the Forge was a room you travelled to in order
+to do a thing you'd already chosen. See `DECISIONS.md` for the full rationale.
 
-### 2. Calendar (the heart)
-- Full-month calendar page; dates are tappable cards; defaults to today.
-- Gold stars visible on past days where all glass was caught.
-- Selecting a date shows that day's lists below the calendar:
-  - **Glass list** (max 3) — checkboxes left, CTT check-and-strikethrough
-    animation on complete.
-  - **Rubber list** (max 5) — same interaction.
-  - **Expandable Notes** button below (CTT blueprint pattern) — free brain-dump
-    for anything that doesn't fit the lists.
-- **Inline task entry**: type into the empty checklist line to add (CTT
-  blueprint pattern).
-- **Full creation screen**: via a three-dot menu on any task row or the
-  plus-circle button top-right of the Calendar. iPhone-Reminders-style form:
-  - Name — **the only required field** (plus the day being added to)
-  - Date
-  - Recurrence: none / daily / weekly / every other week / monthly
-  - Priority: glass or rubber
-  - Time block: budgeted **minutes** (not a clock time); optional
+### 1. Today (default on launch) — the glance *and* the month
+One surface, one scroll:
+- **The glance** — "Your Saturday, August 15 at a glance": sticker slots,
+  gold-star / settled banner, today's glass (max 3) and rubber (max 5) lists,
+  and the ✎ notes drawer. This is the launch ramp, not a lobby.
+- **The month** below it — a full month of tappable day cards, gold stars on
+  the days where all glass was caught. Planning sits *below* the work.
+- **The day you tap** opens in a framed panel beneath the calendar, clearly a
+  different place — so "today" never moves out from under her. Tapping Today
+  closes it again.
+- **Inline entry** on every list (type into the empty line to add), and a
+  **+** for the full iPhone-Reminders-style form: name (the only required
+  field), day, priority, time block in minutes, recurrence.
+
+### 2. The ball sheet — one tap, three verbs
+Tapping anywhere on a ball opens a sheet naming it, with:
+- **▶ Start it** — loads its time block and runs the timer
+- **✓ Catch it** — done (un-catch if already caught)
+- **→ Move it forward** — didn't finish; hand it to another day
+- **✎ Edit details**, and a quiet delete
+
+**The one exception: the checkbox stays a direct tap on the row.** Catching is
+the most frequent act and the best feeling in the app — it never gets buried.
 
 ### 3. Projects
-Multi-step, longer-term projects, ported from CTT's projects surface.
-**The bridge:** a project step can be pushed onto a calendar day as a glass or
-rubber ball, so projects feed the daily game instead of living in a silo.
-Bridge polish is backlogged; the v1 port + basic push-to-day comes first.
+Multi-step, longer-term things, ported from CTT's projects surface.
+**The bridge:** a project step can be pushed onto a day as a glass or rubber
+ball; catching that ball checks the step back home.
 
-### 4. The Forge (the workspace)
-- **Focus timer** ported from CTT with exactly **two renderers: Moon and pixel
-  grid** (hot-swappable, CTT registry pattern).
-- Date selector (defaults today) + month report chips + a "Select a task"
-  picker window.
-- Picking a task from that day's list **auto-loads its time block minutes**
-  into the timer.
-- Timer: start / pause / stop, custom minutes, reset. **Standalone mode**: the
-  timer works decoupled from any task (e.g., expanded without a selection).
-- **Start flow:** pressing start pops a wry joke/quote window → user taps
-  start again to close it and begin. (Never blocks: closable instantly.)
-- **Stop / timeout flow:** always the same two options —
-  - **Task complete** → checks it off: popup shows task name + checkbox
-    animation + strikethrough + **sticker earned**. From there: X to close, or
-    tap complete again for a dry/encouraging closing quote.
-  - **Still needs work** → offers +15 / +30 / custom more minutes to continue,
-    **or** "Create follow-up" → opens the task creation screen pre-filled from
-    the original with "Follow up: " prefixed to the name, so the remainder
-    lands somewhere deliberate on the calendar.
-- Completing a task via the Forge routes the celebration here (popup), then
-  the Closing surface carries the "enough" moment.
-- **Month report** (within the Forge): completed tasks vs. budget — ahead or
-  behind the assigned time block. Actual time = time elapsed on the timer when
-  marked complete. **Deprioritized for initial builds** — mechanism can stub.
+### 4. The focus timer (a mode, not a room)
+- Reachable from **⏳** in the header or **▶** on any ball. Runs in an overlay
+  over whatever room she's in.
+- Exactly **two renderers: Moon and pixel grid** (hot-swappable, CTT registry
+  pattern). Start / pause / stop / custom minutes / reset. **Standalone mode**
+  works with no ball attached.
+- **A timer bar** rides along the bottom while a block runs, from any room.
+  Closing the face never stops the clock; tapping the bar reopens it.
+- **Start flow:** a wry joke/quote window → tap again to begin. Never blocks.
+- **Stop / timeout flow:** always two options —
+  - **Task complete** → celebration: name + check animation + strikethrough +
+    **sticker earned**; tap complete again for a dry, encouraging closing line.
+  - **Still needs work** → +15 / +30 / custom, **or** "Create follow-up" →
+    the creation form pre-filled with "Follow up: " so the remainder lands
+    somewhere deliberate.
+- Survives iOS discarding the backgrounded PWA (wall-clock `endAt` kept in a
+  device-local key, never synced).
 
 ### 5. Closing
-The celebration and rest surface. Reflects the day's stickers and gold-star
-status, asks the quiet question — *have you done enough?* — and points at the
-door. Mirror, not wall (CTT principle): it names the impulse to keep going, it
-never blocks or nags.
+The celebration and rest surface. The day's stickers and gold-star status, the
+quiet question — *have you done enough?* — and a pointer at the door. Mirror,
+not wall: it names the impulse to keep going, it never blocks or nags. The
+**month report** (caught balls vs. their time blocks) lives here.
 
 ---
 
@@ -231,19 +229,23 @@ never blocks or nags.
 
 ## 📅 Phases
 
-- **Phase 0 — Scaffold & Port:** Both repos created; cream/black shell with
-  five tabs; CTT components ported and de-CTT'd; storage module + schema +
-  `normalize()` in place with the sync seam stubbed. *(Chad wires the KV
-  worker in parallel.)*
-- **Phase 1 — The Heart:** Calendar (month view, day cards, glass/rubber
-  lists, notes, inline + full task creation, recurrence); Opening dashboard
-  with the Forge deep-link; KV sync live across both surfaces.
-- **Phase 2 — The Game:** Forge full flow (task picker, time-block auto-load,
-  start joke, complete/still-needs-work/follow-up); stickers, gold stars,
-  completion celebration; Closing surface.
-- **Parked:** month report analytics, meme/image joke library, Projects↔
-  Calendar bridge polish, additional timer renderers, anything else that
-  surfaces (→ `DECISIONS.md` parking lot).
+- **Phase 0 — Scaffold & Port** *(done, v0.1.0)*: Both repos created; the
+  cream/black shell; CTT components ported and de-CTT'd; storage module +
+  schema + `normalize()` with the sync seam. *(Chad wired the KV worker in
+  parallel.)*
+- **Phase 1 — The Heart** *(done, v0.1–0.2)*: month view, day cards,
+  glass/rubber lists, notes, inline + full task creation, recurrence; the
+  glance dashboard; KV sync live across both surfaces.
+- **Phase 2 — The Game** *(done, v0.2–0.4)*: full timer flow (ball picker,
+  time-block auto-load, start joke, complete / still-needs-work / follow-up);
+  stickers, gold stars, completion celebration; Closing surface.
+- **Phase 3 — Hers to use** *(v0.5–0.7, current)*: the scrollytelling guide,
+  carry-forward, Dev Notes, the meme library, and the v0.7.0 navigation
+  refactor — three rooms, the ball sheet, the timer as a mode. Goal: hand
+  Joelle a finished app to live in for a week and return notes.
+- **Parked:** month report analytics, Projects↔Calendar bridge polish,
+  additional timer renderers, anything else that surfaces
+  (→ `DECISIONS.md` parking lot).
 
 Phase transitions are **red team gates** (see Maintenance).
 

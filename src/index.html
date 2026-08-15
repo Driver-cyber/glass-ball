@@ -85,6 +85,45 @@ body{padding-left:env(safe-area-inset-left, 0px);padding-right:env(safe-area-ins
 .gear-menu .menu-label{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);padding:8px 12px 4px;}
 .gear-menu .divider{height:1px;background:var(--border);margin:6px 4px;}
 .main-pane{display:none}.main-pane.active{display:block}
+.hdr-btn{font-size:15px;line-height:1;padding:7px 10px;}
+/* the two utility buttons travel as a pair — a wrapping appbar used to strand
+   ✎ on the next line, far from the ⏳ it belongs with */
+.hdr-btns{display:flex;align-items:center;gap:8px;flex:none;}
+/* the month is planning, not doing: a rule marks the change of gear */
+.month-rule{height:1px;background:var(--border);margin:26px 2px 20px;}
+.other-day{border:1px solid var(--border);border-radius:16px;background:var(--panel);
+  padding:14px 14px 16px;margin-top:16px;box-shadow:0 14px 34px -24px rgba(25,25,25,.3);}
+.other-day .day-title{margin-top:2px;}
+/* ball sheet */
+.modal.sheet{width:420px;}
+.sheet-acts{display:flex;flex-direction:column;gap:9px;margin-top:14px;}
+.sheet-act{display:flex;align-items:center;gap:13px;text-align:left;background:transparent;
+  color:var(--text);border:1px solid var(--border);border-radius:14px;padding:14px 15px;font-weight:600;}
+.sheet-act:hover{background:var(--glass-soft);border-color:var(--glass);}
+.sheet-act.primary{background:var(--ink);color:var(--btn-ink);border-color:var(--ink);}
+.sheet-act.primary:hover{background:var(--ink-hover);}
+.sheet-act .sa-glyph{flex:0 0 auto;width:26px;text-align:center;font-size:17px;font-weight:800;}
+.sheet-act .sa-text{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.sheet-act .sa-text b{font-size:15px;}
+.sheet-act .sa-text small{font-size:12px;font-weight:500;opacity:.72;}
+/* the running-timer bar: the timer follows you instead of living in a room */
+.timer-bar{position:fixed;left:0;right:0;bottom:0;z-index:60;display:flex;align-items:center;gap:10px;
+  padding:11px 16px calc(11px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--btn-ink);
+  cursor:pointer;box-shadow:0 -8px 24px -12px rgba(0,0,0,.4);}
+.timer-bar.hidden{display:none;}
+.timer-bar .tb-glyph{font-size:15px;}
+.timer-bar .tb-time{font-variant-numeric:tabular-nums;font-weight:800;font-size:16px;}
+.timer-bar .tb-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13.5px;opacity:.85;}
+.timer-bar .tb-open{font-size:11px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;flex:0 0 auto;}
+.timer-bar.rung{background:var(--gold-deep);}
+body.has-timerbar{padding-bottom:64px;}
+/* the timer overlay */
+.modal.timer-modal{width:420px;text-align:center;}
+/* height:auto so each face keeps its own aspect — the moon is wide, the grid
+   is square, and a fixed box left a lake of white under the moon */
+.modal.timer-modal .bell-vis{width:min(58vw,210px);height:auto;margin:6px auto 10px;}
+.modal.timer-modal .bell-vis svg{height:auto;}
+.modal.timer-modal .bell-time{font-size:clamp(44px,13vw,62px);margin-bottom:6px;}
 .wrap{max-width:980px;margin:0 auto;padding:22px 18px 60px;}
 .panel{background:var(--panel);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:16px;}
 .panel h3{margin:0;padding:13px 16px;border-bottom:1px solid var(--border);font-size:15px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
@@ -129,10 +168,20 @@ body{padding-left:env(safe-area-inset-left, 0px);padding-right:env(safe-area-ins
   border-bottom:1px dashed transparent;border-radius:0;padding:4px 2px;color:inherit;}
 .ball-row input::placeholder{color:var(--muted);opacity:.7}
 .ball-row input:focus{outline:none;border-bottom-color:var(--glass);}
+/* The strike lives on the name, not the label: the label stretches to fill the
+   row, so striking it drew a rule out into empty space past the words. */
+.ball-row .ck-label::after{content:none;}
+.ball-row .ball-name{position:relative;display:inline-block;max-width:100%;
+  font-size:14px;padding:4px 2px;line-height:1.35;overflow-wrap:anywhere;}
+.ball-row .ball-name::after{content:"";position:absolute;left:0;top:56%;height:1.5px;width:100%;
+  background:var(--muted);transform:scaleX(0);transform-origin:left;transition:transform .5s;}
+.ball-row .ck-label.ck-done .ball-name::after{transform:scaleX(1);}
+@media (prefers-reduced-motion: reduce){ .ball-row .ball-name::after{transition:none;} }
 .ball-row .block-min{flex:0 0 auto;font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;}
-.ball-row .row-menu,.ball-row .row-carry{flex:0 0 auto;background:transparent;border:none;color:var(--muted);
-  font-size:16px;cursor:pointer;padding:2px 7px;border-radius:7px;line-height:1;}
-.ball-row .row-menu:hover,.ball-row .row-carry:hover{background:var(--glass-soft);color:var(--text);}
+.ball-row .row-chev{flex:0 0 auto;color:var(--muted);font-size:19px;line-height:1;padding:0 2px;transition:transform .15s,color .15s;}
+.ball-row.tappable{cursor:pointer;}
+.ball-row.tappable:hover{border-color:var(--glass);}
+.ball-row.tappable:hover .row-chev{color:var(--glass);transform:translateX(2px);}
 .ball-row .stick{flex:0 0 auto;font-size:15px;line-height:1;}
 .list-head{display:flex;align-items:baseline;gap:8px;margin:14px 2px 8px;font-weight:700;font-size:13px;
   letter-spacing:.05em;text-transform:uppercase;color:var(--muted);}
@@ -142,12 +191,11 @@ body{padding-left:env(safe-area-inset-left, 0px);padding-right:env(safe-area-ins
 .cap-note{font-size:11.5px;color:var(--muted);font-style:italic;padding:2px 4px 0;}
 /* a ball handed to another day: settled, not caught — quiet, never red */
 .ball-row.carried{background:var(--group);border-style:dashed;opacity:.85;}
-.ball-row.carried input{color:var(--muted);}
+.ball-row.carried .ball-name{color:var(--muted);}
 .carry-mark{flex:0 0 auto;width:22px;text-align:center;color:var(--glass);font-weight:800;font-size:15px;}
-.row-carry{color:var(--glass);font-weight:800;}
 .carry-badge{flex:0 0 auto;background:transparent;border:1px solid var(--border);color:var(--muted);
-  border-radius:999px;padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;}
-.carry-badge:hover{border-color:var(--glass);color:var(--glass);background:var(--glass-soft);}
+  border-radius:999px;padding:3px 10px;font-size:11px;font-weight:600;white-space:nowrap;}
+.ball-row.tappable:hover .carry-badge{border-color:var(--glass);color:var(--glass);background:var(--glass-soft);}
 .settled-banner{display:flex;align-items:center;gap:9px;border:1px solid var(--border);background:var(--group);
   border-radius:12px;padding:9px 13px;font-size:13.5px;color:var(--muted);margin-bottom:14px;}
 .settled-banner span{color:var(--glass);font-weight:800;}
@@ -199,10 +247,10 @@ body{padding-left:env(safe-area-inset-left, 0px);padding-right:env(safe-area-ins
 .open-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:4px 2px 8px;}
 .open-date{font-size:clamp(19px,5.2vw,24px);font-weight:800;margin:0;letter-spacing:-.01em;}
 .open-glance{font-weight:500;color:var(--muted);}
-.open-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+.open-actions{display:flex;align-items:center;gap:12px;flex-wrap:nowrap;
   margin:0 2px 18px;padding-bottom:14px;border-bottom:1px solid var(--border);}
-.open-actions .open-hint{font-size:12.5px;color:var(--muted);font-style:italic;line-height:1.5;flex:1 1 100%;}
-@media (min-width:640px){ .open-actions .open-hint{flex:0 1 auto;} }
+.open-actions .open-hint{font-size:12.5px;color:var(--muted);font-style:italic;line-height:1.5;
+  flex:1 1 auto;min-width:0;}
 .open-row{cursor:pointer;}
 .open-row:hover{border-color:var(--glass);}
 .open-empty{border:1px dashed var(--border);border-radius:12px;padding:18px 16px;color:var(--muted);
@@ -243,18 +291,14 @@ body{padding-left:env(safe-area-inset-left, 0px);padding-right:env(safe-area-ins
 .rc-label{flex:1;min-width:0;font-weight:700;font-size:13.5px;}
 .rc-mid{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);flex-wrap:wrap;}
 .rc-delta.ahead{color:var(--success);font-weight:700;} .rc-delta.behind{color:var(--warn);font-weight:700;}
+.rep-head{display:flex;align-items:center;gap:10px;user-select:none;}
+.rep-carrot{display:inline-block;transition:transform .18s;}
 
-/* ---------- bell / focus timer (ported from CTT's tinker's bell) ---------- */
-.bell-panel{margin:0 0 14px;}
-.bell-head{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;}
-.bell-carrot{display:inline-block;transition:transform .18s;}
-.bell-panel.open .bell-carrot{transform:rotate(90deg);}
-.bell-mini{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:400;}
-.bell-body{display:none;}
-.bell-panel.open .bell-body{display:flex;gap:24px;flex-wrap:wrap;align-items:center;padding:14px 16px;}
-.bell-vis{width:190px;height:190px;flex:none;display:flex;align-items:center;justify-content:center;}
+/* ---------- bell / focus timer (ported from CTT's tinker's bell) ----------
+   v0.7.0: the bell no longer has a room of its own. These are the pieces of
+   its face; the overlay that holds them lives under .modal.timer-modal. */
+.bell-vis{display:flex;align-items:center;justify-content:center;}
 .bell-vis svg{max-width:100%;max-height:100%;width:100%;height:100%;display:block;}
-.bell-side{display:flex;flex-direction:column;gap:9px;min-width:230px;flex:1;}
 .bell-time{font-size:42px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1;}
 .bell-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
 @keyframes bellPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
@@ -262,18 +306,6 @@ body{padding-left:env(safe-area-inset-left, 0px);padding-right:env(safe-area-ins
 @media (prefers-reduced-motion: reduce){
   .bell-vis.rung{animation:none;filter:drop-shadow(0 0 18px rgba(217,162,27,.55));}
 }
-.bell-full-close{display:none;}
-.bell-panel.full .bell-body{display:flex;position:fixed;inset:0;z-index:90;background:var(--bg);
-  flex-direction:column;flex-wrap:nowrap;align-items:center;justify-content:center;gap:26px;
-  padding:calc(20px + env(safe-area-inset-top,0px)) 20px calc(28px + env(safe-area-inset-bottom,0px));}
-.bell-panel.full .bell-vis{width:min(84vw,50vh);height:min(84vw,50vh);}
-.bell-panel.full .bell-side{min-width:0;flex:none;align-items:center;text-align:center;}
-.bell-panel.full .bell-time{font-size:64px;}
-.bell-panel.full .bell-controls{justify-content:center;}
-.bell-panel.full .bell-full-close{display:block;position:fixed;z-index:91;
-  top:calc(10px + env(safe-area-inset-top,0px));right:calc(12px + env(safe-area-inset-right,0px));
-  font-size:18px;padding:8px 14px;}
-body.bell-full-lock{overflow:hidden;}
 
 /* ---------- Closing ---------- */
 .close-room{max-width:640px;margin:0 auto;padding:36px 20px 60px;text-align:center;}
@@ -373,7 +405,8 @@ body.modal-open{overflow:hidden;}
   .ck{position:relative;}
   .ck::after{content:'';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
     width:44px;height:44px;border-radius:12px;}
-  .ball-row .row-menu,.ball-row .row-carry{padding:8px 12px;}
+  .ball-row{padding:11px 10px;}
+  .ball-row .ball-name{font-size:15px;}
   .ball-row input,.step-row input,.proj-name{font-size:16px;}
 }
 </style>
@@ -381,16 +414,17 @@ body.modal-open{overflow:hidden;}
 <body>
 
 <div class="appbar">
-  <div class="brand"><span class="brand-orb" aria-hidden="true"></span><span>The Glass Ball<small>catch the glass · v0.6.0</small></span></div>
+  <div class="brand"><span class="brand-orb" aria-hidden="true"></span><span>The Glass Ball<small>catch the glass · v0.7.0</small></span></div>
   <div class="maintabs">
-    <div class="maintab active" data-m="opening" onclick="switchMain('opening')">Opening</div>
-    <div class="maintab" data-m="calendar" onclick="switchMain('calendar')">Calendar</div>
+    <div class="maintab active" data-m="today" onclick="switchMain('today')">Today</div>
     <div class="maintab" data-m="projects" onclick="switchMain('projects')">Projects</div>
-    <div class="maintab" data-m="forge" onclick="switchMain('forge')">The Forge</div>
     <div class="maintab" data-m="closing" onclick="switchMain('closing')">Closing</div>
-    <div class="maintab" data-m="devnotes" onclick="switchMain('devnotes')">Dev Notes</div>
   </div>
   <div class="spacer"></div>
+  <div class="hdr-btns">
+    <button class="ghost small hdr-btn" onclick="openTimer()" title="Focus timer" aria-label="Focus timer">⏳</button>
+    <button class="ghost small hdr-btn" onclick="switchMain('devnotes')" title="Dev notes — tell Chad" aria-label="Dev notes">✎</button>
+  </div>
   <div class="save-pill"><span class="save-dot" id="saveDot"></span><span id="saveStatus">Saved</span></div>
   <div class="sync-pill" id="syncPill" onclick="openSettings()" title="Cloud sync settings"><span class="sync-dot" id="syncDot"></span><span id="syncStatus">Local only</span></div>
   <div class="gear-wrap">
@@ -407,8 +441,12 @@ body.modal-open{overflow:hidden;}
   </div>
 </div>
 
-<!-- ============================= OPENING ============================= -->
-<div class="main-pane active" id="main-opening">
+<!-- ============================= TODAY =============================
+     Opening and Calendar were rendering the same day's lists twice. One
+     surface now: the glance and today's balls up top (what matters now),
+     the month below (planning), and the day you tap opens beneath the
+     calendar — clearly a different place, so "today" never moves. -->
+<div class="main-pane active" id="main-today">
   <div class="wrap">
     <div class="open-head">
       <h2 class="open-date">Your <span id="openDate">today</span> <span class="open-glance">at a glance</span></h2>
@@ -416,38 +454,40 @@ body.modal-open{overflow:hidden;}
       <span class="muted" id="openGoldNote"></span>
     </div>
     <div class="open-actions">
-      <span class="open-hint">Tap a ball to run it in the Forge. To add, edit, or plan another day —</span>
-      <button class="ghost small" onclick="switchMain('calendar')">Open the Calendar</button>
-      <button class="ghost small" onclick="switchMain('forge')">Just the timer</button>
+      <span class="open-hint">Tap a ball to catch it, time it, or move it forward.</span>
+      <button class="cal-add" onclick="openTaskModal(null)" title="New ball" aria-label="New ball">+</button>
     </div>
     <div id="openGoldBanner"></div>
     <div class="list-head"><span class="glyph">◉</span> Glass <span class="cnt" id="openGlassCnt"></span></div>
     <div id="openGlassList"></div>
     <div class="list-head"><span class="glyph">○</span> Rubber <span class="cnt" id="openRubberCnt"></span></div>
     <div id="openRubberList"></div>
-  </div>
-</div>
+    <button type="button" class="ghost notes-btn" id="todayNotesBtn" onclick="toggleNotes('today')">✎ notes</button>
+    <textarea class="day-note" id="todayNote" style="display:none"
+      placeholder="Brain-dump for today — anything that doesn't need to be a ball. Held here, out of the way."></textarea>
 
-<!-- ============================= CALENDAR ============================= -->
-<div class="main-pane" id="main-calendar">
-  <div class="wrap">
+    <!-- the month: planning, so it sits below the work -->
+    <div class="month-rule"></div>
     <div class="cal-top">
       <button class="ghost small" onclick="calShift(-1)" aria-label="Previous month">‹</button>
       <div class="cal-title" id="calTitle">Month</div>
       <button class="ghost small" onclick="calShift(1)" aria-label="Next month">›</button>
       <button class="ghost small" onclick="calToday()">Today</button>
-      <button class="cal-add" onclick="openTaskModal(null)" title="New ball" aria-label="New ball">+</button>
     </div>
     <div class="cal-grid" id="calGrid"></div>
 
-    <div class="day-title" id="dayTitle"></div>
-    <div class="list-head"><span class="glyph">◉</span> Glass <span class="cnt">max 3 — what actually matters</span></div>
-    <div id="calGlassList"></div>
-    <div class="list-head"><span class="glyph">○</span> Rubber <span class="cnt">max 5 — allowed to bounce</span></div>
-    <div id="calRubberList"></div>
-    <button type="button" class="ghost notes-btn" id="dayNotesBtn" onclick="toggleDayNotes()">✎ notes</button>
-    <textarea class="day-note" id="dayNote" style="display:none"
-      placeholder="Brain-dump for the day — anything that doesn't need to be a ball. Held here, out of the way."></textarea>
+    <!-- the day you tapped — only ever appears for a day that isn't today -->
+    <div id="otherDay" class="other-day hidden">
+      <div class="day-title"><span id="dayTitle"></span><span style="flex:1"></span>
+        <button class="cal-add" onclick="openTaskModal(null)" title="New ball on this day" aria-label="New ball on this day">+</button></div>
+      <div class="list-head"><span class="glyph">◉</span> Glass <span class="cnt">max 3 — what actually matters</span></div>
+      <div id="calGlassList"></div>
+      <div class="list-head"><span class="glyph">○</span> Rubber <span class="cnt">max 5 — allowed to bounce</span></div>
+      <div id="calRubberList"></div>
+      <button type="button" class="ghost notes-btn" id="dayNotesBtn" onclick="toggleNotes('other')">✎ notes</button>
+      <textarea class="day-note" id="dayNote" style="display:none"
+        placeholder="Brain-dump for the day — anything that doesn't need to be a ball. Held here, out of the way."></textarea>
+    </div>
   </div>
 </div>
 
@@ -460,61 +500,6 @@ body.modal-open{overflow:hidden;}
       <button onclick="addProject()">+ Add project</button>
     </div>
     <div id="projList"></div>
-  </div>
-</div>
-
-<!-- ============================= THE FORGE ============================= -->
-<div class="main-pane" id="main-forge">
-  <div class="wrap">
-    <div class="forge-top">
-      <label class="muted">Day</label>
-      <input type="date" id="forgeDate" onchange="forgeSetDate(this.value)">
-      <button class="ghost small" onclick="forgeSetDate(todayStr())">Today</button>
-    </div>
-
-    <div class="task-window" onclick="openPicker()" id="taskWindow">
-      <span class="tw-glyph" id="twGlyph">◉</span>
-      <span style="flex:1;min-width:0">
-        <div class="tw-label" id="twLabel">Select a ball to start</div>
-        <div class="tw-sub" id="twSub">Pick one of the day's balls — its time block loads into the timer.</div>
-      </span>
-      <span class="muted">▾</span>
-    </div>
-
-    <!-- Focus timer: ported from CTT's tinker's bell. Static markup on purpose —
-         renders never touch it, so a running timer survives tab switches. -->
-    <div class="panel bell-panel" id="bellPanel">
-      <h3 class="bell-head" onclick="bellToggle()">
-        <span><span class="bell-carrot" id="bellCarrot">▸</span> ⏳ Focus timer</span>
-        <button class="ghost small" id="bellFullBtn" style="font-weight:400" title="Grow the timer to fill the screen">⛶</button>
-        <span class="bell-mini muted" id="bellMini"></span>
-      </h3>
-      <div class="bell-body">
-        <button class="ghost small bell-full-close" id="bellCloseBtn" title="Back to the Forge — the timer keeps running">✕</button>
-        <div class="bell-vis" id="bellVis" aria-hidden="true"></div>
-        <div class="bell-side">
-          <div class="bell-time" id="bellTime">25:00</div>
-          <div class="muted" id="bellFor">Pick a task above, or set minutes and run it standalone.</div>
-          <div class="bell-controls">
-            <label class="muted">Minutes <input type="text" inputmode="numeric" id="bellDur" value="25" style="width:64px;display:inline-block;padding:4px 6px"></label>
-            <button class="small" id="bellStartBtn">Start</button>
-            <button class="ghost small" id="bellStopBtn">Stop</button>
-            <button class="ghost small" id="bellResetBtn">Reset</button>
-            <button class="ghost small" id="bellMuteBtn" title="One soft ring when time is up — never more">Sound: off</button>
-            <label class="muted">View <select id="bellVisSel" style="padding:4px 6px;display:inline-block;width:auto" title="Which face watches the block"></select></label>
-          </div>
-          <div class="muted" id="bellWord" style="font-style:italic"></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="panel" id="reportPanel">
-      <h3 class="bell-head" onclick="reportToggle()" style="cursor:pointer">
-        <span><span class="bell-carrot" id="repCarrot">▸</span> 📈 Month report <span class="muted" id="repMonthLbl"></span></span>
-      </h3>
-      <div class="body" id="reportBody" style="display:none"></div>
-      <div class="hint" id="reportHint" style="display:none">Caught balls vs. their time blocks — ahead means it took less than budgeted. Early days; this view will grow.</div>
-    </div>
   </div>
 </div>
 
@@ -531,6 +516,13 @@ body.modal-open{overflow:hidden;}
         <span id="closeEnoughCk"></span>
         <span class="ce-caption" id="ceCaption">It was enough.</span>
       </div>
+    </div>
+    <div class="panel" id="reportPanel" style="margin-top:22px;text-align:left">
+      <h3 class="rep-head" onclick="reportToggle()" style="cursor:pointer">
+        <span><span class="rep-carrot" id="repCarrot">▸</span> 📈 Month report <span class="muted" id="repMonthLbl"></span></span>
+      </h3>
+      <div class="body" id="reportBody" style="display:none"></div>
+      <div class="hint" id="reportHint" style="display:none">Caught balls vs. their time blocks — ahead means it took less than budgeted. Early days; this view will grow.</div>
     </div>
   </div>
 </div>
@@ -550,6 +542,36 @@ body.modal-open{overflow:hidden;}
     <p class="muted" style="margin:0 0 14px;line-height:1.6">Something broken, weird, or wished-for? Tap the line below — a composer opens for the details. When you've got a batch, <b>Copy all</b> and text it to Chad, then <b>Clear</b>.</p>
     <div id="devList"></div>
   </div>
+</div>
+
+<!-- The timer is a MODE, not a room: it runs in an overlay you can dismiss,
+     with a bar that rides along wherever you are. Static markup outside the
+     panes, so no render can disturb a running clock. -->
+<div class="modal-bg" id="timerBg"><div class="modal timer-modal">
+  <button class="x-btn" onclick="closeTimer()" aria-label="Close — the timer keeps running">✕</button>
+  <h2 style="margin-top:0">⏳ Focus timer</h2>
+  <div class="bell-vis" id="bellVis" aria-hidden="true"></div>
+  <div class="bell-time" id="bellTime">25:00</div>
+  <div class="muted" id="bellFor" style="text-align:center">Pick a ball, or set minutes and run it standalone.</div>
+  <div class="bell-controls" style="justify-content:center;margin-top:14px">
+    <label class="muted">Minutes <input type="text" inputmode="numeric" id="bellDur" value="25" style="width:64px;display:inline-block;padding:4px 6px"></label>
+    <button class="small" id="bellStartBtn">Start</button>
+    <button class="ghost small" id="bellStopBtn">Stop</button>
+    <button class="ghost small" id="bellResetBtn">Reset</button>
+  </div>
+  <div class="bell-controls" style="justify-content:center;margin-top:8px">
+    <button class="ghost small" id="bellMuteBtn" title="One soft ring when time is up — never more">Sound: off</button>
+    <label class="muted">View <select id="bellVisSel" style="padding:4px 6px;display:inline-block;width:auto" title="Which face watches the block"></select></label>
+    <button class="ghost small" onclick="openPicker()">Choose a ball…</button>
+  </div>
+  <div class="muted" id="bellWord" style="font-style:italic;text-align:center;min-height:18px;margin-top:10px"></div>
+</div></div>
+
+<div class="timer-bar hidden" id="timerBar" onclick="openTimer()" role="button" tabindex="0">
+  <span class="tb-glyph">⏳</span>
+  <span class="tb-time" id="tbTime">25:00</span>
+  <span class="tb-label" id="tbLabel"></span>
+  <span class="tb-open">tap to open</span>
 </div>
 
 <!-- ============================= MODALS ============================= -->
@@ -592,6 +614,26 @@ body.modal-open{overflow:hidden;}
     <button class="ghost" onclick="closeModal('taskModalBg')">Cancel</button>
     <button onclick="taskModalSave()" id="tmSaveBtn">Add ball</button>
   </div>
+</div></div>
+
+<!-- The ball sheet — one tap on any ball. The three verbs a ball can take,
+     plus its details. The checkbox stays on the row itself: catching is the
+     most frequent action and the best feeling, so it never gets buried. -->
+<div class="modal-bg" id="ballSheetBg"><div class="modal sheet">
+  <button class="x-btn" onclick="closeModal('ballSheetBg')" aria-label="Close">✕</button>
+  <h2 id="bsName" style="margin-top:0;padding-right:30px"></h2>
+  <p class="sync-note" id="bsMeta" style="margin-top:0"></p>
+  <div class="sheet-acts">
+    <button class="sheet-act primary" id="bsStart" onclick="bsDo('start')">
+      <span class="sa-glyph">▶</span><span class="sa-text"><b>Start it</b><small id="bsStartSub">run the timer</small></span></button>
+    <button class="sheet-act" id="bsCatch" onclick="bsDo('catch')">
+      <span class="sa-glyph">✓</span><span class="sa-text"><b id="bsCatchLbl">Catch it</b><small id="bsCatchSub">done — earn the sticker</small></span></button>
+    <button class="sheet-act" id="bsMove" onclick="bsDo('move')">
+      <span class="sa-glyph">→</span><span class="sa-text"><b>Move it forward</b><small>didn't finish? give it a day</small></span></button>
+    <button class="sheet-act" onclick="bsDo('edit')">
+      <span class="sa-glyph">✎</span><span class="sa-text"><b>Edit details</b><small>name, day, minutes, priority</small></span></button>
+  </div>
+  <div class="modal-actions"><button class="ghost small" onclick="bsDo('delete')">Delete this ball</button></div>
 </div></div>
 
 <!-- Move a ball forward — the "worked on it, didn't finish, but I'm done
@@ -875,7 +917,21 @@ body.modal-open{overflow:hidden;}
 <input type="file" id="importFile" accept="application/json" style="display:none">
 <script>
 /* =====================================================================
-   The Glass Ball · v0.6.0 — Joelle's task & schedule app.
+   The Glass Ball · v0.7.0 — Joelle's task & schedule app.
+   v0.7.0: the navigation catches up to the app. Five tabs became three
+   rooms — Today · Projects · Closing — because Opening and Calendar were
+   rendering the same day's lists twice. Today is now one scroll: the
+   glance and today's balls up top, the month below, and any other day
+   you tap opens beneath the calendar (clearly a different place, so
+   "today" never moves). The Forge stops being a room and becomes a
+   mode: the focus timer runs in an overlay reachable from anywhere via
+   ⏳, and a bar rides along with a running clock so closing the face
+   never stops it. And a ball is now one tap: the checkbox stays direct
+   (catching is the best feeling and the most frequent act), and the
+   rest of the row opens a sheet with the three verbs a ball can take —
+   ▶ Start it · ✓ Catch it · → Move it forward — plus ✎ Edit details.
+   The row full of ⋯ and → buttons is gone.
+   v0.6.0
    v0.6.0: carry forward. Every ball row (Opening + Calendar) gains a →
    for "worked on it, didn't finish, and I'm done for today": the ball
    stays here settled and struck through, and a real one lands on the
@@ -1027,7 +1083,7 @@ const STORE_KEY = 'glassball_v1';   // Glass Ball's own key — never the CTT si
 const SCHEMA    = 'glassball-1';
 const CAPS = { glass:3, rubber:5 };   // the caps ARE the product — no override
 let db = {
-  version:'0.6.0', schema:SCHEMA, lastEdit:0,
+  version:'0.7.0', schema:SCHEMA, lastEdit:0,
   days:{},        // 'YYYY-MM-DD' → {glass:[task], rubber:[task], note:'', skipRecur:[], enough:false}
   recurring:[],   // repeat templates: {id,name,priority,blockMin,freq,anchor}
   projects:[],    // {id,name,notes,archived,createdDate,modifiedDate,steps:[{id,text,done,pushedTo}]}
@@ -1066,9 +1122,8 @@ function load(){
   const raw=localStorage.getItem(STORE_KEY);
   if(raw){ try{ db=normalize(JSON.parse(raw)); }catch(e){ console.error(e); } }
   db=normalize(db);   // fresh boots get the full default shape too
-  document.getElementById('forgeDate').value=forgeDay;
   renderAll();
-  switchMain('opening');   // the launch ramp — today, at a glance
+  switchMain('today');   // the launch ramp — today, at a glance
   save();
   booting=false;
   syncBoot();
@@ -1187,17 +1242,20 @@ function makeCheck(isDone, label, onToggle){
 
 /* ---------- tab switching ---------- */
 function switchMain(m){
+  // Dev Notes is reachable from the ✎ button, not the tab row — it's a
+  // utility, not a room, so no tab highlights when it's open.
   document.querySelectorAll('.maintab').forEach(t=>t.classList.toggle('active',t.dataset.m===m));
   document.querySelectorAll('.main-pane').forEach(p=>p.classList.toggle('active',p.id==='main-'+m));
-  if(m==='opening') renderOpening();
-  if(m==='calendar') renderCalendar();
+  if(m==='today'){ renderToday(); }
   if(m==='projects') renderProjects();
-  if(m==='forge') renderForge();
   if(m==='closing') renderClosing();
   if(m==='devnotes') renderDevNotes();
   window.scrollTo(0,0);
 }
-function renderAll(){ renderOpening(); renderCalendar(); renderProjects(); renderForge(); renderClosing(); renderDevNotes(); }
+/* Today is one surface: the glance, today's balls, the month, and — only
+   when you've tapped a different day — that day's balls beneath it. */
+function renderToday(){ renderOpening(); renderCalendar(); }
+function renderAll(){ renderToday(); renderProjects(); renderClosing(); renderDevNotes(); }
 
 /* =====================================================================
    CALENDAR — the heart. A month of tappable day cards (gold stars on the
@@ -1209,7 +1267,13 @@ let calMonth=todayStr().slice(0,7);    // viewed 'YYYY-MM'
 function calShift(n){ const [y,m]=calMonth.split('-').map(Number);
   const d=new Date(y,m-1+n,1); calMonth=iso(d).slice(0,7); renderCalendar(); }
 function calToday(){ calMonth=todayStr().slice(0,7); calSelect(todayStr()); }
-function calSelect(ds){ calSel=ds; if(!ds.startsWith(calMonth)){ calMonth=ds.slice(0,7); } renderCalendar(); }
+function calSelect(ds){ calSel=ds; if(!ds.startsWith(calMonth)){ calMonth=ds.slice(0,7); } renderCalendar();
+  if(ds!==todayStr()) scrollToDay(); }
+/* The tapped day opens below the month — on a phone that's past the fold, so
+   bring it up. 'nearest' means no jolt when it's already in view. */
+function scrollToDay(){ const p=document.getElementById('otherDay');
+  if(!p || p.classList.contains('hidden')) return;
+  try{ p.scrollIntoView({behavior:'smooth',block:'nearest'}); }catch(_){ try{ p.scrollIntoView(); }catch(__){} } }
 function renderCalendar(){
   const [y,m]=calMonth.split('-').map(Number);
   const first=new Date(y,m-1,1), today=todayStr();
@@ -1233,20 +1297,32 @@ function renderCalendar(){
   renderDayLists();
 }
 function renderDayLists(){
+  const panel=document.getElementById('otherDay');
+  const isToday=(calSel===todayStr());
+  panel.classList.toggle('hidden',isToday);      // today already has its own section above
+  if(isToday) return;
   ensureRecurring(calSel);
   const info=dayInfo(calSel);
   document.getElementById('dayTitle').innerHTML=escapeHtml(dowName(calSel))
     +(info.gold?' <span class="goldstar" title="All glass caught">★ gold star</span>':'');
   buildBallList('calGlassList','glass',calSel);
   buildBallList('calRubberList','rubber',calSel);
-  const day=db.days[calSel]||{};
-  const btn=document.getElementById('dayNotesBtn'), ta=document.getElementById('dayNote');
-  const has=!!((day.note)||'').trim();
-  btn.innerHTML='✎ notes'+(has?' <span class="note-dot">·</span>':'');
-  ta.value=day.note||'';
-  ta.style.display='none';
+  paintNotes('other',calSel);
 }
-function toggleDayNotes(){ const ta=document.getElementById('dayNote');
+/* One notes drawer per section — today's and the tapped day's are the same
+   component pointed at different days. */
+function paintNotes(which,ds){
+  const btn=document.getElementById(which==='today'?'todayNotesBtn':'dayNotesBtn');
+  const ta=document.getElementById(which==='today'?'todayNote':'dayNote');
+  if(!btn||!ta) return;
+  const day=db.days[ds]||{};
+  btn.innerHTML='✎ notes'+((((day.note)||'').trim())?' <span class="note-dot">·</span>':'');
+  if(document.activeElement!==ta){ ta.value=day.note||''; ta.style.display='none'; }
+  if(!ta.dataset.bound){ ta.dataset.bound='1';
+    bindCommit(ta,()=>{ const d=getDay(ta.dataset.ds||ds); if(d.note!==ta.value){ d.note=ta.value; save(); } }); }
+  ta.dataset.ds=ds;
+}
+function toggleNotes(which){ const ta=document.getElementById(which==='today'?'todayNote':'dayNote');
   const open=ta.style.display!=='none'; ta.style.display=open?'none':'block'; if(!open) ta.focus(); }
 /* One list (glass or rubber) with the blueprint inline-entry pattern: real
    tasks render as rows; one empty row invites typing until the cap. */
@@ -1260,48 +1336,53 @@ function buildBallList(elId, priority, ds){
     n.textContent= priority==='glass' ? 'Three glass balls — a full, winnable day.' : 'Five rubber balls is plenty. The rest can wait.';
     el.appendChild(n); }
 }
+/* v0.7.0: a ball row carries exactly two targets — the checkbox (catching is
+   the most frequent act and the best feeling, so it stays one direct tap) and
+   the rest of the row, which opens the sheet holding every other verb. The
+   old row full of ⋯ and → buttons was the navigation Chad said we'd outgrown. */
 function buildBallRow(ds,t,priority,isNew){
   const row=document.createElement('div'); row.className='ball-row '+priority+((t&&t.carried&&!t.done)?' carried':'');
   const lw=document.createElement('span'); lw.className='ck-label'+((t&&(t.done||(t.carried&&!t.done)))?' ck-done':'');
-  const tx=document.createElement('input'); tx.type='text'; tx.value=t?(t.name||''):'';
-  tx.placeholder=isNew?(priority==='glass'?'add a glass ball…':'add a rubber ball…'):'';
-  lw.appendChild(tx);
   // A moved ball is settled, so it shows a → in the box's place rather than a
-  // checkmark it never earned — and its text can't be edited from here.
-  if(t && t.carried && !t.done){
+  // checkmark it never earned.
+  const moved=!!(t && t.carried && !t.done);
+  if(moved){
     const mark=document.createElement('span'); mark.className='carry-mark'; mark.textContent='→';
     mark.title='Moved to '+shortDay(t.carried);
-    row.appendChild(mark); tx.readOnly=true;
+    row.appendChild(mark);
   }else{
     const ck=makeCheck(!!(t&&t.done), lw, dn=>{ if(!t) return; setTaskDone(ds,t.id,dn,null); });
     if(isNew) ck.box.disabled=true;
+    // the box is a target inside a target: catching must never also open the
+    // sheet, so the check swallows the click before the row ever sees it
+    ck.wrap.addEventListener('click',e=>e.stopPropagation());
     row.appendChild(ck.wrap);
   }
-  row.appendChild(lw);
   if(t){
-    if(t.carried && !t.done){
-      const badge=document.createElement('button'); badge.type='button'; badge.className='carry-badge';
-      badge.textContent='→ '+shortDay(t.carried); badge.title='Waiting on '+shortDay(t.carried)+' — tap to bring it back';
-      badge.onclick=e=>{ e.stopPropagation(); openCarry(ds,t.id); };
+    const nm=document.createElement('span'); nm.className='ball-name'; nm.textContent=t.name||'';
+    lw.appendChild(nm); row.appendChild(lw);
+    if(moved){
+      const badge=document.createElement('span'); badge.className='carry-badge';
+      badge.textContent='→ '+shortDay(t.carried);
       row.appendChild(badge);
+      row.classList.add('tappable');
+      row.title='Waiting on '+shortDay(t.carried)+' — tap to bring it back';
+      row.onclick=()=>openCarry(ds,t.id);
     }else{
       if(priority==='glass'){ const st=document.createElement('span'); st.className='stick';
         st.innerHTML=t.done?'<span class="stick-earned" title="Sticker earned">✦</span>':'';
         row.appendChild(st); }
       if(t.blockMin){ const bm=document.createElement('span'); bm.className='block-min'; bm.textContent=t.blockMin+'m'; row.appendChild(bm); }
-      if(!t.done){
-        const fwd=document.createElement('button'); fwd.type='button'; fwd.className='row-carry';
-        fwd.textContent='→'; fwd.title='Not finished? Move it to another day';
-        fwd.setAttribute('aria-label','Move to another day');
-        fwd.onclick=e=>{ e.stopPropagation(); openCarry(ds,t.id); };
-        row.appendChild(fwd);
-      }
+      const chev=document.createElement('span'); chev.className='row-chev'; chev.textContent='›'; chev.setAttribute('aria-hidden','true');
+      row.appendChild(chev);
+      row.classList.add('tappable');
+      row.title='Tap for the timer, moving it forward, or editing';
+      row.onclick=()=>openBallSheet(ds,t.id);
     }
-    const menu=document.createElement('button'); menu.type='button'; menu.className='row-menu'; menu.textContent='⋯';
-    menu.title='Edit ball'; menu.onclick=e=>{ e.stopPropagation(); openTaskModal({ds:ds,id:t.id}); };
-    row.appendChild(menu);
-    bindCommit(tx,()=>{ const f=findTask(ds,t.id); if(f && f.task.name!==tx.value){ f.task.name=tx.value; save(); } });
   }else{
+    const tx=document.createElement('input'); tx.type='text'; tx.value='';
+    tx.placeholder=(priority==='glass'?'add a glass ball…':'add a rubber ball…');
+    lw.appendChild(tx); row.appendChild(lw);
     bindCreate(tx,()=>{
       const v=(tx.value||'').trim(); if(!v) return;
       const day=getDay(ds);
@@ -1311,6 +1392,44 @@ function buildBallRow(ds,t,priority,isNew){
     });
   }
   return row;
+}
+
+/* ---------- the ball sheet: one tap, three verbs ---------------------
+   Start it (the timer), Catch it (done), Move it forward (another day),
+   plus Edit details. Everything a ball can be asked to do, in one place,
+   named in the app's own language. */
+let bsCtx=null;
+function openBallSheet(ds,id){
+  const f=findTask(ds,id); if(!f) return;
+  bsCtx={ds:ds,id:id};
+  const t=f.task, isGlass=(f.priority==='glass');
+  document.getElementById('bsName').textContent=t.name||'(unnamed ball)';
+  const bits=[isGlass?'Glass — it matters':'Rubber — it bounces'];
+  if(ds!==todayStr()) bits.push(shortDay(ds));
+  if(t.blockMin) bits.push(t.blockMin+' min block');
+  if(t.recurId) bits.push('repeats');
+  document.getElementById('bsMeta').textContent=bits.join(' · ');
+  document.getElementById('bsStartSub').textContent=t.blockMin?('run the timer · '+t.blockMin+' min'):'run the timer · 25 min';
+  document.getElementById('bsStart').classList.toggle('hidden',!!t.done);
+  document.getElementById('bsCatchLbl').textContent=t.done?'Un-catch it':'Catch it';
+  document.getElementById('bsCatchSub').textContent=t.done
+    ? 'put it back on the day'
+    : (isGlass?'done — earn the sticker':'done — and it never needed to be');
+  document.getElementById('bsMove').classList.toggle('hidden',!!t.done);
+  openModal('ballSheetBg');
+}
+function bsDo(what){
+  if(!bsCtx) return;
+  const ctx=bsCtx, f=findTask(ctx.ds,ctx.id); if(!f){ closeModal('ballSheetBg'); return; }
+  closeModal('ballSheetBg');
+  if(what==='start') startBallTimer(ctx.ds,ctx.id);
+  else if(what==='catch') setTaskDone(ctx.ds,ctx.id,!f.task.done,null);
+  else if(what==='move') openCarry(ctx.ds,ctx.id);
+  else if(what==='edit') openTaskModal({ds:ctx.ds,id:ctx.id});
+  else if(what==='delete'){
+    if(!confirm('Delete “'+f.task.name+'”?')) return;
+    deleteTask(ctx.ds,ctx.id); save(); renderDayLists(); renderOpening();
+  }
 }
 /* setTaskDone — the one seam every completion flows through (calendar check,
    opening check, Forge complete). Keeps stickers/gold stars honest. The
@@ -1509,60 +1628,14 @@ function renderOpening(){
     ? '<div class="gold-banner"><span class="goldstar" style="font-size:19px">★</span> Gold star day — every glass ball caught. The rest is optional.</div>'
     : (info.settled ? '<div class="settled-banner"><span>→</span> Every glass ball is settled — caught or deliberately moved. Nothing is hanging.</div>' : '');
   const day=db.days[today]||{glass:[],rubber:[]};
-  buildOpenList('openGlassList', realTasks(day.glass), 'glass', today);
-  buildOpenList('openRubberList', realTasks(day.rubber), 'rubber', today);
+  buildBallList('openGlassList','glass',today);
+  buildBallList('openRubberList','rubber',today);
+  paintNotes('today',today);
   document.getElementById('openGlassCnt').textContent= info.total
     ? (info.done+' of '+info.total+' caught'+(info.moved?(' · '+info.moved+' moved forward'):'')) : '';
   const r=realTasks(day.rubber);
   document.getElementById('openRubberCnt').textContent= r.length? (r.filter(t=>t.done).length+' of '+r.length) : '';
 }
-function buildOpenList(elId,list,priority,ds){
-  const el=document.getElementById(elId); el.innerHTML='';
-  if(!list.length){
-    const e=document.createElement('div'); e.className='open-empty';
-    e.textContent= priority==='glass'
-      ? 'No glass named for today. If nothing truly breaks by tomorrow, that’s a fine day to have.'
-      : 'Nothing rubber yet. The dishes can go here — or nowhere.';
-    el.appendChild(e); return;
-  }
-  list.forEach(t=>{
-    const moved=!!(t.carried && !t.done);
-    const row=document.createElement('div'); row.className='ball-row open-row '+priority+(moved?' carried':'');
-    const lw=document.createElement('span'); lw.className='ck-label'+((t.done||moved)?' ck-done':'');
-    const span=document.createElement('span'); span.textContent=t.name; span.style.cssText='display:block;padding:4px 2px;font-size:14px';
-    lw.appendChild(span);
-    if(moved){
-      const mark=document.createElement('span'); mark.className='carry-mark'; mark.textContent='→';
-      mark.title='Moved to '+shortDay(t.carried); row.appendChild(mark);
-    }else{
-      const ck=makeCheck(!!t.done, lw, dn=>setTaskDone(ds,t.id,dn,null));
-      ck.box.addEventListener('click',e=>e.stopPropagation());
-      row.appendChild(ck.wrap);
-    }
-    row.appendChild(lw);
-    if(moved){
-      const badge=document.createElement('button'); badge.type='button'; badge.className='carry-badge';
-      badge.textContent='→ '+shortDay(t.carried); badge.title='Waiting on '+shortDay(t.carried)+' — tap to bring it back';
-      badge.onclick=e=>{ e.stopPropagation(); openCarry(ds,t.id); };
-      row.appendChild(badge);
-    }else{
-      if(priority==='glass'&&t.done){ const st=document.createElement('span'); st.className='stick';
-        st.innerHTML='<span class="stick-earned">✦</span>'; row.appendChild(st); }
-      if(t.blockMin){ const bm=document.createElement('span'); bm.className='block-min'; bm.textContent=t.blockMin+'m'; row.appendChild(bm); }
-      if(!t.done){
-        const fwd=document.createElement('button'); fwd.type='button'; fwd.className='row-carry';
-        fwd.textContent='→'; fwd.title='Not finished? Move it to another day';
-        fwd.setAttribute('aria-label','Move to another day');
-        fwd.onclick=e=>{ e.stopPropagation(); openCarry(ds,t.id); };
-        row.appendChild(fwd);
-      }
-    }
-    if(!moved) row.onclick=()=>openForgeWithTask(ds,t.id);
-    el.appendChild(row);
-  });
-}
-</script>
-<script>
 /* =====================================================================
    PROJECTS — multi-step, longer-term things, ported (and simplified)
    from CTT's projects surface. The bridge: any step can be sent onto a
@@ -1620,7 +1693,7 @@ function buildStepRow(p,s,isNew){
   if(s){
     if(s.pushedTo){ const pu=document.createElement('span'); pu.className='pushed';
       pu.textContent='→ '+s.pushedTo.slice(5).replace('-','/'); pu.title='Sent to '+s.pushedTo;
-      pu.style.cursor='pointer'; pu.onclick=()=>{ calSelect(s.pushedTo); switchMain('calendar'); };
+      pu.style.cursor='pointer'; pu.onclick=()=>{ switchMain('today'); calSelect(s.pushedTo); scrollToDay(); };
       row.appendChild(pu); }
     const send=document.createElement('button'); send.type='button'; send.className='ghost small';
     send.textContent='→ day'; send.title='Send this ball onto a calendar day';
@@ -1678,36 +1751,35 @@ let forgeCarryMin=0;       // minutes already worked in earlier rounds of this t
 let pendingFinish=null;    // {roundElapsedMin} while the finish dialog is up
 let skipJokeOnce=false;
 
-function forgeSetDate(v){ if(!v) v=todayStr();
-  forgeDay=v; document.getElementById('forgeDate').value=v;
-  if(forgeTask && forgeTask.ds!==v){ forgeTask=null; forgeCarryMin=0; }
-  renderForge();
+/* ---------- starting a timer on a ball, from anywhere ----------
+   The timer is a mode: ▶ on a ball loads it, opens the overlay, and runs
+   the start flow. No trip to a room to do the thing you already chose. */
+function startBallTimer(ds,id){
+  const f=findTask(ds,id); if(!f) return;
+  forgeDay=ds; forgeTask={ds:ds,id:id}; forgeCarryMin=0;
+  bellSet(f.task.blockMin||25, f.task.name);
+  openTimer();
+  forgeStartPressed();
 }
 function renderForge(){
-  document.getElementById('forgeDate').value=forgeDay;
-  const lbl=document.getElementById('twLabel'), sub=document.getElementById('twSub'), gl=document.getElementById('twGlyph');
+  const el=document.getElementById('bellFor'); if(!el) return;
   const f=forgeTask && findTask(forgeTask.ds,forgeTask.id);
-  if(f){
-    lbl.textContent=f.task.name;
-    gl.textContent= f.priority==='glass'?'◉':'○';
-    sub.textContent=(f.task.blockMin?('Time block: '+f.task.blockMin+' min'):'No time block — set minutes freely')
-      +(f.task.done?' · already caught ✓':'');
-  }else{
-    forgeTask=null; gl.textContent='◉'; lbl.textContent='Select a ball to start';
-    sub.textContent="Pick one of the day's balls — its time block loads into the timer.";
-  }
-  document.getElementById('repMonthLbl').textContent='· '+fromISO(forgeDay).toLocaleDateString(undefined,{month:'long',year:'numeric'});
-  renderReport();
+  if(f) el.textContent='Keeping time for: '+f.task.name+(f.task.blockMin?(' · '+f.task.blockMin+' min block'):'');
+  else { forgeTask=null; el.textContent='Pick a ball, or set minutes and run it standalone.'; }
+  paintTimerBar();
 }
+/* The picker offers the day you're looking at — usually today. */
 function openPicker(){
+  forgeDay=calSel||todayStr();
   ensureRecurring(forgeDay);
   document.getElementById('pickerDayLbl').textContent=dowName(forgeDay);
   const el=document.getElementById('pickerList'); el.innerHTML='';
   const day=db.days[forgeDay]||{glass:[],rubber:[]};
-  const rows=[...realTasks(day.glass).map(t=>({t,pr:'glass'})), ...realTasks(day.rubber).map(t=>({t,pr:'rubber'}))];
+  const rows=[...realTasks(day.glass).map(t=>({t,pr:'glass'})), ...realTasks(day.rubber).map(t=>({t,pr:'rubber'}))]
+    .filter(x=>!(x.t.carried && !x.t.done));
   if(!rows.length){
     const e=document.createElement('div'); e.className='open-empty';
-    e.textContent='No balls on this day yet — add some in the Calendar, or run the timer standalone.';
+    e.textContent='No balls on this day yet — add one on the Today screen, or just run the timer.';
     el.appendChild(e);
   }
   rows.forEach(({t,pr})=>{
@@ -1722,17 +1794,28 @@ function openPicker(){
 function pickTask(id){
   closeModal('pickerModalBg');
   forgeCarryMin=0;
-  if(!id){ forgeTask=null; bell.label=''; renderForge(); bellToggle(true); return; }
+  if(!id){ forgeTask=null; bell.label=''; renderForge(); openTimer(); return; }
   const f=findTask(forgeDay,id); if(!f) return;
   forgeTask={ds:forgeDay,id:id};
   bellSet(f.task.blockMin||25, f.task.name);
-  renderForge();
+  renderForge(); openTimer();
 }
-function openForgeWithTask(ds,id){
-  const f=findTask(ds,id); if(!f) return;
-  forgeDay=ds; forgeTask={ds,id}; forgeCarryMin=0;
-  switchMain('forge');
-  bellSet(f.task.blockMin||25, f.task.name);
+
+/* ---------- the timer overlay + the bar that follows you --------------
+   Closing the overlay never stops the clock; the bar keeps it in sight
+   from any room, and tapping the bar opens the face again. */
+function openTimer(){ bellVisInit(); bellPaint(); renderForge(); openModal('timerBg'); bellWakeUpdate(); }
+function closeTimer(){ closeModal('timerBg'); bellWakeUpdate(); paintTimerBar(); }
+function timerOpen(){ const el=document.getElementById('timerBg'); return !!el && el.classList.contains('open'); }
+function paintTimerBar(){
+  const bar=document.getElementById('timerBar'); if(!bar) return;
+  const show=(bell.running || bell.rung) && !timerOpen();
+  bar.classList.toggle('hidden',!show);
+  bar.classList.toggle('rung',!!bell.rung);
+  document.body.classList.toggle('has-timerbar',show);
+  if(!show) return;
+  document.getElementById('tbTime').textContent=bell.rung?'Time!':bellFmt(bell.left);
+  document.getElementById('tbLabel').textContent=bell.label||'';
 }
 
 /* ---------- the focus timer (CTT bell, two faces) ---------- */
@@ -1774,35 +1857,29 @@ function bellVisPaint(force){ const e=bellEls(); if(!e.vis) return;
 let _bellEls=null;
 function bellEls(){ if(_bellEls) return _bellEls;
   _bellEls={
-    panel:document.getElementById('bellPanel'),
     vis:document.getElementById('bellVis'), visSel:document.getElementById('bellVisSel'),
-    time:document.getElementById('bellTime'),
-    mini:document.getElementById('bellMini'), forEl:document.getElementById('bellFor'),
+    time:document.getElementById('bellTime'), forEl:document.getElementById('bellFor'),
     word:document.getElementById('bellWord'), dur:document.getElementById('bellDur'),
     start:document.getElementById('bellStartBtn'), stop:document.getElementById('bellStopBtn'),
     reset:document.getElementById('bellResetBtn'),
-    mute:document.getElementById('bellMuteBtn'), full:document.getElementById('bellFullBtn'),
-    close:document.getElementById('bellCloseBtn') };
+    mute:document.getElementById('bellMuteBtn') };
   return _bellEls; }
 function bellVisInit(){ const e=bellEls(); if(!e.vis||e.vis.childElementCount) return; bellVisPaint(true); }
 function bellMins(){ const m=parseInt(bellEls().dur.value,10); return (isNaN(m)||m<1)?25:Math.min(m,720); }
 function bellFmt(t){ const mm=Math.floor(t/60), ss=t%60;
   return mm>=60 ? Math.floor(mm/60)+':'+String(mm%60).padStart(2,'0')+':'+String(ss).padStart(2,'0')
                 : mm+':'+String(ss).padStart(2,'0'); }
-function bellPaint(){ const e=bellEls(); if(!e.panel) return;
+function bellPaint(){ const e=bellEls(); if(!e.time) return;
   const str=bell.total?bellFmt(bell.left):bellFmt(bellMins()*60);
-  if(e.time) e.time.textContent=str;
+  e.time.textContent=str;
   bellVisPaint();
-  if(e.mini) e.mini.textContent=bell.rung?'Done.':(bell.running?(str+(bell.label?' · '+bell.label:'')):''); }
-function bellToggle(force){ const e=bellEls();
-  const open=(force!=null)?force:!e.panel.classList.contains('open');
-  e.panel.classList.toggle('open',open); bellVisInit(); bellPaint(); }
+  paintTimerBar(); }
 function bellClearRung(){ bell.rung=false; const e=bellEls(); e.vis.classList.remove('rung'); e.word.textContent=''; }
 function bellSet(mins,label){ bellStop(); bellClearRung();
   bell.total=Math.max(1,Math.round(mins))*60; bell.left=bell.total; bell.label=label||'';
   const e=bellEls(); e.dur.value=String(Math.round(bell.total/60)); e.start.textContent='Start';
-  e.forEl.textContent=label?('Keeping time for: '+label):'Pick a ball above, or set minutes and run it standalone.';
-  bellToggle(true); timerSave(); }
+  e.forEl.textContent=label?('Keeping time for: '+label):'Pick a ball, or set minutes and run it standalone.';
+  bellVisInit(); bellPaint(); timerSave(); }
 /* Start is the fun moment: a fresh start on a real task draws a wry line
    first. Never blocks — X, backdrop, and the button all start the work. */
 function forgeStartPressed(){
@@ -1838,7 +1915,7 @@ function forgeStopPressed(){
 function bellReset(){ bellStop(); bellClearRung();
   bell.total=bellMins()*60; bell.left=bell.total; const e=bellEls();
   e.start.textContent='Start';
-  e.forEl.textContent=bell.label?('Keeping time for: '+bell.label):'Pick a ball above, or set minutes and run it standalone.';
+  e.forEl.textContent=bell.label?('Keeping time for: '+bell.label):'Pick a ball, or set minutes and run it standalone.';
   bellVisPaint(true); bellPaint(); timerClear(); }
 function bellTick(){ if(!bell.running) return;
   bell.left=Math.max(0,Math.round((bell.endAt-Date.now())/1000)); bellPaint();
@@ -1903,27 +1980,24 @@ function timerRestore(){
     if(bell.rung) e.vis.classList.add('rung');
   }
   if(e.dur) e.dur.value=String(Math.round(bell.total/60));
-  if(e.forEl) e.forEl.textContent=bell.label?('Keeping time for: '+bell.label):'Pick a ball above, or set minutes and run it standalone.';
-  bellToggle(true); bellPaint(); renderForge();
+  if(e.forEl) e.forEl.textContent=bell.label?('Keeping time for: '+bell.label):'Pick a ball, or set minutes and run it standalone.';
+  // deliberately does NOT re-open the overlay: she came back to the app, not
+  // to the clock. The bar carries it, and tapping the bar opens the face.
+  bellVisInit(); bellPaint(); renderForge();
 }
 
-/* full-screen + wake lock (ported): while full-screen AND running, keep the
+/* wake lock (ported): while the timer face is open AND running, keep the
    phone awake; the OS releases locks on backgrounding, so re-arm on return.
    Wall-clock endAt means the countdown never drifts while away. */
 let bellWake=null;
-async function bellWakeUpdate(){ const e=bellEls(); if(!e.panel) return;
-  const want=e.panel.classList.contains('full') && bell.running;
+async function bellWakeUpdate(){
+  const want=timerOpen() && bell.running;
   try{
     if(want && !bellWake && ('wakeLock' in navigator)){
       bellWake=await navigator.wakeLock.request('screen');
       bellWake.addEventListener('release',()=>{ bellWake=null; });
     } else if(!want && bellWake){ const w=bellWake; bellWake=null; await w.release(); }
   }catch(_){ bellWake=null; } }
-function bellFull(on){ const e=bellEls();
-  if(on) bellToggle(true);
-  e.panel.classList.toggle('full',on);
-  document.body.classList.toggle('bell-full-lock',on);
-  bellPaint(); bellWakeUpdate(); }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') bellWakeUpdate(); });
 
 /* ---------- the two honest options ---------- */
@@ -1937,6 +2011,7 @@ function openFinishDialog(title, timedOut){
 }
 function finishComplete(){
   closeModal('finishModalBg');
+  closeTimer();            // the block is over — the face has nothing left to say
   const f=forgeTask && findTask(forgeTask.ds,forgeTask.id);
   if(!f||!pendingFinish){ pendingFinish=null; return; }
   const actual=forgeCarryMin + pendingFinish.roundElapsedMin;
@@ -1976,12 +2051,13 @@ function moreMinutes(n){
 function moreMinutesCustom(){
   closeModal('moreModalBg');
   if(pendingFinish){ forgeCarryMin+=pendingFinish.roundElapsedMin; pendingFinish=null; }
-  bellToggle(true); skipJokeOnce=true;
+  openTimer(); skipJokeOnce=true;
   const e=bellEls(); e.forEl.textContent='Set the minutes, then Start — the joke won\'t repeat.';
   try{ e.dur.focus(); e.dur.select(); }catch(_){}
 }
 function createFollowUp(){
   closeModal('moreModalBg');
+  closeTimer();            // the remainder goes on a day, not back on the clock
   const f=forgeTask && findTask(forgeTask.ds,forgeTask.id);
   if(pendingFinish){ forgeCarryMin+=pendingFinish.roundElapsedMin; pendingFinish=null; }
   if(!f) return;
@@ -1999,7 +2075,7 @@ function reportToggle(){ reportOpen=!reportOpen;
   if(reportOpen) renderReport(); }
 function renderReport(){
   if(!reportOpen) return;
-  const month=forgeDay.slice(0,7);
+  const month=calMonth||todayStr().slice(0,7);
   const el=document.getElementById('reportBody'); el.innerHTML='';
   const rows=[];
   Object.keys(db.days).filter(ds=>ds.startsWith(month)).sort().forEach(ds=>{
@@ -2056,6 +2132,10 @@ function renderClosing(){
   const ck=makeCheck(!!day.enough,null,dn=>{ getDay(today).enough=dn; wrap.classList.toggle('done',dn); save(); });
   host.appendChild(ck.wrap);
   document.getElementById('ceCaption').textContent= day.enough?'It was enough. Rest well.':'It was enough.';
+  // the report follows the month you were browsing on Today
+  const lbl=document.getElementById('repMonthLbl');
+  if(lbl) lbl.textContent='· '+fromISO((calMonth||today.slice(0,7))+'-01').toLocaleDateString(undefined,{month:'long',year:'numeric'});
+  renderReport();
 }
 
 /* =====================================================================
@@ -2614,8 +2694,6 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeGearMenu();
   e.stop.addEventListener('click',forgeStopPressed);
   e.reset.addEventListener('click',()=>{ bellReset(); });
   e.mute.addEventListener('click',bellMuteToggle);
-  e.full.addEventListener('click',ev=>{ ev.stopPropagation(); bellFull(!e.panel.classList.contains('full')); });
-  e.close.addEventListener('click',()=>bellFull(false));
   e.dur.addEventListener('change',()=>{ if(!bell.running){ bell.total=0; bell.left=0; bellPaint(); } });
   BELL_VISUALS.forEach(v=>{ const o=document.createElement('option'); o.value=v.id; o.textContent=v.name; o.title=v.read; e.visSel.appendChild(o); });
   e.visSel.addEventListener('change',()=>{ bell.vis=e.visSel.value; db.settings.forgeVis=bell.vis; save(); bellVisPaint(true); });

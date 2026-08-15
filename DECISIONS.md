@@ -340,6 +340,50 @@
       sides, past-date refusal, legacy normalization) plus both prior suites
       re-run green.
 
+* **[2026-08-15] v0.7.0 — the navigation catches up to the app.** Chad's
+  call, and the right one: *"the navigation has been outgrown a little bit by
+  the awesome functionality."* Five tabs were describing an app we no longer
+  had — Opening and Calendar rendered the same day's lists twice, and the
+  Forge was a room you had to travel to in order to do a thing you'd already
+  chosen. **This supersedes the founding five-tab spec** (see 2026-08-14).
+    * *Decision — three rooms: **Today · Projects · Closing**.* Opening and
+      Calendar merge into one Today surface: the glance and today's balls up
+      top (what matters now), the month below (planning), and any *other* day
+      you tap opens in a framed panel beneath the calendar. Today never moves,
+      so "today" and "some other day" can never be confused — the thing the
+      old two-tab split was protecting, without the duplication.
+    * *Decision — the timer is a **mode**, not a room.* The Forge pane is
+      gone. The focus timer runs in an overlay reachable from anywhere (⏳ in
+      the header, or ▶ on any ball), and a **timer bar** rides along at the
+      bottom while a block runs, from whatever room she's in. Closing the face
+      never stops the clock; tapping the bar reopens it. The month report,
+      which never belonged in a workspace, moved to Closing.
+    * *Decision — one ball, one tap.* Tapping anywhere on a ball opens a
+      **sheet** with the three verbs a ball can take — **▶ Start it · ✓ Catch
+      it · → Move it forward** — plus **✎ Edit details** and a quiet delete.
+      The row full of ⋯ and → buttons is retired; a row is now a name, its
+      minutes, its sticker, and a chevron.
+    * *The one exception:* the **checkbox stays a direct tap on the row**.
+      Catching is the most frequent act and the best feeling in the app; it
+      never gets buried behind a menu. (First cut of the row rewrite let the
+      check bubble up and open the sheet too — caught by the ported v0.2.0
+      suite, fixed by swallowing the click at the check.)
+    * *Consequence — inline rename is gone from the row.* An existing ball's
+      name is now a label, not an input, so the whole row is one clean target;
+      renaming lives in ✎ Edit details. Inline *entry* (typing into the empty
+      line to add) is untouched — that's the blueprint pattern and it stays.
+    * *Fix:* the strike-through drew a rule out into empty space past the
+      words, because it lived on the row-filling label. It now lives on the
+      name itself.
+    * *No schema change* — v0.7.0 is navigation only, so the siblings stay in
+      lockstep by construction. Guard re-proved by canary (one-sided
+      `mergeDefaults` field → test 5 red → reverted → green).
+    * *Verified:* new 52-check v0.7.0 flow suite (three rooms, one Today
+      scroll, sheet verbs, timer-as-mode incl. the bar across rooms, carry via
+      the sheet, other-day panel, standalone timer, report in Closing,
+      persistence) plus the v0.2.0, v0.3.0 and carry suites ported to the new
+      navigation and re-run green. Zero console errors.
+
 ## 🤔 Pending Joelle (open design calls)
 * Body/UI typeface pick: Atkinson Hyperlegible vs. Karla vs. Alegreya Sans
   (or another direction she prefers)
