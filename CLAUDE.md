@@ -106,6 +106,15 @@ ball; catching that ball checks the step back home.
 ### 3b. The ball pit (v0.8.0) — a shelf two journals share
 A collapsed section below the month on Today, and the app's only multi-person
 surface.
+- **The undated default (v0.9.0):** the creation form opens with **no day**.
+  Leave it empty and the ball parks in the pit ("Park it in the pit" is the
+  save button); pick a date — or tap the **today** chip — and it **skips the
+  pit entirely**. The shelf exists even solo, as the app's parking lane.
+- **Two lanes, chosen at creation (v0.9.0):** 🤝 **shared** (the default once
+  a pit is joined) or 🔒 **just mine**. Private items never enter the pit's
+  KV upload — they ride only the journal blob across your own devices. Lanes
+  can be toggled later; shared→private confirms first and retracts the shared
+  copy with a tombstone.
 - **Park a ball** with no day at all — the brain dump for "this matters, I
   don't know when yet." Scheduling it later is a deliberate act (a Friday
   planning pass, say), not a nag.
@@ -172,9 +181,10 @@ not wall: it names the impulse to keep going, it never blocks or nags. The
    (Cloudflare R2/Images) or a second KV key — not a bigger blob.
 6. **Shared balls (the pit, v0.8.0): everyone involved gets a sticker.**
    Catching a ball fills a real slot exactly as always. If someone *else*
-   catches a ball you put in the pit, you earn a **bonus sticker** — rendered
-   **outside the three slots**, in its own shape, and deliberately **outside
-   the gold-star test**. So a day can show more than three stickers while
+   catches a ball you put in the pit, you earn a **bonus sticker** — a small
+   **rainbow star ★** (gradient clipped to the glyph; dashed-gold fallback),
+   rendered **outside the three slots** and deliberately **outside the
+   gold-star test**. So a day can show more than three stickers while
    never holding more than three glass balls, and ★ keeps meaning "every
    glass ball on my day, caught." Markers mirror real state; a gift is drawn
    as a gift.
@@ -279,7 +289,7 @@ not wall: it names the impulse to keep going, it never blocks or nags. The
   carry-forward, Dev Notes, the meme library, and the v0.7.0 navigation
   refactor — three rooms, the ball sheet, the timer as a mode. Goal: hand
   Joelle a finished app to live in for a week and return notes.
-- **Phase 4 — Shared (v0.8.0)**: the ball pit. The first multi-person
+- **Phase 4 — Shared (v0.8–0.9)**: the ball pit. The first multi-person
   surface: a shelf two journals share, an item-level convergent merge under
   it, bonus stickers, and async "here's what I need help with."
 - **Parked:** month report analytics, Projects↔Calendar bridge polish,

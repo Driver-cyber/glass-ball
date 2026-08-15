@@ -323,7 +323,14 @@ body.has-timerbar{padding-bottom:64px;}
 /* a bonus sticker is a gift, not a slot — different glyph, outside the three */
 .stick-sep{color:var(--muted);font-size:12px;margin:0 1px;}
 .stick-slot.bonus{border:1.5px dashed var(--gold);background:transparent;color:var(--gold-deep);
-  width:22px;height:22px;font-size:12px;}
+  width:22px;height:22px;font-size:13px;}
+/* a gift wears every color: muted rainbow, clipped to the star itself */
+@supports ((-webkit-background-clip:text) or (background-clip:text)){
+  .stick-slot.bonus{color:transparent;
+    background-image:linear-gradient(135deg,#D14D41 0%,#DA702C 22%,#D0A215 42%,#879A39 60%,#39749B 79%,#8B7EC8 100%);
+    -webkit-background-clip:text;background-clip:text;}
+}
+.pit-lock{flex:0 0 auto;font-size:11px;line-height:1;opacity:.8;}
 
 /* ---------- bell / focus timer (ported from CTT's tinker's bell) ----------
    v0.7.0: the bell no longer has a room of its own. These are the pieces of
@@ -449,7 +456,7 @@ body.modal-open{overflow:hidden;}
 <body>
 
 <div class="appbar">
-  <div class="brand"><span class="brand-orb" aria-hidden="true"></span><span>The Glass Ball<small>catch the glass · v0.8.1</small></span></div>
+  <div class="brand"><span class="brand-orb" aria-hidden="true"></span><span>The Glass Ball<small>catch the glass · v0.9.0</small></span></div>
   <div class="maintabs">
     <div class="maintab active" data-m="today" onclick="switchMain('today')">Today</div>
     <div class="maintab" data-m="projects" onclick="switchMain('projects')">Projects</div>
@@ -490,7 +497,7 @@ body.modal-open{overflow:hidden;}
     </div>
     <div class="open-actions">
       <span class="open-hint">Tap a ball to catch it, time it, or move it forward.</span>
-      <button class="cal-add" onclick="openTaskModal(null)" title="New ball" aria-label="New ball">+</button>
+      <button class="cal-add" onclick="openTaskModal(null,{noDay:true})" title="New ball" aria-label="New ball">+</button>
     </div>
     <div id="openGoldBanner"></div>
     <div class="list-head"><span class="glyph">◉</span> Glass <span class="cnt" id="openGlassCnt"></span></div>
@@ -531,7 +538,7 @@ body.modal-open{overflow:hidden;}
     <div class="pit-panel hidden" id="pitPanel">
       <h3 class="pit-head" onclick="togglePit()">
         <span class="pit-carrot" id="pitCarrot">▸</span> 🧺 <span id="pitTitle">The ball pit</span>
-        <span class="muted" style="font-weight:500;font-size:12.5px">— shared shelf</span>
+        <span class="muted" style="font-weight:500;font-size:12.5px" id="pitSubLbl">— shared shelf</span>
       </h3>
       <div class="pit-body" id="pitBody" style="display:none">
         <p class="pit-note">Park a ball here when you don't know its day yet, or when you're asking for
@@ -651,16 +658,30 @@ body.modal-open{overflow:hidden;}
   <h2 id="taskModalTitle">New ball</h2>
   <div class="field"><label>Name</label>
     <input id="tmName" placeholder="What needs doing?" onkeydown="if(event.key==='Enter')taskModalSave()"></div>
-  <div class="field"><label>Day</label>
-    <input type="date" id="tmDate"></div>
-  <div class="field"><label>Priority</label>
+  <div class="field"><label>Day <span class="muted" style="font-weight:500;text-transform:none;letter-spacing:0">— leave empty to park it in the pit</span></label>
+    <div style="display:flex;gap:8px;align-items:center">
+      <input type="date" id="tmDate" style="flex:1;min-width:0" oninput="tmModeSync()" onchange="tmModeSync()">
+      <button type="button" class="ghost small" onclick="tmToday()">today</button>
+    </div></div>
+  <!-- no day yet → the ball waits in the pit; shared or just-yours is chosen
+       here, at the moment of creation -->
+  <div class="field hidden" id="tmPitField">
+    <p class="sync-note" style="margin:0 0 8px">🧺 No day yet — it waits in the pit until you schedule it.</p>
+    <div id="tmVisWrap">
+      <label>Who sees it</label>
+      <div class="seg">
+        <button type="button" id="tmVisShared" onclick="tmSetVis('shared')">🤝 Shared — either of you<span class="seg-check" aria-hidden="true">✓</span></button>
+        <button type="button" id="tmVisPrivate" onclick="tmSetVis('private')">🔒 Just mine<span class="seg-check" aria-hidden="true">✓</span></button>
+      </div>
+    </div></div>
+  <div class="field" id="tmPriorityField"><label>Priority</label>
     <div class="seg">
       <button type="button" id="tmGlass" onclick="tmSetPriority('glass')"><span class="ball-dot glass" aria-hidden="true"></span>Glass — it matters<span class="seg-check" aria-hidden="true">✓</span></button>
       <button type="button" id="tmRubber" onclick="tmSetPriority('rubber')"><span class="ball-dot rubber" aria-hidden="true"></span>Rubber — it bounces<span class="seg-check" aria-hidden="true">✓</span></button>
     </div></div>
   <div class="field"><label>Time block (minutes — optional)</label>
     <input type="text" inputmode="numeric" id="tmBlock" placeholder="e.g. 30"></div>
-  <div class="field"><label>Repeats</label>
+  <div class="field" id="tmRecurField"><label>Repeats</label>
     <select id="tmRecur">
       <option value="">Doesn't repeat</option>
       <option value="daily">Daily</option>
@@ -1019,7 +1040,23 @@ body.modal-open{overflow:hidden;}
 <input type="file" id="importFile" accept="application/json" style="display:none">
 <script>
 /* =====================================================================
-   The Glass Ball · v0.8.1 — Joelle's task & schedule app.
+   The Glass Ball · v0.9.0 — Joelle's task & schedule app.
+   v0.9.0: the pit becomes the front door for the undated, and grows a
+   private lane. The + opens with no day; leave it empty and the ball
+   parks in the pit ("Park it in the pit" is the button), pick a date
+   (or tap the today chip) and it skips the pit entirely. A no-day ball
+   chooses its lane at creation: 🤝 shared (default when a pit is
+   joined) or 🔒 just mine — private items never enter the pit's KV
+   upload, riding only the journal blob across your own devices; the
+   shelf itself now exists even solo, as the app's parking lane.
+   Lane toggles: private→shared simply starts uploading; shared→private
+   retracts the shared copy with a tombstone and continues under a new
+   id (day balls follow). Renaming yourself re-signs your items
+   (pitSetMe) so solo-parked balls still earn their bonus later.
+   And the bonus sticker got its art: a small rainbow star ★, gradient
+   clipped to the glyph, dashed-gold ✧ fallback where clipping isn't
+   supported. Still outside the three slots, still outside the star.
+   v0.8.1
    v0.8.1: the guide grows a story. /guide rebuilt as a marketing-style
    scrollytelling demo: the noise (a rain of gray urgency with one glass
    ball hidden in it), the idea, the caps, a live-drawn Today card that
@@ -1217,7 +1254,7 @@ const STORE_KEY = 'glassball_v1';   // Glass Ball's own key — never the CTT si
 const SCHEMA    = 'glassball-1';
 const CAPS = { glass:3, rubber:5 };   // the caps ARE the product — no override
 let db = {
-  version:'0.8.1', schema:SCHEMA, lastEdit:0,
+  version:'0.9.0', schema:SCHEMA, lastEdit:0,
   days:{},        // 'YYYY-MM-DD' → {glass:[task], rubber:[task], note:'', skipRecur:[], enough:false}
   recurring:[],   // repeat templates: {id,name,priority,blockMin,freq,anchor}
   projects:[],    // {id,name,notes,archived,createdDate,modifiedDate,steps:[{id,text,done,pushedTo}]}
@@ -1291,6 +1328,8 @@ function mergeDefaults(p){
   p.pit.items=Array.isArray(p.pit.items)?p.pit.items:[];
   p.pit.items.forEach(it=>{
     if(it.by===undefined) it.by='';
+    if(it.vis===undefined) it.vis='shared';       // pre-v0.9 shelf items were all shared
+    if(it.blockMin===undefined) it.blockMin=null;
     if(it.note===undefined) it.note='';
     if(it.done===undefined) it.done=false;
     if(it.doneBy===undefined) it.doneBy='';
@@ -1333,8 +1372,9 @@ function realTasks(list){ return (list||[]).filter(t=>(t.name||'').trim()); }
    ===================================================================== */
 const PIT_TOMB_DAYS = 45;   // how long a deletion keeps propagating
 
-function pitItem(name, by){ const t=Date.now();
-  return {id:uid(), name:name||'', by:by||'', note:'',
+function pitItem(name, by, opts){ opts=opts||{}; const t=Date.now();
+  return {id:uid(), name:name||'', by:by||'', note:'', vis:opts.vis||'shared',
+          blockMin:opts.blockMin||null,
           createdAt:t, lastEdit:t, done:false, doneBy:'', doneAt:null, deleted:false}; }
 
 /* Merge two shelves. Pure — no db access — so the test suite can run it in a
@@ -1760,7 +1800,7 @@ function paintBonus(host, bonus){
   const sep=document.createElement('span'); sep.className='stick-sep'; sep.textContent='+';
   host.appendChild(sep);
   bonus.forEach(it=>{
-    const b=document.createElement('span'); b.className='stick-slot bonus'; b.textContent='✧';
+    const b=document.createElement('span'); b.className='stick-slot bonus'; b.textContent='★';
     b.title='Bonus — '+(it.doneBy||'someone')+' caught “'+it.name+'” from the pit';
     host.appendChild(b);
   });
@@ -1774,9 +1814,10 @@ function togglePit(){ pitOpen=!pitOpen;
 
 function renderPit(){
   const panel=document.getElementById('pitPanel'); if(!panel) return;
-  panel.classList.toggle('hidden', !pitOn());
-  if(!pitOn()) return;
-  document.getElementById('pitTitle').textContent=db.pit.name||'The ball pit';
+  panel.classList.remove('hidden');   // solo it's your parking lane; joined, the shared shelf
+  document.getElementById('pitTitle').textContent=(pitOn()&&db.pit.name)?db.pit.name:'The ball pit';
+  const sub=document.getElementById('pitSubLbl');
+  if(sub) sub.textContent=pitOn()?'— shared shelf':'— no day yet? park it here';
   if(!pitOpen) return;
   const el=document.getElementById('pitList'); el.innerHTML='';
   const me=pitMe();
@@ -1794,11 +1835,21 @@ function renderPit(){
     const ck=makeCheck(!!it.done, lw, dn=>pitSetDone(it.id,dn));
     ck.wrap.addEventListener('click',e=>e.stopPropagation());
     row.append(ck.wrap, lw);
+    const priv=(it.vis||'shared')==='private';
     const who=document.createElement('span'); who.className='pit-by';
     who.textContent = it.done
       ? ('caught by '+(it.doneBy===me?'you':(it.doneBy||'someone')))
-      : ('from '+(it.by===me?'you':(it.by||'—')));
+      : (priv ? 'just yours' : ('from '+(it.by===me?'you':(it.by||'—'))));
     row.appendChild(who);
+    if(priv){ const lk=document.createElement('span'); lk.className='pit-lock'; lk.textContent='🔒';
+      lk.title='Just yours — never leaves your journal'; row.appendChild(lk); }
+    if(pitOn() && !it.done){
+      const vt=document.createElement('button'); vt.type='button'; vt.className='pit-del';
+      vt.textContent = priv ? '🤝' : '🔒';
+      vt.title = priv ? 'Share it — put it on the shared shelf' : 'Make it just yours';
+      vt.onclick=e=>{ e.stopPropagation(); pitToggleVis(it.id); };
+      row.appendChild(vt);
+    }
     // Mine already? Then say so instead of offering it again.
     const mine=pitAdoptions(it.id).filter(a=>!a.task.done);
     if(!it.done){
@@ -1824,8 +1875,7 @@ function renderPit(){
     tx.value=''; pitAdd(v); });
 }
 function pitAdd(name){
-  if(!pitOn()) return;
-  db.pit.items.push(pitItem(name, pitMe()));
+  db.pit.items.push(pitItem(name, pitMe(), {vis: pitOn()?'shared':'private'}));
   pitSave(); renderPit();
 }
 function pitSetDone(id,dn){
@@ -1848,7 +1898,8 @@ function pitRemove(id){
    fourth glass ball onto a day — the constraint is the product. */
 function takeFromPit(id){
   const it=pitFind(id); if(!it) return;
-  openTaskModal(null,{ name:it.name, date:calSel||todayStr(), priority:'glass', blockMin:'', pitId:id });
+  openTaskModal(null,{ name:it.name, date:calSel||todayStr(), priority:'glass',
+    blockMin:it.blockMin||'', pitId:id });
 }
 /* Putting one in (or taking it back off) from the ball sheet. */
 function shareToPit(ds,id){
@@ -1864,10 +1915,39 @@ function shareToPit(ds,id){
   pitSave(); renderPit(); renderDayLists(); renderOpening();
   flash('In the pit — '+(db.pit.name||'shared'));
 }
+/* Renaming yourself re-signs your own shelf items — balls parked solo carry
+   by:'me' until a name exists, and a bonus can only find its way home if the
+   signature matches. Partner items keep their author's name untouched. */
+function pitSetMe(newMe){
+  newMe=(newMe||'').trim(); if(!newMe) return;
+  const old=db.pit.me||'me';
+  if(old!==newMe){
+    (db.pit.items||[]).forEach(it=>{
+      if(it.by===old || (!it.by && old==='me')){ it.by=newMe; pitTouch(it); }
+      if(it.doneBy===old){ it.doneBy=newMe; pitTouch(it); }
+    });
+  }
+  db.pit.me=newMe;
+}
+function pitToggleVis(id){
+  const it=pitFind(id); if(!it || it.deleted) return;
+  if((it.vis||'shared')==='private'){ it.vis='shared'; pitTouch(it); pitSave(); }
+  else{
+    if(!confirm('Make “'+it.name+'” just yours? It disappears from the shared shelf — anything already on a day stays put.')) return;
+    // the partner may already hold a copy — retract it honestly (tombstone)
+    // and carry on privately under a new id; day balls follow the move
+    const copy=Object.assign({}, it, {id:uid(), vis:'private', lastEdit:Date.now()});
+    it.deleted=true; pitTouch(it);
+    db.pit.items.push(copy);
+    pitAdoptions(id).forEach(({task})=>{ task.pitId=copy.id; });
+    pitSave();
+  }
+  renderPit();
+}
 function savePitMe(){
   const v=(document.getElementById('pitMeName').value||'').trim();
   if(!v){ pitMsg('A name, however short.',true); return; }
-  db.pit.me=v; save(); renderPit(); renderPitSettings(); pitMsg('Saved — your catches sign as “'+v+'”.');
+  pitSetMe(v); save(); renderPit(); renderPitSettings(); pitMsg('Saved — your catches sign as “'+v+'”.');
 }
 function renderPitSettings(){
   const row=document.getElementById('pitSetupRow'); if(!row) return;
@@ -1951,6 +2031,24 @@ function undoCarry(){
 /* ---------- task creation / editing modal ---------- */
 let tmCtx=null;   // null = create; {ds,id} = edit
 let tmPitId=null; // set when the new ball is being taken off the shared shelf
+let tmVis='shared'; // pit lane for a no-day ball: 'shared' | 'private'
+function tmSetVis(v){ tmVis=v;
+  segState('tmVisShared', v==='shared', false);
+  segState('tmVisPrivate', v==='private', false); }
+function tmToday(){ document.getElementById('tmDate').value=todayStr(); tmModeSync(); }
+/* The form breathes by destination: no day (and not an edit, and not a ball
+   coming OFF the shelf) means the pit — so priority and repeats step aside,
+   the lane choice appears, and the button says where it's going. */
+function tmModeSync(){
+  const isEdit=!!(tmCtx&&tmCtx.id);
+  const noDay=!document.getElementById('tmDate').value && !isEdit && !tmPitId;
+  document.getElementById('tmPitField').classList.toggle('hidden', !noDay);
+  document.getElementById('tmPriorityField').classList.toggle('hidden', noDay);
+  document.getElementById('tmRecurField').classList.toggle('hidden', noDay);
+  document.getElementById('tmVisWrap').style.display = pitOn() ? '' : 'none';
+  if(noDay && !pitOn() && tmVis!=='private') tmSetVis('private');  // nobody to share to
+  document.getElementById('tmSaveBtn').textContent = noDay ? 'Park it in the pit' : (isEdit?'Save':'Add ball');
+}
 let tmPriority='glass';
 let tmScope='one';   // recurring edits: 'one' (this day) | 'all' (template + future repeats)
 /* One place that knows how a segment shows "chosen": the class carries the
@@ -1979,25 +2077,37 @@ function openTaskModal(ctx,prefill){
   document.getElementById('tmEndRepeatBtn').classList.toggle('hidden',!isRecur);
   tmSetScope('one');
   if(prefill){ name=prefill.name!=null?prefill.name:name; date=prefill.date||date;
-    block=prefill.blockMin!=null?prefill.blockMin:block; pr=prefill.priority||pr; }
+    block=prefill.blockMin!=null?prefill.blockMin:block; pr=prefill.priority||pr;
+    if(prefill.noDay) date=''; }            // the + opens aimed at the pit
   tmPitId=(prefill&&prefill.pitId)||null;   // taking a ball off the shared shelf
+  tmSetVis(pitOn()?'shared':'private');
   document.getElementById('tmName').value=name;
   document.getElementById('tmDate').value=date;
   document.getElementById('tmBlock').value=block;
   document.getElementById('tmRecur').value=recur;
   document.getElementById('tmRecur').disabled=isEdit;   // recurrence edits: parked (one-vs-all)
   tmSetPriority(pr);
+  tmModeSync();
   openModal('taskModalBg');
   setTimeout(()=>document.getElementById('tmName').focus(),60);
 }
 function taskModalSave(){
   const name=(document.getElementById('tmName').value||'').trim();
-  const date=document.getElementById('tmDate').value||todayStr();
+  const rawDate=document.getElementById('tmDate').value;
+  const date=rawDate||todayStr();
   const block=parseInt(document.getElementById('tmBlock').value,10);
   const blockMin=(isNaN(block)||block<1)?null:Math.min(block,720);
   const freq=document.getElementById('tmRecur').value;
   const msg=document.getElementById('tmMsg');
   if(!name){ msg.textContent='A name is the one thing a ball needs.'; return; }
+  // no day chosen → the pit. Scheduling it later is the deliberate act;
+  // picking a date here skips the pit entirely.
+  if(!tmCtx && !rawDate && !tmPitId){
+    db.pit.items.push(pitItem(name, pitMe(), {vis:tmVis, blockMin:blockMin}));
+    pitSave(); closeModal('taskModalBg'); renderPit();
+    flash(tmVis==='shared' ? 'Parked in the pit — shared' : 'Parked in the pit — just yours');
+    return;
+  }
   if(tmCtx && tmCtx.id){   // ----- edit (may move day/priority)
     const f=findTask(tmCtx.ds,tmCtx.id); if(!f){ closeModal('taskModalBg'); return; }
     const moved=(date!==tmCtx.ds)||(tmPriority!==f.priority);
@@ -3036,7 +3146,10 @@ async function pitPush(manual){
     if(r.status===200 && r.text){ try{ const o=JSON.parse(r.text); theirs=Array.isArray(o.items)?o.items:[]; }catch(_){} }
     db.pit.items=pitMerge(db.pit.items, theirs);
     pitReconcile();
-    const body=JSON.stringify({ id:db.pit.id, name:db.pit.name||'', items:db.pit.items, at:Date.now() });
+    // the private lane stays home: only shared items (and their tombstones)
+    // are uploaded. Private balls ride the journal blob to your own devices.
+    const body=JSON.stringify({ id:db.pit.id, name:db.pit.name||'',
+      items:db.pit.items.filter(it=>(it.vis||'shared')!=='private'), at:Date.now() });
     const w=await kvFetch('PUT', pitKey(), body);
     if(w.status!==200 && w.status!==204) throw new Error('Worker returned '+w.status);
     db.pit.lastSync=Date.now();
@@ -3052,7 +3165,7 @@ async function createPit(){
   const name=(document.getElementById('newPitName').value||'').trim();
   const me=(document.getElementById('pitMeName').value||'').trim();
   if(!me){ pitMsg('Put a name on it first — the pit signs who added and who caught.',true); return; }
-  db.pit.id=newPitId(); db.pit.name=name||'Our ball pit'; db.pit.me=me;
+  db.pit.id=newPitId(); db.pit.name=name||'Our ball pit'; pitSetMe(me);
   save();
   await pitPush(true);
   document.getElementById('newPitName').value='';
@@ -3060,7 +3173,8 @@ async function createPit(){
   pitMsg('Ball pit created. Share your Sync code and they can join it in one paste.');
 }
 async function joinPit(pitId, me, name){
-  db.pit.id=pitId; db.pit.me=me||db.pit.me||'me'; if(name) db.pit.name=name;
+  db.pit.id=pitId; if(me) pitSetMe(me); else if(!db.pit.me) db.pit.me='me';
+  if(name) db.pit.name=name;
   save(); await pitPull(true); await pitPush(true);
   renderPit(); renderSync(); renderPitSettings();
 }
@@ -3075,8 +3189,9 @@ async function joinPitFromField(){
   pitMsg('Joined the ball pit.');
 }
 function leavePit(){
-  if(!confirm('Leave the ball pit on this journal? Balls you already took onto your days stay yours. The shared shelf is untouched — you can rejoin with its Pit ID.')) return;
-  db.pit={ id:null, name:'', me:db.pit.me||'', items:[], lastSync:null };
+  if(!confirm('Leave the shared pit on this journal? Your private parked balls stay; the shared shelf is untouched and rejoinable with its Pit ID. Balls already on your days stay yours.')) return;
+  db.pit={ id:null, name:'', me:db.pit.me||'',
+    items:(db.pit.items||[]).filter(it=>(it.vis||'shared')==='private'), lastSync:null };
   save(); renderPit(); renderSync(); renderPitSettings(); renderOpening();
   pitMsg('Left the ball pit on this journal.');
 }

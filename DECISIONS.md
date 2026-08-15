@@ -473,6 +473,47 @@
       console errors; reduced-motion assertions; all five app suites re-run
       green (43/52/26/25/8) + lockstep 16/16.
 
+* **[2026-08-15] v0.9.0 — the pit becomes the front door, and grows a
+  private lane.** Chad's calls, closing two parking-lot questions same-day.
+    * *Decision — undated balls default to the pit.* The + opens with **no
+      day**; leave it empty and the ball parks on the shelf (the save button
+      says so: "Park it in the pit"); pick a date — or tap the new **today**
+      chip — and it skips the pit entirely. Priority and repeats step aside
+      for a pit-bound ball (they're chosen when it's taken onto a day; the
+      time block is kept and prefills Take-it). Inline entry on a day's list
+      is untouched — that's still the fastest path onto today.
+    * *Consequence — the shelf exists even solo.* A parking lane for the
+      undated is useful before (or without) a partner, so the pit panel now
+      shows regardless of membership; joining a pit is what makes it shared.
+    * *Decision — two lanes, chosen at creation.* 🤝 shared (default once a
+      pit is joined — transparency is the point) or 🔒 just mine (the only
+      option solo). **Private items never enter the pit's KV upload** — the
+      push filters them; they ride the journal blob across your own devices,
+      and survive every pull because the item-level merge unions rather than
+      replaces. Lane toggles: private→shared simply starts uploading;
+      shared→private asks first (a stray tap shouldn't silently vanish a ball
+      from the partner's shelf), then retracts the shared copy with a
+      tombstone and continues under a fresh id — day balls follow the move.
+    * *Fix found by the new suite:* balls parked solo are signed `by:'me'`
+      before a name exists, so joining a pit later orphaned them — wrong
+      attribution, and their bonus could never find its way home. Renaming
+      now re-signs your own items (`pitSetMe`); partner items keep their
+      author untouched.
+    * *Decision — bonus-sticker art: a small rainbow star ★* (Chad's pick,
+      Joelle holds the veto). Gradient clipped to the glyph via
+      `background-clip:text` behind an `@supports` guard — dashed-gold
+      fallback elsewhere. Still outside the three slots, still outside the
+      gold star.
+    * *Schema (lockstep):* pit items gain `vis` ('shared'|'private', legacy
+      items normalize shared) and `blockMin`.
+    * *Verified:* new 27-check v0.9.0 suite (undated default, form dynamics,
+      today chip, dated-create skips pit, lane defaults solo vs shared,
+      private excluded from KV yet surviving pulls, both toggle directions
+      incl. tombstone + fresh id, rainbow star gradient asserted via computed
+      style, leave-pit keeps the private lane, legacy normalize) — plus all
+      five prior suites updated to the new + flow and re-run green, and the
+      16-test lockstep+pit suite.
+
 ## 🤔 Pending Joelle (open design calls)
 * Body/UI typeface pick: Atkinson Hyperlegible vs. Karla vs. Alegreya Sans
   (or another direction she prefers)
@@ -483,11 +524,9 @@
 * Should a fully-*settled* day (all glass caught or deliberately moved) earn a
   marker of its own, distinct from the gold star? Today it earns a quiet
   banner and no star.
-* Bonus-sticker art: they currently render as a dashed ✧ after a "+" separator,
-  distinct from the solid ✦ slots. Her call whether a gift should look like
-  that, or like something else entirely.
-* Whether the pit wants a "just for me" lane (parked balls nobody else sees) or
-  whether everything on the shelf being shared is the point.
+* Bonus-sticker art — **decided 2026-08-15 (v0.9.0):** a small rainbow star ★
+  (Chad's pick; Joelle can veto in her review week).
+* Private lane — **decided 2026-08-15 (v0.9.0):** yes; see the v0.9.0 entry.
 
 ## 💡 The Parking Lot (Future Ideas)
 * Month report analytics (ahead/behind time-block budget) — mechanism stubbed
