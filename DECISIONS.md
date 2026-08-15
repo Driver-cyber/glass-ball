@@ -445,6 +445,34 @@
       write, caps refusing a shared ball, tombstones not deleting anyone's day,
       leaving the pit keeping her days. All four prior suites re-run green.
 
+* **[2026-08-15] v0.8.1 — the guide grows a story.** Chad's brief: a
+  marketing-style scrolly demo — what the app is, what it does, how you move
+  through it, stated plainly — with a gentle narrative the viewer can step
+  into ("we've all got these chores"), never a poem that obscures the product.
+    * *The arc:* the noise (a rain of gray urgency piling up — with **one
+      glass ball hidden in the heap** and a wink: "did you spot it?" — the
+      reader plays the game before they're taught it) → the idea → the caps →
+      **how it works** (a live-drawn Today card: rows arrive, a checkbox draws
+      its check, strike sweeps, sticker pops, the ball sheet opens — "Type it.
+      Tap it. That's the manual.") → the timer with its **joke on display**
+      (a real shipped line: "Somewhere a version of you already finished this.
+      Go meet her.") → **the ball pit** (a shelf row flips from "from you" to
+      "caught by Chad," bonus ✧ pops — "Asking for help, minus the asking.") →
+      the game → the house recap → the pledge → the door.
+    * *Decision — features stay load-bearing.* Every scene's kicker names the
+      feature; the feeling rides in the copy, not instead of it. The voice is
+      wry second-person ("The dentist you meant to call in March"), because
+      the audience is anyone who procrastinates chores — i.e., everyone.
+    * *Same proven bones:* sticky 100svh pins, progress measured from the pin
+      (URL-bar-proof), one rAF loop, scenes drawn live, reduced-motion
+      fallback extended to every new element (verified: 7.4k-px static page,
+      catch states resolved, joke visible).
+    * *Version:* v0.8.1 — app unchanged, but the subtitle/JS-header/SW-cache
+      trio bumps together so installed PWAs refresh their offline guide shell.
+    * *Verified:* per-scene screenshots at money-beats, phone + desktop, zero
+      console errors; reduced-motion assertions; all five app suites re-run
+      green (43/52/26/25/8) + lockstep 16/16.
+
 ## 🤔 Pending Joelle (open design calls)
 * Body/UI typeface pick: Atkinson Hyperlegible vs. Karla vs. Alegreya Sans
   (or another direction she prefers)

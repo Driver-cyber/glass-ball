@@ -449,7 +449,7 @@ body.modal-open{overflow:hidden;}
 <body>
 
 <div class="appbar">
-  <div class="brand"><span class="brand-orb" aria-hidden="true"></span><span>The Glass Ball<small>catch the glass · v0.8.0</small></span></div>
+  <div class="brand"><span class="brand-orb" aria-hidden="true"></span><span>The Glass Ball<small>catch the glass · v0.8.1</small></span></div>
   <div class="maintabs">
     <div class="maintab active" data-m="today" onclick="switchMain('today')">Today</div>
     <div class="maintab" data-m="projects" onclick="switchMain('projects')">Projects</div>
@@ -1019,7 +1019,16 @@ body.modal-open{overflow:hidden;}
 <input type="file" id="importFile" accept="application/json" style="display:none">
 <script>
 /* =====================================================================
-   The Glass Ball · v0.8.0 — Joelle's task & schedule app.
+   The Glass Ball · v0.8.1 — Joelle's task & schedule app.
+   v0.8.1: the guide grows a story. /guide rebuilt as a marketing-style
+   scrollytelling demo: the noise (a rain of gray urgency with one glass
+   ball hidden in it), the idea, the caps, a live-drawn Today card that
+   types/catches/opens the sheet, the timer with its joke on display,
+   the ball pit caught by the other side, the game, the house, the
+   pledge. Features stay load-bearing; the feeling rides the copy.
+   App itself unchanged — this bump keeps the subtitle/SW cache trio in
+   lockstep so the new guide reaches installed PWAs' offline shells.
+   v0.8.0
    v0.8.0: THE BALL PIT — a shelf two journals share. Park a ball when you
    know it matters but not yet when (a brain dump with a place to live);
    take one onto a day when you do; whoever catches it, catches it for
@@ -1208,7 +1217,7 @@ const STORE_KEY = 'glassball_v1';   // Glass Ball's own key — never the CTT si
 const SCHEMA    = 'glassball-1';
 const CAPS = { glass:3, rubber:5 };   // the caps ARE the product — no override
 let db = {
-  version:'0.8.0', schema:SCHEMA, lastEdit:0,
+  version:'0.8.1', schema:SCHEMA, lastEdit:0,
   days:{},        // 'YYYY-MM-DD' → {glass:[task], rubber:[task], note:'', skipRecur:[], enough:false}
   recurring:[],   // repeat templates: {id,name,priority,blockMin,freq,anchor}
   projects:[],    // {id,name,notes,archived,createdDate,modifiedDate,steps:[{id,text,done,pushedTo}]}
