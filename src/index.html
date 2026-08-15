@@ -281,14 +281,6 @@ body.has-timerbar{padding-bottom:64px;}
 .proj-notes{width:100%;min-height:60px;font-size:13px;margin-top:8px;resize:vertical;}
 
 /* ---------- The Forge ---------- */
-.forge-top{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:14px;}
-.forge-top input[type=date]{width:auto;}
-.task-window{border:1px solid var(--border);border-radius:14px;background:var(--panel);padding:13px 15px;
-  display:flex;align-items:center;gap:11px;cursor:pointer;margin-bottom:14px;}
-.task-window:hover{border-color:var(--glass);}
-.task-window .tw-label{flex:1;min-width:0;font-weight:600;font-size:14.5px;}
-.task-window .tw-sub{font-size:12px;color:var(--muted);font-weight:500;margin-top:2px;}
-.task-window .tw-glyph{font-size:20px;flex:none;}
 .picker-row{display:flex;align-items:center;gap:10px;padding:10px 8px;border:1px solid var(--border);
   border-radius:11px;margin-bottom:7px;cursor:pointer;background:var(--panel);}
 .picker-row:hover{border-color:var(--glass);background:var(--glass-soft);}
@@ -356,7 +348,6 @@ body.has-timerbar{padding-bottom:64px;}
     background-image:linear-gradient(135deg,#D14D41 0%,#DA702C 22%,#D0A215 42%,#879A39 60%,#39749B 79%,#8B7EC8 100%);
     -webkit-background-clip:text;background-clip:text;}
 }
-.pit-lock{flex:0 0 auto;font-size:11px;line-height:1;opacity:.8;}
 
 /* ---------- bell / focus timer (ported from CTT's tinker's bell) ----------
    v0.7.0: the bell no longer has a room of its own. These are the pieces of
@@ -486,7 +477,7 @@ body.modal-open{overflow:hidden;}
 <body>
 
 <div class="appbar">
-  <div class="brand"><span class="brand-orb" aria-hidden="true"></span><span>The Glass Ball<small>catch the glass · v0.9.6</small></span></div>
+  <div class="brand"><span class="brand-orb" aria-hidden="true"></span><span>The Glass Ball<small>catch the glass · v0.9.7</small></span></div>
   <div class="maintabs">
     <div class="maintab active" data-m="today" onclick="switchMain('today')">Today</div>
     <div class="maintab" data-m="projects" onclick="switchMain('projects')">Projects</div>
@@ -1078,7 +1069,18 @@ body.modal-open{overflow:hidden;}
 <input type="file" id="importFile" accept="application/json" style="display:none">
 <script>
 /* =====================================================================
-   The Glass Ball · v0.9.6 — Joelle's task & schedule app.
+   The Glass Ball · v0.9.7 — Joelle's task & schedule app.
+   v0.9.7: polish pass before the handoff. The guide catches up to v0.9:
+   the pit scene says what the shelf actually is now (every new ball
+   starts there, project steps turn up, shared vs 🔒 just mine) and shows
+   a project ball on the mock; "how it works" mentions the + landing in
+   the pit when no day is named. Dead weight removed: the .task-window /
+   .forge-top CSS orphaned when the Forge became a mode in v0.7.0, the
+   .pit-lock badge retired in v0.9.6, and drawQuote() — a wrapper no
+   longer called by anything but a test. Audited and clean: every visible
+   button carries an accessible name across seven surfaces, no control
+   under 16px on touch, no horizontal overflow.
+   v0.9.6
    v0.9.6: the iOS focus-zoom, killed at the root. Chad's phone zoomed
    in and stayed there; the cause was the pit's entry field at 14px.
    Mobile Safari zooms any control under 16px and never zooms back. The
@@ -1380,7 +1382,7 @@ const STORE_KEY = 'glassball_v1';   // Glass Ball's own key — never the CTT si
 const SCHEMA    = 'glassball-1';
 const CAPS = { glass:3, rubber:5 };   // the caps ARE the product — no override
 let db = {
-  version:'0.9.6', schema:SCHEMA, lastEdit:0,
+  version:'0.9.7', schema:SCHEMA, lastEdit:0,
   days:{},        // 'YYYY-MM-DD' → {glass:[task], rubber:[task], note:'', skipRecur:[], enough:false}
   recurring:[],   // repeat templates: {id,name,priority,blockMin,freq,anchor}
   projects:[],    // {id,name,notes,archived,createdDate,modifiedDate,steps:[{id,text,done,pushedTo}]}
@@ -3000,7 +3002,6 @@ function drawQuoteEntry(kind){
   _lastQuote[kind]=key(pick);
   return pick;
 }
-function drawQuote(kind){ return drawQuoteEntry(kind).text||''; }
 /* Paint an entry into a popup: the meme shows if there is one, the line
    shows if there is one, and a meme-only entry simply has no caption. */
 function paintQuote(entry, textId, imgId){

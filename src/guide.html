@@ -214,6 +214,7 @@ body{background:var(--cream);color:var(--ink);font-family:var(--sans);
 .pm-row .dm-name{font-weight:600;}
 .pm-by{flex:0 0 auto;font-size:10.5px;color:var(--muted);white-space:nowrap;}
 .pm-by.caught{color:var(--glass);font-weight:700;}
+#pmRow2{margin-top:7px;background:transparent;border-style:dashed;}
 .pm-park{display:flex;align-items:center;gap:9px;padding:10px 10px;margin-top:7px;
   border:1px dashed var(--border);border-radius:11px;font-size:12.5px;color:var(--muted);
   font-style:italic;}
@@ -392,7 +393,8 @@ a:focus-visible{outline:2px solid var(--glass);outline-offset:4px;}
           <p class="sub">Type on the empty line — now it&rsquo;s a ball on your day.
             Tap the checkbox — <span class="accent">caught</span>, struck through, stickered.
             Tap the ball itself and it offers everything else it can do:
-            <b>&#9654; run a timer · &rarr; move to another day · ✎ edit</b>.<br>
+            <b>&#9654; run a timer · &rarr; move to another day · ✎ edit</b>. The <b>+</b> opens the
+            full form — name a day, or leave it blank and it waits in the pit.<br>
             You have now read the entire manual.</p>
         </div>
         <div class="daymock" id="dayMock" aria-hidden="true">
@@ -459,10 +461,12 @@ a:focus-visible{outline:2px solid var(--glass);outline-offset:4px;}
         <div class="howcopy">
           <div class="kicker">The ball pit</div>
           <div class="mid-t" data-words>Some chores are<br>a team sport.</div>
-          <p class="sub">A shelf both your journals share. No day for it yet? <b>Park it.</b>
-            No energy to explain the insurance thing out loud? Park it — <b>the ball is the
-            explanation</b>. Whoever catches it, catches it for both of you… and the one who parked
-            it still gets a sticker.<br>
+          <p class="sub">Every new ball starts here. Leave the day empty and it waits on the
+            shelf — <b>the brain dump that has somewhere to live</b>. Unfinished project steps
+            turn up too, so one look answers "what still needs a day?"<br><br>
+            Share a ball and either of you can catch it; whoever does, catches it for both — and
+            the one who parked it still gets a sticker. Or keep it <b>🔒 just mine</b> and it never
+            leaves your journal.<br>
             <span class="accent">Asking for help, minus the asking.</span></p>
         </div>
         <div class="pitmock" aria-hidden="true">
@@ -471,6 +475,10 @@ a:focus-visible{outline:2px solid var(--glass);outline-offset:4px;}
             <span class="dm-ck" id="pmCk"><svg viewBox="0 0 18 18"><path id="pmPath" d="M3.5 9.5 L7.5 13 L14.5 5"/></svg></span>
             <span class="dm-name">Call the plumber back<i class="dm-strike" id="pmStrike"></i></span>
             <span class="pm-by" id="pmBy">from you</span></div>
+          <div class="pm-row" id="pmRow2">
+            <span class="dm-ck"><svg viewBox="0 0 18 18"><path d="M3.5 9.5 L7.5 13 L14.5 5"/></svg></span>
+            <span class="dm-name">Gather the documents</span>
+            <span class="pm-by">School enrollment</span></div>
           <div class="pm-park">🧺 <span>park a ball here — a day can come later…</span></div>
           <div class="pm-bonus" id="pmBonus"><span class="rb">★</span>&nbsp;bonus sticker — he caught yours</div>
         </div>
@@ -503,9 +511,9 @@ a:focus-visible{outline:2px solid var(--glass);outline-offset:4px;}
       <div class="kicker">The whole house</div>
       <div class="mid-t" data-words>Small house. Good bones.</div>
       <div class="rooms" id="rooms">
-        <div class="room"><span class="glyph">🌅</span><b>Today</b><span>Your day at a glance, then the whole month. One tap on any ball opens what it can do.</span></div>
+        <div class="room"><span class="glyph">🌅</span><b>Today</b><span>Your day at a glance, then the whole month — tap any date, today included, to work it.</span></div>
         <div class="room"><span class="glyph">📚</span><b>Projects</b><span>Big things, broken into balls — send one to any day.</span></div>
-        <div class="room"><span class="glyph">🧺</span><b>The ball pit</b><span>A shelf you two share. Park one with no day yet; either of you can catch it.</span></div>
+        <div class="room"><span class="glyph">🧺</span><b>The ball pit</b><span>Where undated balls wait — yours alone, or shared so either of you can catch it.</span></div>
         <div class="room"><span class="glyph">⏳</span><b>The timer</b><span>Not a place you go. It starts anywhere and follows you.</span></div>
         <div class="room"><span class="glyph">🌙</span><b>Closing</b><span>The exhale. It will tell you when you&rsquo;ve done enough.</span></div>
         <div class="room"><span class="glyph">✎</span><b>Dev Notes</b><span>Something weird? Tell on us here and text Chad the batch.</span></div>
@@ -631,7 +639,7 @@ a:focus-visible{outline:2px solid var(--glass);outline-offset:4px;}
       dmS1=document.getElementById('dmS1'), dmSheet=document.getElementById('dmSheet');
   var moonSvg=document.getElementById('moonSvg'), clock=document.getElementById('clock'),
       jokeCard=document.getElementById('jokeCard');
-  var pmRow=document.getElementById('pmRow'), pmCk=document.getElementById('pmCk'),
+  var pmRow=document.getElementById('pmRow'), pmRow2=document.getElementById('pmRow2'), pmCk=document.getElementById('pmCk'),
       pmPath=document.getElementById('pmPath'), pmStrike=document.getElementById('pmStrike'),
       pmBy=document.getElementById('pmBy'), pmBonus=document.getElementById('pmBonus');
   var sticks=[document.getElementById('stick1'),document.getElementById('stick2'),document.getElementById('stick3')];
@@ -783,6 +791,8 @@ a:focus-visible{outline:2px solid var(--glass);outline-offset:4px;}
       var pp = prog(S.pit);
       var pe=ease(clamp((pp-0.16)/0.14, 0, 1));
       pmRow.style.opacity=pe; pmRow.style.transform='translateY('+((1-pe)*-26)+'px)';
+      var pe2=ease(clamp((pp-0.26)/0.14, 0, 1));
+      if(pmRow2){ pmRow2.style.opacity=pe2; pmRow2.style.transform='translateY('+((1-pe2)*-26)+'px)'; }
       var pc=ease(clamp((pp-0.46)/0.12, 0, 1));
       paintCatch(pc, pmCk, pmPath, pmStrike, null);
       if(pmBy){ var caught = pc>0.5;
@@ -850,6 +860,7 @@ a:focus-visible{outline:2px solid var(--glass);outline-offset:4px;}
     if(jokeCard){ jokeCard.style.opacity=1; jokeCard.style.transform='none'; }
     paintMoon(0.5); if(clock) clock.textContent='12:30';
     if(pmRow){ pmRow.style.opacity=1; pmRow.style.transform='none'; }
+    if(pmRow2){ pmRow2.style.opacity=1; pmRow2.style.transform='none'; }
     paintCatch(1, pmCk, pmPath, pmStrike, null);
     if(pmBy){ pmBy.textContent='caught by Chad'; pmBy.classList.add('caught'); }
     if(pmBonus){ pmBonus.style.opacity=1; pmBonus.style.transform='none'; }
