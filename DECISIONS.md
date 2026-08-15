@@ -574,6 +574,39 @@
       credit intact, the placeholder rescue still working, and the clone path
       unchanged). 216 browser checks green across seven suites; lockstep 16/16.
 
+* **[2026-08-15] v0.9.3 — your name on the pit is derived, not stored.**
+  Chad's call, straight after v0.9.2: *"make it just the journal id, so it's
+  different for every journal."* It deletes the bug class rather than patching
+  it again.
+    * *Decision — identity is a pure function of the Journal ID*, title-cased:
+      `joelle` → **Joelle**, `chad-laptop` → **Chad Laptop**, no journal yet →
+      `me`. The ID is already unique per journal and always correct, so the
+      signature can't be forgotten, can't go stale, and can't travel when a
+      journal is cloned. The settings field is gone, replaced by a plain fact:
+      "You sign as **Chad**."
+    * *Decision — signatures on existing balls are snapshots and are NEVER
+      rewritten.* That's the v0.9.2 lesson kept: history says who actually
+      parked and caught each ball. Consequence: a signature and the current
+      derived name can drift (rename a journal and old balls keep the old
+      name), so comparisons are **case/space tolerant** (`pitSame`) rather
+      than exact — the realistic drift is capitalisation, not identity.
+    * *The one safe re-signing survives:* balls parked before any journal
+      existed are signed `''`/`me` and belong to whoever now owns the journal.
+      `pitAdoptPlaceholders()` claims exactly those, and runs at the **sync
+      seam** (inside `pitReconcile`, so both pull and push cover it) plus on
+      boot — identity can arrive by four different roads (create, join,
+      restore-by-ID, paste a code) and hooking the seam beats hooking each.
+      Caught by the v0.9.0 suite's bonus-sticker check going red.
+    * *Schema (lockstep):* `db.pit.me` is **deleted** on load. Legacy blobs
+      carrying it migrate silently; `item.by` history is untouched.
+    * *The lockstep guard earned its keep again:* it went red the moment the
+      desktop schema changed and the sibling hadn't been mirrored yet.
+    * *Verified:* v0.9.2 suite extended to 26 checks (title-casing incl. a
+      multi-word ID and the empty case, tolerant comparison, legacy `me`
+      dropped while `by` history survives, and Chad's exact bug — a journal
+      named `chad` holding a db whose old `me` said "Joelle" now signs as
+      Chad). 220 browser checks green across seven suites; lockstep 16/16.
+
 ## 🤔 Pending Joelle (open design calls)
 * Body/UI typeface pick: Atkinson Hyperlegible vs. Karla vs. Alegreya Sans
   (or another direction she prefers)

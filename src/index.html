@@ -462,7 +462,7 @@ body.modal-open{overflow:hidden;}
 <body>
 
 <div class="appbar">
-  <div class="brand"><span class="brand-orb" aria-hidden="true"></span><span>The Glass Ball<small>catch the glass · v0.9.2</small></span></div>
+  <div class="brand"><span class="brand-orb" aria-hidden="true"></span><span>The Glass Ball<small>catch the glass · v0.9.3</small></span></div>
   <div class="maintabs">
     <div class="maintab active" data-m="today" onclick="switchMain('today')">Today</div>
     <div class="maintab" data-m="projects" onclick="switchMain('projects')">Projects</div>
@@ -1013,9 +1013,8 @@ body.modal-open{overflow:hidden;}
     <p class="sync-note">A shelf you share with someone on the same sync. Park a ball when you don't
       know its day yet, take one onto your day when you do — and when either of you catches it, it's
       caught for both.</p>
-    <div class="field" style="margin-top:10px"><label>Your name on the pit</label>
-      <input id="pitMeName" placeholder="e.g. Joelle" />
-      <p class="sync-note" style="margin-top:4px">Signs the balls you add and the ones you catch. Nothing else uses it.</p></div>
+    <p class="sync-note" style="margin-top:10px">You sign as <b id="pitMeLbl">—</b> — taken from your
+      Journal ID, so it's automatically different for every journal and can never travel between them.</p>
     <div id="pitNoneBlock">
       <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
         <input id="newPitName" placeholder="Pit name (e.g. Chad &amp; Joelle)" style="flex:1;min-width:180px" />
@@ -1031,7 +1030,6 @@ body.modal-open{overflow:hidden;}
       <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
         <button class="small ghost" onclick="copyPitId()">Copy Pit ID</button>
         <button class="small ghost" onclick="pitSyncNow()">Sync the pit now</button>
-        <button class="small ghost" onclick="savePitMe()">Save my name</button>
         <button class="small ghost" onclick="leavePit()">Leave the pit</button>
       </div>
     </div>
@@ -1056,7 +1054,19 @@ body.modal-open{overflow:hidden;}
 <input type="file" id="importFile" accept="application/json" style="display:none">
 <script>
 /* =====================================================================
-   The Glass Ball · v0.9.2 — Joelle's task & schedule app.
+   The Glass Ball · v0.9.3 — Joelle's task & schedule app.
+   v0.9.3: your name on the pit is DERIVED from the journal, not stored.
+   Chad's call, and it deletes the whole bug class: a stored name was a
+   field you had to set, could forget, and — worst — travelled when a
+   journal was cloned (v0.9.2). The Journal ID is already unique per
+   journal and always correct, so identity is a pure function of it now:
+   'joelle' → Joelle, 'chad-laptop' → Chad Laptop, no journal yet → me.
+   Signatures on existing balls are snapshots and are NEVER rewritten,
+   so comparisons are case/space tolerant and history stays honest.
+   Placeholders ('' / 'me') left by balls parked before a journal
+   existed are adopted at the sync seam, so they still earn their bonus.
+   Schema (lockstep): db.pit.me is deleted on load.
+   v0.9.2
    v0.9.2: creating a journal for a SECOND PERSON stops cloning the
    first one's board. Chad hit it setting up his own journal: "Create a
    new journal" only ever did one thing — upload the current db under
@@ -1302,7 +1312,7 @@ const STORE_KEY = 'glassball_v1';   // Glass Ball's own key — never the CTT si
 const SCHEMA    = 'glassball-1';
 const CAPS = { glass:3, rubber:5 };   // the caps ARE the product — no override
 let db = {
-  version:'0.9.2', schema:SCHEMA, lastEdit:0,
+  version:'0.9.3', schema:SCHEMA, lastEdit:0,
   days:{},        // 'YYYY-MM-DD' → {glass:[task], rubber:[task], note:'', skipRecur:[], enough:false}
   recurring:[],   // repeat templates: {id,name,priority,blockMin,freq,anchor}
   projects:[],    // {id,name,notes,archived,createdDate,modifiedDate,steps:[{id,text,done,pushedTo}]}
@@ -1341,6 +1351,7 @@ function load(){
   const raw=localStorage.getItem(STORE_KEY);
   if(raw){ try{ db=normalize(JSON.parse(raw)); }catch(e){ console.error(e); } }
   db=normalize(db);   // fresh boots get the full default shape too
+  pitAdoptPlaceholders();   // balls parked before this journal existed are now signed
   renderAll();
   switchMain('today');   // the launch ramp — today, at a glance
   save();
@@ -1372,7 +1383,8 @@ function mergeDefaults(p){
   // the journal blob is safe *because* pit merges are item-level and
   // convergent: a stale copy losing a blob-level race is repaired by the
   // next pit pull rather than destroying anything.
-  p.pit=Object.assign({id:null,name:'',me:'',items:[],lastSync:null}, p.pit||{});
+  p.pit=Object.assign({id:null,name:'',items:[],lastSync:null}, p.pit||{});
+  delete p.pit.me;                 // v0.9.3: identity is derived from the journal, never stored
   p.pit.items=Array.isArray(p.pit.items)?p.pit.items:[];
   p.pit.items.forEach(it=>{
     if(it.by===undefined) it.by='';
@@ -1449,7 +1461,36 @@ function pitMerge(mine, theirs){
 
 /* ---------- pit helpers (app-side; not part of the shared seam) ---------- */
 function pitOn(){ return !!(db.pit && db.pit.id); }
-function pitMe(){ return (db.pit && db.pit.me) || 'me'; }
+/* WHO AM I on the shelf? Derived from the journal, never stored.
+   A stored name was a field you had to set, could forget, and — worst —
+   travelled when a journal was cloned, signing one person's balls with
+   another's name (v0.9.2). The journal ID is already unique per journal and
+   always correct, so identity is now a pure function of it: 'joelle' → 'Joelle',
+   'chad-laptop' → 'Chad Laptop'. Local-only (no journal yet) signs as 'me',
+   and those placeholders are adopted the moment a journal exists. */
+function pitMe(){
+  const id=((db.sync && db.sync.journalId) || '').trim();
+  if(!id) return 'me';
+  return id.split(/[-_\s]+/).filter(Boolean)
+    .map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ') || 'me';
+}
+/* Signatures are snapshots taken at parking time, so compare them loosely —
+   a name that only differs by case or spacing is still the same person. */
+function pitSame(a,b){ return String(a||'').trim().toLowerCase()===String(b||'').trim().toLowerCase(); }
+function pitIsMine(who){ return pitSame(who, pitMe()); }
+/* The one re-signing that is ever safe: balls parked before a journal existed
+   are signed 'me' and belong to whoever now owns this journal. A ball signed
+   with a real name is never touched — that lesson cost us v0.9.2. */
+function pitAdoptPlaceholders(){
+  const me=pitMe(); if(me==='me') return false;
+  let changed=false;
+  (db.pit.items||[]).forEach(it=>{
+    const by=(it.by||'').trim();
+    if(!by || by==='me'){ it.by=me; pitTouch(it); changed=true; }
+    if((it.doneBy||'').trim()==='me'){ it.doneBy=me; pitTouch(it); changed=true; }
+  });
+  return changed;
+}
 function pitLive(){ return (db.pit.items||[]).filter(it=>!it.deleted); }
 function pitFind(id){ return (db.pit.items||[]).find(it=>it.id===id) || null; }
 function pitTouch(it){ it.lastEdit=Date.now(); }
@@ -1474,15 +1515,17 @@ function pitAdoptions(pitId){
    Returns true if anything changed, so callers know whether to save. */
 function pitReconcile(){
   if(!pitOn()) return false;
-  let changed=false;
-  const me=pitMe();
+  // Identity can arrive by many roads — create a journal, join one, paste a
+  // sync code, restore by ID. Rather than hook each, adopt placeholders at
+  // the sync boundary: both pull and push run this, and it's idempotent.
+  let changed=pitAdoptPlaceholders();
   (db.pit.items||[]).forEach(it=>{
     if(it.deleted) return;
     const mine=pitAdoptions(it.id);
     if(it.done){
       mine.forEach(({task})=>{
         if(!task.done){ task.done=true; task.doneAt=it.doneAt||Date.now();
-          task.caughtBy=(it.doneBy&&it.doneBy!==me)?it.doneBy:''; changed=true; }
+          task.caughtBy=(it.doneBy&&!pitIsMine(it.doneBy))?it.doneBy:''; changed=true; }
       });
     }else{
       const caught=mine.find(({task})=>task.done);
@@ -1500,9 +1543,8 @@ function pitReconcile(){
    that mirrors real state is the whole point (same rule as carry-forward). */
 function pitBonuses(ds){
   if(!pitOn()) return [];
-  const me=pitMe();
   return (db.pit.items||[]).filter(it=>
-    !it.deleted && it.done && it.by===me && it.doneBy && it.doneBy!==me &&
+    !it.deleted && it.done && pitIsMine(it.by) && it.doneBy && !pitIsMine(it.doneBy) &&
     it.doneAt && iso(new Date(it.doneAt))===ds);
 }
 
@@ -1725,7 +1767,7 @@ function buildBallRow(ds,t,priority,isNew){
       if(t.pitId){ const p=pitFind(t.pitId);
         if(p && !p.deleted){ const pm=document.createElement('span'); pm.className='pit-mark'; pm.textContent='🧺';
           pm.title=(t.done&&t.caughtBy)? ('From the pit — caught by '+t.caughtBy)
-            : ((p.by&&p.by!==pitMe())? ('From the pit — '+p.by+' put it there') : 'Shared in the ball pit');
+            : ((p.by&&!pitIsMine(p.by))? ('From the pit — '+p.by+' put it there') : 'Shared in the ball pit');
           row.appendChild(pm); } }
       if(t.blockMin){ const bm=document.createElement('span'); bm.className='block-min'; bm.textContent=t.blockMin+'m'; row.appendChild(bm); }
       const chev=document.createElement('span'); chev.className='row-chev'; chev.textContent='›'; chev.setAttribute('aria-hidden','true');
@@ -1764,7 +1806,7 @@ function openBallSheet(ds,id){
   if(t.blockMin) bits.push(t.blockMin+' min block');
   if(t.recurId) bits.push('repeats');
   const pit=t.pitId?pitFind(t.pitId):null;
-  if(pit && !pit.deleted) bits.push(pit.by&&pit.by!==pitMe()? ('from the pit · '+pit.by) : 'in the pit');
+  if(pit && !pit.deleted) bits.push(pit.by&&!pitIsMine(pit.by)? ('from the pit · '+pit.by) : 'in the pit');
   if(t.done && t.caughtBy) bits.push('caught by '+t.caughtBy);
   document.getElementById('bsMeta').textContent=bits.join(' · ');
   document.getElementById('bsStartSub').textContent=t.blockMin?('run the timer · '+t.blockMin+' min'):'run the timer · 25 min';
@@ -1892,8 +1934,8 @@ function renderPit(){
     const priv=(it.vis||'shared')==='private';
     const who=document.createElement('span'); who.className='pit-by';
     who.textContent = it.done
-      ? ('caught by '+(it.doneBy===me?'you':(it.doneBy||'someone')))
-      : (!pitOn() ? '' : (priv ? 'just yours' : ('from '+(it.by===me?'you':(it.by||'—')))));
+      ? ('caught by '+(pitIsMine(it.doneBy)?'you':(it.doneBy||'someone')))
+      : (!pitOn() ? '' : (priv ? 'just yours' : ('from '+(pitIsMine(it.by)?'you':(it.by||'—')))));
     if(who.textContent) row.appendChild(who);
     // the lock only means something once there's a shared lane to contrast it
     // with; solo it was a padlock with no keyhole
@@ -1974,24 +2016,6 @@ function shareToPit(ds,id){
 /* Renaming yourself re-signs your own shelf items — balls parked solo carry
    by:'me' until a name exists, and a bonus can only find its way home if the
    signature matches. Partner items keep their author's name untouched. */
-function pitSetMe(newMe){
-  newMe=(newMe||'').trim(); if(!newMe) return;
-  const old=(db.pit.me||'').trim();
-  // Only ever adopt the PLACEHOLDER. Balls parked before you had a name are
-  // signed '' or 'me' and are genuinely yours to claim. A ball signed with a
-  // real name belongs to whoever that is — renaming yourself (or correcting
-  // a name inherited from a cloned journal) must never rewrite their credit.
-  const placeholder = (!old || old==='me');
-  if(placeholder){
-    (db.pit.items||[]).forEach(it=>{
-      const by=(it.by||'').trim();
-      if(!by || by==='me'){ it.by=newMe; pitTouch(it); }
-      const dby=(it.doneBy||'').trim();
-      if(dby==='me'){ it.doneBy=newMe; pitTouch(it); }
-    });
-  }
-  db.pit.me=newMe;
-}
 function pitToggleVis(id){
   const it=pitFind(id); if(!it || it.deleted) return;
   if((it.vis||'shared')==='private'){ it.vis='shared'; pitTouch(it); pitSave(); }
@@ -2007,11 +2031,7 @@ function pitToggleVis(id){
   }
   renderPit();
 }
-function savePitMe(){
-  const v=(document.getElementById('pitMeName').value||'').trim();
-  if(!v){ pitMsg('A name, however short.',true); return; }
-  pitSetMe(v); save(); renderPit(); renderPitSettings(); pitMsg('Saved — your catches sign as “'+v+'”.');
-}
+
 function renderPitSettings(){
   cjSetMode(cjMode);
   const row=document.getElementById('pitSetupRow'); if(!row) return;
@@ -2019,8 +2039,8 @@ function renderPitSettings(){
   document.getElementById('pitStateLbl').textContent = on? ('· '+(db.pit.name||'joined')) : '· not set up';
   document.getElementById('pitNoneBlock').classList.toggle('hidden', on);
   document.getElementById('pitOnBlock').classList.toggle('hidden', !on);
-  const meIn=document.getElementById('pitMeName');
-  if(meIn && document.activeElement!==meIn) meIn.value=db.pit.me||'';
+  const meLbl=document.getElementById('pitMeLbl');
+  if(meLbl) meLbl.textContent=pitMe();
   if(on){
     document.getElementById('pitIdText').textContent=db.pit.id;
     document.getElementById('pitLastSync').textContent=db.pit.lastSync? new Date(db.pit.lastSync).toLocaleString():'never';
@@ -3128,10 +3148,11 @@ async function createJournal(){
     const r=await kvFetch('PUT', id, content);
     if(r.status!==200 && r.status!==204) throw new Error('Worker returned '+r.status+(r.text?(': '+r.text.slice(0,120)):''));
     db.sync.myHash=hashStr(content); db.sync.lastSync=Date.now();
+    pitAdoptPlaceholders();
     document.getElementById('newJournalName').value=''; save();
     renderAll(); renderSync(); renderPitSettings(); setSyncDot('on');
     syncMsg(cjMode==='empty'
-      ? 'Empty journal created. Put your own name on the ball pit below so your catches are signed.'
+      ? 'Empty journal created. You sign on the ball pit as “'+pitMe()+'”.'
       : 'Journal created and uploaded. Copy your Sync code above to set up another device in one paste.');
     if(cjMode==='empty' && pitOn()) pitPull(false);
   }catch(e){ db.sync.journalId=null; setSyncDot('err'); syncMsg(e.message,true); }
@@ -3199,7 +3220,7 @@ async function syncPull(manual){
     // nothing if the cloud copy predates the pit.
     db.pit.items=pitMerge(keepPit.items, db.pit.items);
     if(!db.pit.id && keepPit.id){ db.pit.id=keepPit.id; db.pit.name=keepPit.name||''; }
-    if(!db.pit.me && keepPit.me) db.pit.me=keepPit.me;
+
     db.sync.myHash=hashStr(r.text); db.sync.lastSync=Date.now();
     if(pitReconcile()) save();
     save(); renderAll();
@@ -3266,34 +3287,31 @@ async function pitSyncNow(){ pitMsg('Syncing the pit…'); await pitPull(true); 
 async function createPit(){
   if(!isConfigured()){ pitMsg('Connect to your Cloudflare sync first.',true); return; }
   const name=(document.getElementById('newPitName').value||'').trim();
-  const me=(document.getElementById('pitMeName').value||'').trim();
-  if(!me){ pitMsg('Put a name on it first — the pit signs who added and who caught.',true); return; }
-  db.pit.id=newPitId(); db.pit.name=name||'Our ball pit'; pitSetMe(me);
+  db.pit.id=newPitId(); db.pit.name=name||'Our ball pit';
+  pitAdoptPlaceholders();
   save();
   await pitPush(true);
   document.getElementById('newPitName').value='';
   renderPit(); renderSync(); renderPitSettings();
   pitMsg('Ball pit created. Share your Sync code and they can join it in one paste.');
 }
-async function joinPit(pitId, me, name){
-  db.pit.id=pitId; if(me) pitSetMe(me); else if(!db.pit.me) db.pit.me='me';
-  if(name) db.pit.name=name;
+async function joinPit(pitId, name){
+  db.pit.id=pitId; if(name) db.pit.name=name;
+  pitAdoptPlaceholders();
   save(); await pitPull(true); await pitPush(true);
   renderPit(); renderSync(); renderPitSettings();
 }
 async function joinPitFromField(){
   if(!isConfigured()){ pitMsg('Connect to your Cloudflare sync first.',true); return; }
   const id=(document.getElementById('joinPitId').value||'').trim();
-  const me=(document.getElementById('pitMeName').value||'').trim();
   if(!id){ pitMsg('Paste the Pit ID first.',true); return; }
-  if(!me){ pitMsg('Put a name on it first — the pit signs who added and who caught.',true); return; }
   document.getElementById('joinPitId').value='';
-  await joinPit(id, me);
+  await joinPit(id);
   pitMsg('Joined the ball pit.');
 }
 function leavePit(){
   if(!confirm('Leave the shared pit on this journal? Your private parked balls stay; the shared shelf is untouched and rejoinable with its Pit ID. Balls already on your days stay yours.')) return;
-  db.pit={ id:null, name:'', me:db.pit.me||'',
+  db.pit={ id:null, name:'',
     items:(db.pit.items||[]).filter(it=>(it.vis||'shared')==='private'), lastSync:null };
   save(); renderPit(); renderSync(); renderPitSettings(); renderOpening();
   pitMsg('Left the ball pit on this journal.');
@@ -3380,11 +3398,10 @@ async function applySyncCode(){
 async function codeTakeJournal(cfg){
   db.sync.journalId=cfg.journal; db.sync.myHash=null; db.sync.auto=true; save(); renderSync();
   await syncPull(true);
-  if(cfg.pit && !pitOn()){ await joinPit(cfg.pit, db.pit.me||db.sync.journalName||'me'); }
+  if(cfg.pit && !pitOn()){ await joinPit(cfg.pit); }
 }
 async function codeTakePit(cfg){
-  const me=(db.pit.me||'').trim() || (db.sync.journalName||'').trim() || 'me';
-  await joinPit(cfg.pit, me);
+  await joinPit(cfg.pit);
   renderSync(); renderPitSettings(); setSyncDot(isConnected()?'on':'off');
   syncMsg(isConnected()
     ? 'Joined their ball pit. Your own journal is untouched — set your pit name below so your catches are signed.'
@@ -3417,7 +3434,7 @@ function toggleSwitchRow(){ setSwitchRow(!switchOpen); }
 function openSettings(focus){ renderSync(); renderPitSettings(); setSwitchRow(!isConnected()); renderUndoBtn(); syncMsg(''); pitMsg(''); openModal('settingsModalBg');
   if(focus==='pit') setTimeout(()=>{ const r=document.getElementById('pitSetupRow');
     if(r){ try{ r.scrollIntoView({behavior:'smooth',block:'start'}); }catch(_){ r.scrollIntoView(); }
-      const n=document.getElementById('pitMeName'); if(n && !n.value) try{ n.focus(); }catch(_){} } },120); }
+      } },120); }
 function syncBoot(){ if(isConnected()){ setSyncDot('on'); if(db.sync.auto) syncPull(false); } else setSyncDot('off'); }
 function scheduleAutoPush(){ if(syncing||!isConnected()||!db.sync.auto) return; clearTimeout(pushTimer); pushTimer=setTimeout(()=>syncPush(false), 4000); }
 function cancelPendingConflict(){ if(conflictResolver){ const r=conflictResolver; conflictResolver=null; r('cancel'); } }
