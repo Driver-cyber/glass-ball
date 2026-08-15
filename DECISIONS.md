@@ -514,6 +514,30 @@
       five prior suites updated to the new + flow and re-run green, and the
       16-test lockstep+pit suite.
 
+* **[2026-08-15] v0.9.1 — the solo shelf stops being a dead end.** Found by
+  Chad on the live site within minutes of v0.9.0 deploying: a parked ball
+  showed a 🔒 and there was no way to unlock it, because the lane toggle only
+  renders once a shared pit exists. Correct behaviour, illegible surface.
+    * *Decision — a marker only informs when there's a contrast.* Solo, every
+      parked ball is private, so the 🔒 badge and the "just yours" tag said
+      nothing while implying an action. Both are now withheld until a pit
+      exists; the row goes back to name + Take it + ✕.
+    * *Decision — say why, and point at the door.* The shelf now carries
+      "🔒 Everything here is yours alone — there's no shared shelf yet" with a
+      **Set one up →** button that opens ⚙ scrolled to the pit block (and
+      focuses the name field). The intro line also drops its "whoever catches
+      it, catches it for both of you" promise until there IS a both.
+    * *Two DOM-clarity fixes, both the `.row-menu` genus:* the lane toggle was
+      sharing `.pit-del` with delete (now `.pit-vis`, styling shared
+      explicitly), and the new hint button duplicated the settings button's
+      "Start a pit" text while doing a different job — it opens the form
+      rather than creating anything, so it reads "Set one up →". The duplicate
+      label was caught by the v0.8.0 suite going ambiguous on its selector.
+    * *Verified:* v0.9.0 suite extended to 38 checks (solo hint shown and
+      worded, no padlock without a keyhole, no lane toggle solo, the hint
+      opens settings aimed at the pit, and all of it reversing once a pit is
+      joined); 194 browser checks green across six suites, lockstep 16/16.
+
 ## 🤔 Pending Joelle (open design calls)
 * Body/UI typeface pick: Atkinson Hyperlegible vs. Karla vs. Alegreya Sans
   (or another direction she prefers)
