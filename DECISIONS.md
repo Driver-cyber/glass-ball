@@ -384,6 +384,67 @@
       persistence) plus the v0.2.0, v0.3.0 and carry suites ported to the new
       navigation and re-run green. Zero console errors.
 
+* **[2026-08-15] v0.8.0 — the ball pit: a shelf two journals share.** Chad's
+  idea, and the app's first multi-person surface. Joelle and Chad each keep
+  their own journal; a shared "pit" sits between them. **Journal IDs gate the
+  personal boards; the Sync code carries the pit.**
+    * *Why it earns its place (Juggler's Test):* it helps catch glass, because
+      a ball with no day yet stops being a loose thought — park it, schedule it
+      on a Friday planning pass. And it lets rubber bounce, because nothing in
+      it counts at you.
+    * *Decision — two sync algorithms, deliberately.* A journal is one person's
+      document, so blob last-write-wins is correct. The pit is **two** people's
+      document, where LWW silently drops whichever save lost the race — the one
+      bug that would matter in an app promising nothing falls off. So the pit
+      merges **per item**: union the ids, newer `lastEdit` wins, tombstones for
+      deletes. That merge is **convergent** (commutative + idempotent), so both
+      sides land on identical state whatever order they sync in, it needs no
+      conflict dialog, and it cannot lose a ball. *Never simplify it onto LWW.*
+    * *Decision — everyone involved gets a sticker* (Chad's call). Catching
+      fills a real slot as always. If someone **else** catches a ball you put in
+      the pit, you earn a **bonus sticker**: outside the three slots, in its own
+      dashed shape, titled with who caught it. So a day can show more than three
+      stickers while never holding more than three glass balls.
+    * *Decision — but bonus stickers stay outside the gold-star test.* ★ still
+      means "every glass ball on my day, caught." A ball caught out of the pit
+      *is* genuinely done, so it counts for the day it's on; a gift for a ball
+      on someone else's day does not manufacture a star. Same rule that governed
+      carry-forward: a marker must mirror real state.
+    * *Decision — the caps are untouched.* Taking a ball off the shelf goes
+      through the ordinary creation form and the ordinary hard 3/5; a full day
+      refuses it and says so. Shared work is not an escape hatch around the
+      constraint that is the product.
+    * *Decision — a shelf, never an inbox.* Collapsed by default, no badge, no
+      count on Today. This is the guardrail that lets a multi-person feature
+      live in an anti-engagement app: an unbounded pile that counts at you is
+      exactly the "undefined, therefore endless" dread the constitution names.
+    * *Decision — transparency over privacy, knowingly* (Chad's call). Sharing
+      a pit means sharing one `SYNC_SECRET`, so either journal could read the
+      other's given its ID. Between Chad and Joelle that is a **feature**: the
+      pit is async communication — "check ball 4" instead of finding time to
+      explain a request out loud. Not a default to extend beyond the two of them.
+    * *Decision — a pasted Sync code now asks what it is.* It carries both a
+      journal and a pit, and guessing wrong would replace someone's whole board,
+      so the app asks: "my own other device" (join both) or "my partner's" (join
+      the pit only, keep my journal).
+    * *Schema (lockstep):* `db.pit {id,name,me,items,lastSync}` plus
+      `task.pitId` / `task.caughtBy`, normalized onto legacy balls.
+    * *DOM-clarity fix, same genus as v0.6.0's `.row-menu`:* the new Share verb
+      shifted the sheet's `nth-of-type(4)`, so the ported v0.2.0 suite clicked
+      Share where it meant Edit. Fixed in the app with a stable `#bsEdit`, not
+      in the test — positional selectors are the smell.
+    * *Verified:* a dedicated **16-test merge suite** asserting union,
+      newer-wins, no-stale-uncatch, commutativity, idempotence, deterministic
+      tie-breaks, tombstone propagation + expiry, junk rejection, and stable
+      ordering — every property run against **both repos' copies** of
+      `pitMerge`, plus a 60-item randomised exchange. Guard proved by two
+      canaries: a broken tie-break (subtle) and a dropped-unseen-item merge
+      (catastrophic) each turn it red. Plus a **43-check end-to-end suite** with
+      `fetch` stubbed to an in-memory KV so a simulated partner writes the shelf
+      between calls — his catch closing her copy, her parked ball surviving his
+      write, caps refusing a shared ball, tombstones not deleting anyone's day,
+      leaving the pit keeping her days. All four prior suites re-run green.
+
 ## 🤔 Pending Joelle (open design calls)
 * Body/UI typeface pick: Atkinson Hyperlegible vs. Karla vs. Alegreya Sans
   (or another direction she prefers)
@@ -394,6 +455,11 @@
 * Should a fully-*settled* day (all glass caught or deliberately moved) earn a
   marker of its own, distinct from the gold star? Today it earns a quiet
   banner and no star.
+* Bonus-sticker art: they currently render as a dashed ✧ after a "+" separator,
+  distinct from the solid ✦ slots. Her call whether a gift should look like
+  that, or like something else entirely.
+* Whether the pit wants a "just for me" lane (parked balls nobody else sees) or
+  whether everything on the shelf being shared is the point.
 
 ## 💡 The Parking Lot (Future Ideas)
 * Month report analytics (ahead/behind time-block budget) — mechanism stubbed

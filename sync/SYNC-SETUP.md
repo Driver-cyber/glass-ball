@@ -57,7 +57,23 @@ In the app: **gear ⚙ → Cloud Sync**:
   without it the Worker returns 401. CORS is open so the Pages site can call it.
 - **Privacy:** the blob is stored as plaintext JSON in your KV. Fine for a
   single-user setup; at-rest encryption can be layered on later at the same
-  seam.
+  seam. **If you use the ball pit (v0.8.0)**, two journals share one Worker and
+  one `SYNC_SECRET` — so either could read the other's journal given its ID.
+  That's a deliberate choice between Chad and Joelle (the pit is partly *for*
+  that transparency); it is not a setup to hand to anyone else.
 - **Cost:** comfortably inside Cloudflare's free tier for one person.
-- **Conflict handling:** the app uses last-write-wins by edit time and warns
-  on a manual push if the cloud copy changed underneath.
+- **Conflict handling:** the *journal* uses last-write-wins by edit time and
+  warns on a manual push if the cloud copy changed underneath. The *ball pit*
+  deliberately does not: two people write it, so it merges item by item
+  (newer edit wins per ball, tombstones for deletes). That merge is convergent,
+  so the pit never shows a conflict dialog and cannot drop a ball.
+
+## 6. (Optional) The ball pit
+A shelf shared between two journals on the same Worker.
+- One of you: gear ⚙ → **The ball pit** → put your name in, name the pit,
+  **Start a pit**. Copy your **Sync code**.
+- The other: paste that Sync code in Cloud Sync. It carries both a journal and
+  a pit, so the app asks which it is — choose **"It's my partner's"** to join
+  the pit only and keep your own board. Then set your own name on the pit.
+- Its KV key is `journal:pit:<id>`; leaving the pit never touches balls already
+  on anyone's days.

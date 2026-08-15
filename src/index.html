@@ -294,6 +294,37 @@ body.has-timerbar{padding-bottom:64px;}
 .rep-head{display:flex;align-items:center;gap:10px;user-select:none;}
 .rep-carrot{display:inline-block;transition:transform .18s;}
 
+/* ---------- the ball pit: a shelf, never an inbox ----------
+   Collapsed by default and deliberately un-badged. Nothing here counts at
+   you; you open it when you're ready to plan. */
+.pit-panel{border:1px solid var(--border);border-radius:16px;background:var(--panel);
+  padding:14px 16px 4px;margin:22px 0 30px;}
+.pit-head{display:flex;align-items:center;gap:9px;cursor:pointer;user-select:none;
+  margin:0 0 2px;font-size:15px;font-weight:800;}
+.pit-carrot{display:inline-block;transition:transform .18s;}
+.pit-note{font-size:12.5px;color:var(--muted);line-height:1.6;font-style:italic;margin:8px 2px 12px;}
+.pit-row{display:flex;align-items:center;gap:9px;padding:8px 10px;border:1px solid var(--border);
+  border-radius:11px;margin-bottom:7px;background:var(--group);}
+.pit-row .ck-label{flex:1;min-width:0;display:block;}
+.pit-row.done{opacity:.62;}
+.pit-row input{width:100%;min-width:0;font-size:14px;background:transparent;border:none;
+  border-bottom:1px dashed transparent;border-radius:0;padding:4px 2px;color:inherit;}
+.pit-row input::placeholder{color:var(--muted);opacity:.7}
+.pit-row input:focus{outline:none;border-bottom-color:var(--glass);}
+.pit-by{flex:0 0 auto;font-size:11px;color:var(--muted);white-space:nowrap;}
+.pit-on{flex:0 0 auto;font-size:11px;color:var(--glass);font-weight:700;white-space:nowrap;
+  border:1px solid var(--glass);border-radius:999px;padding:2px 9px;}
+.pit-take{flex:0 0 auto;white-space:nowrap;}
+.pit-del{flex:0 0 auto;background:transparent;border:none;color:var(--muted);
+  font-size:13px;cursor:pointer;padding:4px 7px;border-radius:7px;line-height:1;}
+.pit-del:hover{background:var(--glass-soft);color:var(--text);}
+.pit-add{background:transparent;border-style:dashed;}
+.ball-row .pit-mark{flex:0 0 auto;font-size:12px;line-height:1;opacity:.75;}
+/* a bonus sticker is a gift, not a slot — different glyph, outside the three */
+.stick-sep{color:var(--muted);font-size:12px;margin:0 1px;}
+.stick-slot.bonus{border:1.5px dashed var(--gold);background:transparent;color:var(--gold-deep);
+  width:22px;height:22px;font-size:12px;}
+
 /* ---------- bell / focus timer (ported from CTT's tinker's bell) ----------
    v0.7.0: the bell no longer has a room of its own. These are the pieces of
    its face; the overlay that holds them lives under .modal.timer-modal. */
@@ -405,6 +436,10 @@ body.modal-open{overflow:hidden;}
   .ck{position:relative;}
   .ck::after{content:'';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
     width:44px;height:44px;border-radius:12px;}
+  /* on a narrow canvas the attribution drops to its own line so the ball's
+     name gets the full width instead of wrapping to three lines */
+  .pit-row{flex-wrap:wrap;}
+  .pit-by{order:5;flex-basis:100%;padding-left:33px;}
   .ball-row{padding:11px 10px;}
   .ball-row .ball-name{font-size:15px;}
   .ball-row input,.step-row input,.proj-name{font-size:16px;}
@@ -414,7 +449,7 @@ body.modal-open{overflow:hidden;}
 <body>
 
 <div class="appbar">
-  <div class="brand"><span class="brand-orb" aria-hidden="true"></span><span>The Glass Ball<small>catch the glass · v0.7.0</small></span></div>
+  <div class="brand"><span class="brand-orb" aria-hidden="true"></span><span>The Glass Ball<small>catch the glass · v0.8.0</small></span></div>
   <div class="maintabs">
     <div class="maintab active" data-m="today" onclick="switchMain('today')">Today</div>
     <div class="maintab" data-m="projects" onclick="switchMain('projects')">Projects</div>
@@ -488,8 +523,41 @@ body.modal-open{overflow:hidden;}
       <textarea class="day-note" id="dayNote" style="display:none"
         placeholder="Brain-dump for the day — anything that doesn't need to be a ball. Held here, out of the way."></textarea>
     </div>
+
+    <!-- THE BALL PIT — a shared shelf, and a place to park a ball whose day
+         you don't know yet. Deliberately collapsed, deliberately un-counted:
+         a badge here would turn a shelf into an inbox, and an inbox nags. It
+         sits beside the month because that's where planning happens. -->
+    <div class="pit-panel hidden" id="pitPanel">
+      <h3 class="pit-head" onclick="togglePit()">
+        <span class="pit-carrot" id="pitCarrot">▸</span> 🧺 <span id="pitTitle">The ball pit</span>
+        <span class="muted" style="font-weight:500;font-size:12.5px">— shared shelf</span>
+      </h3>
+      <div class="pit-body" id="pitBody" style="display:none">
+        <p class="pit-note">Park a ball here when you don't know its day yet, or when you're asking for
+          help. Take one onto a day when you do. Whoever catches it, catches it for both of you.</p>
+        <div id="pitList"></div>
+      </div>
+    </div>
   </div>
 </div>
+
+<!-- Which kind of code is this? Guessing wrong would replace someone's whole
+     board, so when a code carries both a journal and a pit, we ask. -->
+<div class="modal-bg" id="codeKindBg"><div class="modal">
+  <button class="x-btn" onclick="closeModal('codeKindBg')" aria-label="Close">✕</button>
+  <h2 style="margin-top:0">Whose code is this?</h2>
+  <p class="sync-note" style="margin-top:0">It carries both a journal and a ball pit — and those mean
+    very different things.</p>
+  <div class="sheet-acts">
+    <button class="sheet-act primary" onclick="codeKind('mine')">
+      <span class="sa-glyph">📱</span><span class="sa-text"><b>It's my own other device</b>
+        <small>join that journal and pull it down — same board, second screen</small></span></button>
+    <button class="sheet-act" onclick="codeKind('theirs')">
+      <span class="sa-glyph">🧺</span><span class="sa-text"><b>It's my partner's</b>
+        <small>join their ball pit only — my board and my journal stay mine</small></span></button>
+  </div>
+</div></div>
 
 <!-- ============================= PROJECTS ============================= -->
 <div class="main-pane" id="main-projects">
@@ -630,7 +698,9 @@ body.modal-open{overflow:hidden;}
       <span class="sa-glyph">✓</span><span class="sa-text"><b id="bsCatchLbl">Catch it</b><small id="bsCatchSub">done — earn the sticker</small></span></button>
     <button class="sheet-act" id="bsMove" onclick="bsDo('move')">
       <span class="sa-glyph">→</span><span class="sa-text"><b>Move it forward</b><small>didn't finish? give it a day</small></span></button>
-    <button class="sheet-act" onclick="bsDo('edit')">
+    <button class="sheet-act" id="bsShare" onclick="bsDo('share')">
+      <span class="sa-glyph">🧺</span><span class="sa-text"><b id="bsShareLbl">Put it in the pit</b><small id="bsShareSub">share it — either of you can catch it</small></span></button>
+    <button class="sheet-act" id="bsEdit" onclick="bsDo('edit')">
       <span class="sa-glyph">✎</span><span class="sa-text"><b>Edit details</b><small>name, day, minutes, priority</small></span></button>
   </div>
   <div class="modal-actions"><button class="ghost small" onclick="bsDo('delete')">Delete this ball</button></div>
@@ -899,6 +969,38 @@ body.modal-open{overflow:hidden;}
     </div>
   </div>
 
+  <!-- The ball pit: a shelf shared between journals. Membership lives here
+       with the rest of the plumbing; the shelf itself lives on Today. -->
+  <div class="sync-row" id="pitSetupRow">
+    <h3>🧺 The ball pit <span class="muted" style="font-weight:500;font-size:12px" id="pitStateLbl"></span></h3>
+    <p class="sync-note">A shelf you share with someone on the same sync. Park a ball when you don't
+      know its day yet, take one onto your day when you do — and when either of you catches it, it's
+      caught for both.</p>
+    <div class="field" style="margin-top:10px"><label>Your name on the pit</label>
+      <input id="pitMeName" placeholder="e.g. Joelle" />
+      <p class="sync-note" style="margin-top:4px">Signs the balls you add and the ones you catch. Nothing else uses it.</p></div>
+    <div id="pitNoneBlock">
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <input id="newPitName" placeholder="Pit name (e.g. Chad &amp; Joelle)" style="flex:1;min-width:180px" />
+        <button class="small" onclick="createPit()">Start a pit</button>
+      </div>
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <input id="joinPitId" placeholder="…or paste their Pit ID" style="flex:1;min-width:180px" />
+        <button class="small ghost" onclick="joinPitFromField()">Join their pit</button>
+      </div>
+    </div>
+    <div id="pitOnBlock" class="hidden">
+      <p class="sync-note" style="margin-top:8px">Pit <code id="pitIdText"></code> · last sync: <span id="pitLastSync">never</span></p>
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="small ghost" onclick="copyPitId()">Copy Pit ID</button>
+        <button class="small ghost" onclick="pitSyncNow()">Sync the pit now</button>
+        <button class="small ghost" onclick="savePitMe()">Save my name</button>
+        <button class="small ghost" onclick="leavePit()">Leave the pit</button>
+      </div>
+    </div>
+    <p class="sync-note" id="pitSyncMsg" style="min-height:16px;margin-top:6px"></p>
+  </div>
+
   <div class="sync-row">
     <h3>Backups</h3>
     <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap;align-items:center">
@@ -917,7 +1019,30 @@ body.modal-open{overflow:hidden;}
 <input type="file" id="importFile" accept="application/json" style="display:none">
 <script>
 /* =====================================================================
-   The Glass Ball · v0.7.0 — Joelle's task & schedule app.
+   The Glass Ball · v0.8.0 — Joelle's task & schedule app.
+   v0.8.0: THE BALL PIT — a shelf two journals share. Park a ball when you
+   know it matters but not yet when (a brain dump with a place to live);
+   take one onto a day when you do; whoever catches it, catches it for
+   both. Journal IDs still gate the personal boards — only the pit is
+   shared — and the Sync code now carries both, so a pasted code asks
+   whether it's your own second device or your partner's.
+   The pit does NOT sync like the journal. Blob last-write-wins is right
+   for one person on two devices and wrong for two people on one
+   document: it silently drops whichever save lost the race. So the pit
+   merges per ITEM — union the ids, newer lastEdit wins, tombstones for
+   deletes — which is convergent, and therefore needs no conflict dialog
+   and can never lose a ball. Its own 16-test suite proves that against
+   BOTH repos' copies of the merge.
+   Stickers: everyone involved gets one. Catching fills a real slot as
+   always; if someone else catches a ball you put in the pit, you get a
+   BONUS sticker — rendered outside the three slots, in its own shape,
+   and deliberately outside the gold-star test. The star still means
+   "every glass ball on my day, caught."
+   Caps are untouched: taking a ball off the shelf goes through the same
+   creation form and the same hard 3/5, and a full day refuses it.
+   The shelf is collapsed by default and carries no badge or count on
+   Today — a counter would turn a shelf into an inbox, and an inbox nags.
+   v0.7.0
    v0.7.0: the navigation catches up to the app. Five tabs became three
    rooms — Today · Projects · Closing — because Opening and Calendar were
    rendering the same day's lists twice. Today is now one scroll: the
@@ -1083,7 +1208,7 @@ const STORE_KEY = 'glassball_v1';   // Glass Ball's own key — never the CTT si
 const SCHEMA    = 'glassball-1';
 const CAPS = { glass:3, rubber:5 };   // the caps ARE the product — no override
 let db = {
-  version:'0.7.0', schema:SCHEMA, lastEdit:0,
+  version:'0.8.0', schema:SCHEMA, lastEdit:0,
   days:{},        // 'YYYY-MM-DD' → {glass:[task], rubber:[task], note:'', skipRecur:[], enough:false}
   recurring:[],   // repeat templates: {id,name,priority,blockMin,freq,anchor}
   projects:[],    // {id,name,notes,archived,createdDate,modifiedDate,steps:[{id,text,done,pushedTo}]}
@@ -1133,9 +1258,13 @@ function mergeDefaults(p){
   p.days=p.days||{};
   Object.values(p.days).forEach(d=>{ d.glass=Array.isArray(d.glass)?d.glass:[]; d.rubber=Array.isArray(d.rubber)?d.rubber:[];
     if(d.note==null) d.note=''; if(!Array.isArray(d.skipRecur)) d.skipRecur=[];
-    // carry-forward fields, explicit on every ball so both siblings agree
+    // carry-forward + ball-pit fields, explicit on every ball so both
+    // siblings agree. pitId back-references a shared shelf item; caughtBy
+    // records the person when someone ELSE caught it out of the pit.
     d.glass.concat(d.rubber).forEach(t=>{ if(t.carried===undefined) t.carried=null;
-      if(t.carriedFrom===undefined) t.carriedFrom=null; }); });
+      if(t.carriedFrom===undefined) t.carriedFrom=null;
+      if(t.pitId===undefined) t.pitId=null;
+      if(t.caughtBy===undefined) t.caughtBy=''; }); });
   p.recurring=Array.isArray(p.recurring)?p.recurring:[];
   p.projects=Array.isArray(p.projects)?p.projects:[];
   p.projects.forEach(pr=>{ pr.steps=Array.isArray(pr.steps)?pr.steps:[]; if(pr.notes==null) pr.notes=''; });
@@ -1143,6 +1272,24 @@ function mergeDefaults(p){
   p.devnotes=Array.isArray(p.devnotes)?p.devnotes:[];   // Dev Notes room: [{id,title,note,at}] — SCHEMA LOCKSTEP with the sibling repo
   p.settings=Object.assign({forgeVis:'moon'}, p.settings||{});
   p.sync=Object.assign({journalId:null,journalName:'',auto:false,lastSync:null,myHash:null}, p.sync||{});
+  // THE BALL PIT — a shelf shared across journals (SCHEMA LOCKSTEP).
+  // `id` is the shared KV key; `me` is the name my catches are signed with;
+  // `items` is a local cache of the shared shelf. The cache riding inside
+  // the journal blob is safe *because* pit merges are item-level and
+  // convergent: a stale copy losing a blob-level race is repaired by the
+  // next pit pull rather than destroying anything.
+  p.pit=Object.assign({id:null,name:'',me:'',items:[],lastSync:null}, p.pit||{});
+  p.pit.items=Array.isArray(p.pit.items)?p.pit.items:[];
+  p.pit.items.forEach(it=>{
+    if(it.by===undefined) it.by='';
+    if(it.note===undefined) it.note='';
+    if(it.done===undefined) it.done=false;
+    if(it.doneBy===undefined) it.doneBy='';
+    if(it.doneAt===undefined) it.doneAt=null;
+    if(it.deleted===undefined) it.deleted=false;
+    if(it.createdAt===undefined) it.createdAt=0;
+    if(it.lastEdit===undefined) it.lastEdit=it.createdAt||0;
+  });
   return p;
 }
 // Glass Ball schema normalizer — the single forward-compat seam. Fills
@@ -1157,8 +1304,110 @@ function getDay(ds,create=true){ if(!db.days[ds]&&create) db.days[ds]={glass:[],
 function makeTask(name,opts){ opts=opts||{}; return {id:uid(),name:name||'',done:false,doneAt:null,
   blockMin:opts.blockMin||null,actualMin:null,recurId:opts.recurId||null,
   fromProject:opts.fromProject||null,fromStep:opts.fromStep||null,
-  carried:opts.carried||null,carriedFrom:opts.carriedFrom||null,createdAt:Date.now()}; }
+  carried:opts.carried||null,carriedFrom:opts.carriedFrom||null,
+  pitId:opts.pitId||null,caughtBy:'',createdAt:Date.now()}; }
 function realTasks(list){ return (list||[]).filter(t=>(t.name||'').trim()); }
+
+/* =====================================================================
+   THE BALL PIT — a shelf two journals share.
+   ---------------------------------------------------------------------
+   The journal blob syncs last-write-wins. That is right for one person on
+   two devices (you are almost never writing in two places in the same
+   second) and WRONG here: two people on one document means LWW silently
+   discards whichever save lost the race. In an app whose whole promise is
+   "nothing falls off," a vanishing ball is the bug that would matter.
+   So the pit merges per ITEM, never per blob: union the ids, keep the
+   newer side of each, honor tombstones. That is CONVERGENT — both sides
+   land on identical state regardless of who synced first — which is why
+   the pit never needs a conflict dialog the way the journal does.
+   SCHEMA LOCKSTEP: pitMerge/pitItem are shared verbatim with the sibling.
+   ===================================================================== */
+const PIT_TOMB_DAYS = 45;   // how long a deletion keeps propagating
+
+function pitItem(name, by){ const t=Date.now();
+  return {id:uid(), name:name||'', by:by||'', note:'',
+          createdAt:t, lastEdit:t, done:false, doneBy:'', doneAt:null, deleted:false}; }
+
+/* Merge two shelves. Pure — no db access — so the test suite can run it in a
+   bare VM and both repos can be proved to agree. */
+function pitMerge(mine, theirs){
+  const out=new Map();
+  const take=it=>{
+    if(!it || !it.id) return;                       // junk never enters the shelf
+    const cur=out.get(it.id);
+    if(!cur){ out.set(it.id, it); return; }
+    const a=cur.lastEdit||0, b=it.lastEdit||0;
+    if(b>a){ out.set(it.id, it); return; }
+    // Identical stamps with different content would otherwise let the two
+    // sides disagree forever, so the tie breaks on a stable, order-free rule.
+    if(b===a){ const ja=JSON.stringify(cur), jb=JSON.stringify(it); if(jb>ja) out.set(it.id, it); }
+  };
+  (mine||[]).forEach(take);
+  (theirs||[]).forEach(take);
+  const cutoff=Date.now()-PIT_TOMB_DAYS*86400000;
+  return [...out.values()]
+    .filter(it=>!(it.deleted && (it.lastEdit||0)<cutoff))   // retire ancient tombstones
+    .sort((a,b)=>(a.createdAt||0)-(b.createdAt||0) || String(a.id).localeCompare(String(b.id)));
+}
+
+/* ---------- pit helpers (app-side; not part of the shared seam) ---------- */
+function pitOn(){ return !!(db.pit && db.pit.id); }
+function pitMe(){ return (db.pit && db.pit.me) || 'me'; }
+function pitLive(){ return (db.pit.items||[]).filter(it=>!it.deleted); }
+function pitFind(id){ return (db.pit.items||[]).find(it=>it.id===id) || null; }
+function pitTouch(it){ it.lastEdit=Date.now(); }
+/* Every pit write funnels through here: stamp, save, and push if we can. */
+function pitSave(){ save(); if(pitOn() && db.sync && db.sync.auto) pitPush(); }
+
+/* Who has this shelf item on a day, on THIS device? */
+function pitAdoptions(pitId){
+  const out=[];
+  Object.keys(db.days).forEach(ds=>{
+    ['glass','rubber'].forEach(pr=>{
+      (db.days[ds][pr]||[]).forEach(t=>{ if(t.pitId===pitId) out.push({ds,pr,task:t}); });
+    });
+  });
+  return out;
+}
+
+/* Reconcile the shelf against my board, both directions.
+   - a shelf item caught by anyone closes my copies of it (it is genuinely
+     done — the thing happened), recording WHO caught it;
+   - a copy I caught locally marks the shelf item caught by me.
+   Returns true if anything changed, so callers know whether to save. */
+function pitReconcile(){
+  if(!pitOn()) return false;
+  let changed=false;
+  const me=pitMe();
+  (db.pit.items||[]).forEach(it=>{
+    if(it.deleted) return;
+    const mine=pitAdoptions(it.id);
+    if(it.done){
+      mine.forEach(({task})=>{
+        if(!task.done){ task.done=true; task.doneAt=it.doneAt||Date.now();
+          task.caughtBy=(it.doneBy&&it.doneBy!==me)?it.doneBy:''; changed=true; }
+      });
+    }else{
+      const caught=mine.find(({task})=>task.done);
+      if(caught){ it.done=true; it.doneBy=me; it.doneAt=caught.task.doneAt||Date.now();
+        pitTouch(it); changed=true; }
+    }
+  });
+  return changed;
+}
+
+/* Bonus stickers — Chad's rule: everyone involved gets one. If I put a ball
+   in the pit and somebody ELSE caught it, I get a sticker for the day they
+   caught it. It renders OUTSIDE the three slots and never touches the gold
+   star: the star means "every glass ball on my day, caught," and a marker
+   that mirrors real state is the whole point (same rule as carry-forward). */
+function pitBonuses(ds){
+  if(!pitOn()) return [];
+  const me=pitMe();
+  return (db.pit.items||[]).filter(it=>
+    !it.deleted && it.done && it.by===me && it.doneBy && it.doneBy!==me &&
+    it.doneAt && iso(new Date(it.doneAt))===ds);
+}
 
 /* Recurring tasks: templates in db.recurring, instances materialized lazily
    when a day is looked at. Deleting an instance tombstones its template on
@@ -1208,7 +1457,11 @@ function dayInfo(ds){
   // whole point. `settled` is the honest, kinder thing to say instead.
   const gold=total>0 && done===total;
   const settled=total>0 && (done+moved)===total;
-  return {total,done,moved,gold,settled,stickers: gold?3:done};
+  // Bonus stickers sit OUTSIDE the three slots and outside the gold-star
+  // test — a gift for a ball someone else caught out of the pit, never a
+  // star you didn't earn.
+  const bonus=pitBonuses(ds);
+  return {total,done,moved,gold,settled,stickers: gold?3:done, bonus};
 }
 
 /* ---------- happy checkbox (ported from CTT) ---------- */
@@ -1254,7 +1507,7 @@ function switchMain(m){
 }
 /* Today is one surface: the glance, today's balls, the month, and — only
    when you've tapped a different day — that day's balls beneath it. */
-function renderToday(){ renderOpening(); renderCalendar(); }
+function renderToday(){ renderOpening(); renderCalendar(); renderPit(); }
 function renderAll(){ renderToday(); renderProjects(); renderClosing(); renderDevNotes(); }
 
 /* =====================================================================
@@ -1372,6 +1625,11 @@ function buildBallRow(ds,t,priority,isNew){
       if(priority==='glass'){ const st=document.createElement('span'); st.className='stick';
         st.innerHTML=t.done?'<span class="stick-earned" title="Sticker earned">✦</span>':'';
         row.appendChild(st); }
+      if(t.pitId){ const p=pitFind(t.pitId);
+        if(p && !p.deleted){ const pm=document.createElement('span'); pm.className='pit-mark'; pm.textContent='🧺';
+          pm.title=(t.done&&t.caughtBy)? ('From the pit — caught by '+t.caughtBy)
+            : ((p.by&&p.by!==pitMe())? ('From the pit — '+p.by+' put it there') : 'Shared in the ball pit');
+          row.appendChild(pm); } }
       if(t.blockMin){ const bm=document.createElement('span'); bm.className='block-min'; bm.textContent=t.blockMin+'m'; row.appendChild(bm); }
       const chev=document.createElement('span'); chev.className='row-chev'; chev.textContent='›'; chev.setAttribute('aria-hidden','true');
       row.appendChild(chev);
@@ -1408,6 +1666,9 @@ function openBallSheet(ds,id){
   if(ds!==todayStr()) bits.push(shortDay(ds));
   if(t.blockMin) bits.push(t.blockMin+' min block');
   if(t.recurId) bits.push('repeats');
+  const pit=t.pitId?pitFind(t.pitId):null;
+  if(pit && !pit.deleted) bits.push(pit.by&&pit.by!==pitMe()? ('from the pit · '+pit.by) : 'in the pit');
+  if(t.done && t.caughtBy) bits.push('caught by '+t.caughtBy);
   document.getElementById('bsMeta').textContent=bits.join(' · ');
   document.getElementById('bsStartSub').textContent=t.blockMin?('run the timer · '+t.blockMin+' min'):'run the timer · 25 min';
   document.getElementById('bsStart').classList.toggle('hidden',!!t.done);
@@ -1416,6 +1677,17 @@ function openBallSheet(ds,id){
     ? 'put it back on the day'
     : (isGlass?'done — earn the sticker':'done — and it never needed to be');
   document.getElementById('bsMove').classList.toggle('hidden',!!t.done);
+  // Share is offered only when there's a pit to share into, and reads as
+  // "take it back" once the ball is already on the shelf.
+  const shareBtn=document.getElementById('bsShare');
+  shareBtn.classList.toggle('hidden', !pitOn() || !!t.done);
+  if(pitOn() && !t.done){
+    const on=!!(pit && !pit.deleted);
+    document.getElementById('bsShareLbl').textContent = on?'Take it off the shelf':'Put it in the pit';
+    document.getElementById('bsShareSub').textContent = on
+      ? 'stop sharing — it stays on your day'
+      : 'share it — either of you can catch it';
+  }
   openModal('ballSheetBg');
 }
 function bsDo(what){
@@ -1425,6 +1697,7 @@ function bsDo(what){
   if(what==='start') startBallTimer(ctx.ds,ctx.id);
   else if(what==='catch') setTaskDone(ctx.ds,ctx.id,!f.task.done,null);
   else if(what==='move') openCarry(ctx.ds,ctx.id);
+  else if(what==='share') shareToPit(ctx.ds,ctx.id);
   else if(what==='edit') openTaskModal({ds:ctx.ds,id:ctx.id});
   else if(what==='delete'){
     if(!confirm('Delete “'+f.task.name+'”?')) return;
@@ -1438,14 +1711,167 @@ function bsDo(what){
 function setTaskDone(ds,id,dn,actualMin){
   const f=findTask(ds,id); if(!f) return;
   f.task.done=dn; f.task.doneAt=dn?Date.now():null;
+  if(!dn) f.task.caughtBy='';
   if(actualMin!=null && dn) f.task.actualMin=actualMin;
   if(f.task.fromStep){ const pr=db.projects.find(p=>p.id===f.task.fromProject);
     const st=pr&&pr.steps.find(x=>x.id===f.task.fromStep); if(st&&st.done!==dn){ st.done=dn; pr.modifiedDate=now(); } }
+  // The pit bridge: catching a shared ball closes it for everyone, and
+  // un-catching re-opens it. Every copy on this device follows immediately;
+  // the other journal picks it up on its next pit pull.
+  let pitChanged=false;
+  if(f.task.pitId){
+    const it=pitFind(f.task.pitId);
+    if(it && !it.deleted && it.done!==dn){
+      it.done=dn; it.doneBy=dn?pitMe():''; it.doneAt=dn?(f.task.doneAt||Date.now()):null;
+      pitTouch(it); pitChanged=true;
+      pitAdoptions(it.id).forEach(({task})=>{ if(task!==f.task && task.done!==dn){
+        task.done=dn; task.doneAt=dn?it.doneAt:null; task.caughtBy=''; } });
+    }
+  }
   save();
+  if(pitChanged && db.sync && db.sync.auto) pitPush();
   // re-render everything but let the checkbox animation play out first
-  setTimeout(()=>{ renderDayLists(); renderOpening();
+  setTimeout(()=>{ renderDayLists(); renderOpening(); renderPit();
     if(document.getElementById('main-projects').classList.contains('active')) renderProjects();
     if(document.getElementById('main-closing').classList.contains('active')) renderClosing(); },1200);
+}
+
+/* =====================================================================
+   THE BALL PIT, on screen. A shelf, not an inbox: collapsed by default,
+   no badge, no count on Today. You go and look at it — it never taps you
+   on the shoulder. That distinction is the whole reason it's allowed to
+   exist in an app built to be left.
+   ===================================================================== */
+/* Bonus stickers live OUTSIDE the three slots, on purpose. The slots are the
+   day's own game (and the gold star's evidence); a bonus is a gift from the
+   pit — someone else caught a ball you put there. Different shape, separate
+   place, so neither one can be mistaken for the other. */
+function paintBonus(host, bonus){
+  if(!host || !bonus || !bonus.length) return;
+  const sep=document.createElement('span'); sep.className='stick-sep'; sep.textContent='+';
+  host.appendChild(sep);
+  bonus.forEach(it=>{
+    const b=document.createElement('span'); b.className='stick-slot bonus'; b.textContent='✧';
+    b.title='Bonus — '+(it.doneBy||'someone')+' caught “'+it.name+'” from the pit';
+    host.appendChild(b);
+  });
+}
+
+let pitOpen=false;
+function togglePit(){ pitOpen=!pitOpen;
+  document.getElementById('pitCarrot').style.transform=pitOpen?'rotate(90deg)':'';
+  document.getElementById('pitBody').style.display=pitOpen?'block':'none';
+  if(pitOpen){ renderPit(); if(db.sync && db.sync.auto) pitPull(false); } }
+
+function renderPit(){
+  const panel=document.getElementById('pitPanel'); if(!panel) return;
+  panel.classList.toggle('hidden', !pitOn());
+  if(!pitOn()) return;
+  document.getElementById('pitTitle').textContent=db.pit.name||'The ball pit';
+  if(!pitOpen) return;
+  const el=document.getElementById('pitList'); el.innerHTML='';
+  const me=pitMe();
+  const items=pitLive().sort((a,b)=>(a.done?1:0)-(b.done?1:0) || (b.createdAt||0)-(a.createdAt||0));
+  if(!items.length){
+    const e=document.createElement('div'); e.className='open-empty';
+    e.textContent='The shelf is empty. Park a ball here when you know it matters but not yet when — or ask for one.';
+    el.appendChild(e);
+  }
+  items.forEach(it=>{
+    const row=document.createElement('div'); row.className='pit-row'+(it.done?' done':'');
+    const lw=document.createElement('span'); lw.className='ck-label'+(it.done?' ck-done':'');
+    const nm=document.createElement('span'); nm.className='ball-name'; nm.textContent=it.name||'(unnamed)';
+    lw.appendChild(nm);
+    const ck=makeCheck(!!it.done, lw, dn=>pitSetDone(it.id,dn));
+    ck.wrap.addEventListener('click',e=>e.stopPropagation());
+    row.append(ck.wrap, lw);
+    const who=document.createElement('span'); who.className='pit-by';
+    who.textContent = it.done
+      ? ('caught by '+(it.doneBy===me?'you':(it.doneBy||'someone')))
+      : ('from '+(it.by===me?'you':(it.by||'—')));
+    row.appendChild(who);
+    // Mine already? Then say so instead of offering it again.
+    const mine=pitAdoptions(it.id).filter(a=>!a.task.done);
+    if(!it.done){
+      if(mine.length){ const on=document.createElement('span'); on.className='pit-on';
+        on.textContent='on '+shortDay(mine[0].ds); on.title='Already on your day'; row.appendChild(on); }
+      else { const take=document.createElement('button'); take.type='button'; take.className='ghost small pit-take';
+        take.textContent='Take it'; take.title='Put this on one of my days';
+        take.onclick=e=>{ e.stopPropagation(); takeFromPit(it.id); };
+        row.appendChild(take); }
+    }
+    const del=document.createElement('button'); del.type='button'; del.className='pit-del';
+    del.textContent='✕'; del.title='Remove from the shelf (your own days keep their ball)';
+    del.onclick=e=>{ e.stopPropagation(); pitRemove(it.id); };
+    row.appendChild(del);
+    el.appendChild(row);
+  });
+  // brain-dump line: the fastest way in
+  const add=document.createElement('div'); add.className='pit-row pit-add';
+  const lw=document.createElement('span'); lw.className='ck-label';
+  const tx=document.createElement('input'); tx.type='text'; tx.placeholder='park a ball here — a day can come later…';
+  lw.appendChild(tx); add.appendChild(lw); el.appendChild(add);
+  bindCreate(tx,()=>{ const v=(tx.value||'').trim(); if(!v) return;
+    tx.value=''; pitAdd(v); });
+}
+function pitAdd(name){
+  if(!pitOn()) return;
+  db.pit.items.push(pitItem(name, pitMe()));
+  pitSave(); renderPit();
+}
+function pitSetDone(id,dn){
+  const it=pitFind(id); if(!it) return;
+  it.done=dn; it.doneBy=dn?pitMe():''; it.doneAt=dn?Date.now():null; pitTouch(it);
+  // close (or reopen) every copy of it on my own days too
+  pitAdoptions(id).forEach(({task})=>{ task.done=dn; task.doneAt=dn?it.doneAt:null; task.caughtBy=''; });
+  pitSave();
+  setTimeout(()=>{ renderPit(); renderOpening(); renderDayLists(); renderClosing(); },1200);
+}
+function pitRemove(id){
+  const it=pitFind(id); if(!it) return;
+  if(!confirm('Take “'+it.name+'” off the shared shelf?\n\nBalls either of you already put on a day stay exactly where they are — this just stops sharing it.')) return;
+  it.deleted=true; pitTouch(it);                       // tombstone, so the deletion propagates
+  pitAdoptions(id).forEach(({task})=>{ task.pitId=null; });
+  pitSave(); renderPit(); renderOpening(); renderDayLists();
+}
+/* Taking one out of the pit goes through the ordinary creation form, which
+   means it goes through the ordinary CAPS. A shared ball can't sneak a
+   fourth glass ball onto a day — the constraint is the product. */
+function takeFromPit(id){
+  const it=pitFind(id); if(!it) return;
+  openTaskModal(null,{ name:it.name, date:calSel||todayStr(), priority:'glass', blockMin:'', pitId:id });
+}
+/* Putting one in (or taking it back off) from the ball sheet. */
+function shareToPit(ds,id){
+  const f=findTask(ds,id); if(!f || !pitOn()) return;
+  const t=f.task;
+  const existing=t.pitId?pitFind(t.pitId):null;
+  if(existing && !existing.deleted){
+    t.pitId=null; pitSave(); renderPit(); renderDayLists(); renderOpening();
+    flash('Off the shelf — it\'s just yours again'); return;
+  }
+  const it=pitItem(t.name, pitMe());
+  db.pit.items.push(it); t.pitId=it.id;
+  pitSave(); renderPit(); renderDayLists(); renderOpening();
+  flash('In the pit — '+(db.pit.name||'shared'));
+}
+function savePitMe(){
+  const v=(document.getElementById('pitMeName').value||'').trim();
+  if(!v){ pitMsg('A name, however short.',true); return; }
+  db.pit.me=v; save(); renderPit(); renderPitSettings(); pitMsg('Saved — your catches sign as “'+v+'”.');
+}
+function renderPitSettings(){
+  const row=document.getElementById('pitSetupRow'); if(!row) return;
+  const on=pitOn();
+  document.getElementById('pitStateLbl').textContent = on? ('· '+(db.pit.name||'joined')) : '· not set up';
+  document.getElementById('pitNoneBlock').classList.toggle('hidden', on);
+  document.getElementById('pitOnBlock').classList.toggle('hidden', !on);
+  const meIn=document.getElementById('pitMeName');
+  if(meIn && document.activeElement!==meIn) meIn.value=db.pit.me||'';
+  if(on){
+    document.getElementById('pitIdText').textContent=db.pit.id;
+    document.getElementById('pitLastSync').textContent=db.pit.lastSync? new Date(db.pit.lastSync).toLocaleString():'never';
+  }
 }
 
 /* =====================================================================
@@ -1515,6 +1941,7 @@ function undoCarry(){
 
 /* ---------- task creation / editing modal ---------- */
 let tmCtx=null;   // null = create; {ds,id} = edit
+let tmPitId=null; // set when the new ball is being taken off the shared shelf
 let tmPriority='glass';
 let tmScope='one';   // recurring edits: 'one' (this day) | 'all' (template + future repeats)
 /* One place that knows how a segment shows "chosen": the class carries the
@@ -1544,6 +1971,7 @@ function openTaskModal(ctx,prefill){
   tmSetScope('one');
   if(prefill){ name=prefill.name!=null?prefill.name:name; date=prefill.date||date;
     block=prefill.blockMin!=null?prefill.blockMin:block; pr=prefill.priority||pr; }
+  tmPitId=(prefill&&prefill.pitId)||null;   // taking a ball off the shared shelf
   document.getElementById('tmName').value=name;
   document.getElementById('tmDate').value=date;
   document.getElementById('tmBlock').value=block;
@@ -1585,10 +2013,11 @@ function taskModalSave(){
       msg.textContent='That day already holds '+CAPS[tmPriority]+' '+tmPriority+' ball'+(CAPS[tmPriority]>1?'s':'')+'. The cap is the point — pick another day, or let something bounce.'; return; }
     if(freq){ const tpl={id:uid(),name:name,priority:tmPriority,blockMin:blockMin,freq:freq,anchor:date};
       db.recurring.push(tpl); ensureRecurring(date); }
-    else day[tmPriority].push(makeTask(name,{blockMin:blockMin}));
+    else day[tmPriority].push(makeTask(name,{blockMin:blockMin, pitId:tmPitId}));
   }
+  const wasPit=tmPitId; tmPitId=null;
   save(); closeModal('taskModalBg');
-  calSelect(date); renderOpening();
+  calSelect(date); renderOpening(); if(wasPit) renderPit();
 }
 function deleteTaskNoTombstone(ds,id){ const day=db.days[ds]; if(!day) return;
   ['glass','rubber'].forEach(pr=>{ const i=day[pr].findIndex(x=>x.id===id); if(i>=0) day[pr].splice(i,1); }); }
@@ -1623,6 +2052,7 @@ function renderOpening(){
   const sticks=document.getElementById('openSticks'); sticks.innerHTML='';
   for(let i=0;i<3;i++){ const s=document.createElement('span'); s.className='stick-slot'+(i<info.stickers?' earned':'');
     s.textContent=i<info.stickers?'✦':'·'; sticks.appendChild(s); }
+  paintBonus(sticks, info.bonus);
   document.getElementById('openGoldNote').textContent= info.gold?'':(info.total?'':'no glass named yet');
   document.getElementById('openGoldBanner').innerHTML= info.gold
     ? '<div class="gold-banner"><span class="goldstar" style="font-size:19px">★</span> Gold star day — every glass ball caught. The rest is optional.</div>'
@@ -2118,6 +2548,7 @@ function renderClosing(){
   const sticks=document.getElementById('closeSticks'); sticks.innerHTML='';
   for(let i=0;i<3;i++){ const s=document.createElement('span'); s.className='stick-slot'+(i<info.stickers?' earned':'');
     s.textContent=i<info.stickers?'✦':'·'; sticks.appendChild(s); }
+  paintBonus(sticks, info.bonus);
   document.getElementById('closeGold').innerHTML= info.gold
     ? '<div class="gold-banner" style="justify-content:center"><span class="goldstar" style="font-size:19px">★</span> Gold star day.</div>' : '';
   const line=document.getElementById('closeLine');
@@ -2438,10 +2869,13 @@ const KV_KEY = 'glassball_kv';                   // localStorage slot for {url, 
 function kvCfg(){ try{ const o=JSON.parse(localStorage.getItem(KV_KEY)||'null'); if(o&&o.url&&o.secret) return {url:o.url, secret:o.secret}; }catch(e){} return {url:'',secret:''}; }
 function kvSetCfg(url,secret){ localStorage.setItem(KV_KEY, JSON.stringify({url:url,secret:secret})); }
 function kvClearCfg(){ localStorage.removeItem(KV_KEY); }
-function encSyncCode(url,secret,journal){ return 'GLASS1-'+btoa(JSON.stringify({u:url,s:secret,j:journal||''})).replace(/=+$/,''); }
+/* The code carries the pit as well as the journal: pasting a code from your
+   OWN other device joins both, pasting one from your partner joins the pit
+   only. Journal IDs stay the personal partition; the pit is the shared part. */
+function encSyncCode(url,secret,journal,pit){ return 'GLASS1-'+btoa(JSON.stringify({u:url,s:secret,j:journal||'',p:pit||''})).replace(/=+$/,''); }
 function decSyncCode(code){ code=String(code||'').trim(); if(code.startsWith('GLASS1-')) code=code.slice(7);
   const pad=code.length%4? '='.repeat(4-code.length%4):''; const o=JSON.parse(atob(code+pad));
-  if(!o.u||!o.s) throw new Error('bad code'); return { url:o.u, secret:o.s, journal:o.j||'' }; }
+  if(!o.u||!o.s) throw new Error('bad code'); return { url:o.u, secret:o.s, journal:o.j||'', pit:o.p||'' }; }
 
 let pushTimer=null, syncing=false;
 function syncMsg(m,isErr){ const el=document.getElementById('syncMsg'); if(el){ el.textContent=m||''; el.style.color=isErr?'var(--danger)':'var(--muted)'; } }
@@ -2534,13 +2968,112 @@ async function syncPull(manual){
     const r=await kvFetch('GET', db.sync.journalId);
     if(r.status===404 || !r.text){ throw new Error('No journal in the cloud for that ID yet — create it first, or check the ID.'); }
     if(r.status!==200) throw new Error('Worker returned '+r.status);
+    const keepPit=db.pit||{};
     const incoming=JSON.parse(r.text); incoming.sync=db.sync; db=normalize(incoming);
+    // The journal blob carries a CACHE of the shelf. Never let a blob-level
+    // pull clobber shelf items this device knows about — merge them, the
+    // one operation that cannot lose a ball. Membership prefers the cloud
+    // copy (both my devices belong to the same pit) but never regresses to
+    // nothing if the cloud copy predates the pit.
+    db.pit.items=pitMerge(keepPit.items, db.pit.items);
+    if(!db.pit.id && keepPit.id){ db.pit.id=keepPit.id; db.pit.name=keepPit.name||''; }
+    if(!db.pit.me && keepPit.me) db.pit.me=keepPit.me;
     db.sync.myHash=hashStr(r.text); db.sync.lastSync=Date.now();
+    if(pitReconcile()) save();
     save(); renderAll();
     setSyncDot('on'); renderSync(); if(manual) syncMsg('Pulled latest from cloud.');
+    if(pitOn()) pitPull(false);
   }catch(e){ setSyncDot('err'); syncMsg(e.message,true); }
   finally{ syncing=false; }
 }
+/* ---------- the pit's own sync channel ------------------------------
+   A separate KV key, and deliberately a separate ALGORITHM. The journal is
+   one person's document, so last-write-wins is fine. The pit is two
+   people's document, so every exchange is a merge: pull, merge, push the
+   merged result. Nothing is ever overwritten, so nothing can be lost —
+   and there is no conflict dialog to show, because the merge is
+   convergent by construction. */
+function pitKey(){ return 'pit:'+(db.pit.id||''); }
+function newPitId(){ return 'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function pitMsg(m,isErr){ const el=document.getElementById('pitSyncMsg');
+  if(el){ el.textContent=m||''; el.style.color=isErr?'var(--danger)':'var(--muted)'; } }
+let pitBusy=false;
+
+async function pitPull(manual){
+  if(!pitOn() || !isConfigured() || pitBusy) return;
+  pitBusy=true;
+  try{
+    const r=await kvFetch('GET', pitKey());
+    let theirs=[];
+    if(r.status===200 && r.text){ const o=JSON.parse(r.text); theirs=Array.isArray(o.items)?o.items:[];
+      if(o.name && !db.pit.name) db.pit.name=o.name; }
+    else if(r.status!==404) throw new Error('Worker returned '+r.status);
+    db.pit.items=pitMerge(db.pit.items, theirs);
+    pitReconcile();
+    db.pit.lastSync=Date.now();
+    save(); renderPit(); renderOpening(); renderDayLists();
+    if(manual) pitMsg('Ball pit synced.');
+  }catch(e){ if(manual) pitMsg(e.message,true); }
+  finally{ pitBusy=false; }
+}
+/* Push is read-merge-write: whatever landed on the shelf since our last look
+   survives, because we merge it in before writing back. */
+async function pitPush(manual){
+  if(!pitOn() || !isConfigured() || pitBusy) return;
+  pitBusy=true;
+  try{
+    const r=await kvFetch('GET', pitKey());
+    let theirs=[];
+    if(r.status===200 && r.text){ try{ const o=JSON.parse(r.text); theirs=Array.isArray(o.items)?o.items:[]; }catch(_){} }
+    db.pit.items=pitMerge(db.pit.items, theirs);
+    pitReconcile();
+    const body=JSON.stringify({ id:db.pit.id, name:db.pit.name||'', items:db.pit.items, at:Date.now() });
+    const w=await kvFetch('PUT', pitKey(), body);
+    if(w.status!==200 && w.status!==204) throw new Error('Worker returned '+w.status);
+    db.pit.lastSync=Date.now();
+    save(); renderPit();
+    if(manual) pitMsg('Ball pit synced.');
+  }catch(e){ if(manual) pitMsg(e.message,true); }
+  finally{ pitBusy=false; }
+}
+async function pitSyncNow(){ pitMsg('Syncing the pit…'); await pitPull(true); await pitPush(true); }
+
+async function createPit(){
+  if(!isConfigured()){ pitMsg('Connect to your Cloudflare sync first.',true); return; }
+  const name=(document.getElementById('newPitName').value||'').trim();
+  const me=(document.getElementById('pitMeName').value||'').trim();
+  if(!me){ pitMsg('Put a name on it first — the pit signs who added and who caught.',true); return; }
+  db.pit.id=newPitId(); db.pit.name=name||'Our ball pit'; db.pit.me=me;
+  save();
+  await pitPush(true);
+  document.getElementById('newPitName').value='';
+  renderPit(); renderSync(); renderPitSettings();
+  pitMsg('Ball pit created. Share your Sync code and they can join it in one paste.');
+}
+async function joinPit(pitId, me, name){
+  db.pit.id=pitId; db.pit.me=me||db.pit.me||'me'; if(name) db.pit.name=name;
+  save(); await pitPull(true); await pitPush(true);
+  renderPit(); renderSync(); renderPitSettings();
+}
+async function joinPitFromField(){
+  if(!isConfigured()){ pitMsg('Connect to your Cloudflare sync first.',true); return; }
+  const id=(document.getElementById('joinPitId').value||'').trim();
+  const me=(document.getElementById('pitMeName').value||'').trim();
+  if(!id){ pitMsg('Paste the Pit ID first.',true); return; }
+  if(!me){ pitMsg('Put a name on it first — the pit signs who added and who caught.',true); return; }
+  document.getElementById('joinPitId').value='';
+  await joinPit(id, me);
+  pitMsg('Joined the ball pit.');
+}
+function leavePit(){
+  if(!confirm('Leave the ball pit on this journal? Balls you already took onto your days stay yours. The shared shelf is untouched — you can rejoin with its Pit ID.')) return;
+  db.pit={ id:null, name:'', me:db.pit.me||'', items:[], lastSync:null };
+  save(); renderPit(); renderSync(); renderPitSettings(); renderOpening();
+  pitMsg('Left the ball pit on this journal.');
+}
+function copyPitId(){ if(!pitOn()){ pitMsg('Create or join a pit first.',true); return; }
+  navigator.clipboard.writeText(db.pit.id).then(()=>pitMsg('Pit ID copied.'),()=>pitMsg('Copy failed — select it manually.',true)); }
+
 async function restoreFromId(){
   const id=(document.getElementById('restoreId').value||'').trim();
   if(!id){ syncMsg('Paste a Journal ID first.',true); return; }
@@ -2571,7 +3104,7 @@ function renderSync(){
   }
   if(connBlock) connBlock.classList.add('hidden');
   if(mgmt){ mgmt.classList.remove('hidden'); if(urlText) urlText.textContent=kvCfg().url;
-    if(codeTxt) codeTxt.textContent = isConnected()? encSyncCode(kvCfg().url, kvCfg().secret, db.sync.journalId) : '— create or join a journal first —'; }
+    if(codeTxt) codeTxt.textContent = isConnected()? encSyncCode(kvCfg().url, kvCfg().secret, db.sync.journalId, db.pit.id||'') : '— create or join a journal first —'; }
   if(setup) setup.classList.remove('hidden');
   if(isConnected()){
     head.textContent='Connected · '+escapeHtml(db.sync.journalName||'this journal');
@@ -2598,6 +3131,10 @@ async function kvConnect(){
     syncMsg('Connected to your Cloudflare sync — now create or join your journal below.');
   }catch(e){ kvClearCfg(); renderSync(); setSyncDot('err'); syncMsg(e.message,true); }
 }
+/* A pasted code means one of two very different things, and guessing wrong
+   is destructive — joining your partner's journal would replace your board.
+   So when a code carries both a journal and a pit, we ask. */
+let pendingCode=null;
 async function applySyncCode(){
   const raw=document.getElementById('syncCodeInput').value;
   let cfg; try{ cfg=decSyncCode(raw); }catch(e){ syncMsg('That does not look like a valid Sync code.',true); return; }
@@ -2605,9 +3142,30 @@ async function applySyncCode(){
   try{
     await kvFetch('GET','__healthcheck__');
     document.getElementById('syncCodeInput').value='';
-    if(cfg.journal){ db.sync.journalId=cfg.journal; db.sync.myHash=null; db.sync.auto=true; save(); renderSync(); await syncPull(true); }
-    else { renderSync(); setSyncDot('off'); syncMsg('Connected — now create or join your journal below.'); }
+    if(cfg.journal && cfg.pit){ pendingCode=cfg; setSyncDot(isConnected()?'on':'off');
+      syncMsg('One more question — is this your own device, or your partner\'s code?');
+      openModal('codeKindBg'); return; }
+    if(cfg.journal){ await codeTakeJournal(cfg); return; }
+    if(cfg.pit){ await codeTakePit(cfg); return; }
+    renderSync(); setSyncDot('off'); syncMsg('Connected — now create or join your journal below.');
   }catch(e){ kvClearCfg(); renderSync(); setSyncDot('err'); syncMsg(e.message,true); }
+}
+async function codeTakeJournal(cfg){
+  db.sync.journalId=cfg.journal; db.sync.myHash=null; db.sync.auto=true; save(); renderSync();
+  await syncPull(true);
+  if(cfg.pit && !pitOn()){ await joinPit(cfg.pit, db.pit.me||db.sync.journalName||'me'); }
+}
+async function codeTakePit(cfg){
+  const me=(db.pit.me||'').trim() || (db.sync.journalName||'').trim() || 'me';
+  await joinPit(cfg.pit, me);
+  renderSync(); renderPitSettings(); setSyncDot(isConnected()?'on':'off');
+  syncMsg(isConnected()
+    ? 'Joined their ball pit. Your own journal is untouched — set your pit name below so your catches are signed.'
+    : 'Joined their ball pit. Now create your own journal below — your board stays yours.');
+}
+async function codeKind(which){
+  closeModal('codeKindBg'); const cfg=pendingCode; pendingCode=null; if(!cfg) return;
+  if(which==='mine') await codeTakeJournal(cfg); else await codeTakePit(cfg);
 }
 function kvDisconnect(){
   if(!confirm('Disconnect this device from cloud sync? Local data stays; your cloud copy is untouched. Reconnect anytime.')) return;
@@ -2615,7 +3173,7 @@ function kvDisconnect(){
   save(); renderSync(); setSyncDot('off'); syncMsg('Disconnected on this device.');
 }
 function copySyncCode(){ if(!isConnected()){ syncMsg('Create or join a journal first.',true); return; }
-  const code=encSyncCode(kvCfg().url, kvCfg().secret, db.sync.journalId);
+  const code=encSyncCode(kvCfg().url, kvCfg().secret, db.sync.journalId, db.pit.id||'');
   navigator.clipboard.writeText(code).then(()=>syncMsg('Sync code copied — paste it on another device to set it up in one step.'),()=>syncMsg('Copy failed — select it manually.',true)); }
 /* Switch/recover fold: default open while there's no journal yet (first-run
    path), folded once connected. The default is set on modal open only, so a
@@ -2629,7 +3187,7 @@ function setSwitchRow(open){ switchOpen=open;
   if(b) b.style.display=(open||!isConnected())?'block':'none';
   if(c) c.style.transform=open?'rotate(90deg)':''; }
 function toggleSwitchRow(){ setSwitchRow(!switchOpen); }
-function openSettings(){ renderSync(); setSwitchRow(!isConnected()); renderUndoBtn(); syncMsg(''); openModal('settingsModalBg'); }
+function openSettings(){ renderSync(); renderPitSettings(); setSwitchRow(!isConnected()); renderUndoBtn(); syncMsg(''); pitMsg(''); openModal('settingsModalBg'); }
 function syncBoot(){ if(isConnected()){ setSyncDot('on'); if(db.sync.auto) syncPull(false); } else setSyncDot('off'); }
 function scheduleAutoPush(){ if(syncing||!isConnected()||!db.sync.auto) return; clearTimeout(pushTimer); pushTimer=setTimeout(()=>syncPush(false), 4000); }
 function cancelPendingConflict(){ if(conflictResolver){ const r=conflictResolver; conflictResolver=null; r('cancel'); } }

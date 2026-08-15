@@ -103,6 +103,22 @@ Multi-step, longer-term things, ported from CTT's projects surface.
 **The bridge:** a project step can be pushed onto a day as a glass or rubber
 ball; catching that ball checks the step back home.
 
+### 3b. The ball pit (v0.8.0) — a shelf two journals share
+A collapsed section below the month on Today, and the app's only multi-person
+surface.
+- **Park a ball** with no day at all — the brain dump for "this matters, I
+  don't know when yet." Scheduling it later is a deliberate act (a Friday
+  planning pass, say), not a nag.
+- **Take one** onto a day — through the ordinary creation form, and therefore
+  through the ordinary **hard caps**. A full day refuses a shared ball.
+- **Whoever catches it, catches it for both.** The other side's copy closes on
+  its next sync, signed with who caught it.
+- **Ask for help asynchronously.** Chad and Joelle are often too busy to
+  explain a task out loud; a ball on the shelf is the explanation.
+- **It is a shelf, never an inbox.** Collapsed by default, no badge, no count
+  on Today. You go and look at it; it never taps you on the shoulder. That
+  restraint is what lets it exist in an app built to be left.
+
 ### 4. The focus timer (a mode, not a room)
 - Reachable from **⏳** in the header or **▶** on any ball. Runs in an overlay
   over whatever room she's in.
@@ -154,6 +170,14 @@ not wall: it names the impulse to keep going, it never blocks or nags. The
    image *addresses* are stored as links instead (free, but they can go dead).
    If the library ever outgrows the cap, the escape hatch is hosted images
    (Cloudflare R2/Images) or a second KV key — not a bigger blob.
+6. **Shared balls (the pit, v0.8.0): everyone involved gets a sticker.**
+   Catching a ball fills a real slot exactly as always. If someone *else*
+   catches a ball you put in the pit, you earn a **bonus sticker** — rendered
+   **outside the three slots**, in its own shape, and deliberately **outside
+   the gold-star test**. So a day can show more than three stickers while
+   never holding more than three glass balls, and ★ keeps meaning "every
+   glass ball on my day, caught." Markers mirror real state; a gift is drawn
+   as a gift.
 
 ---
 
@@ -206,6 +230,14 @@ not wall: it names the impulse to keep going, it never blocks or nags. The
     upgrades cleanly. Forward-compatible from commit one.
   - Both repos share one schema and one KV namespace — the two surfaces are
     views of the same data.
+  - **Two sync algorithms, on purpose (v0.8.0).** A *journal* is one person's
+    document, so blob last-write-wins is right for it. The *pit* is two
+    people's document, where LWW silently drops whichever save lost the race —
+    so the pit merges **per item** (union ids, newer `lastEdit` wins,
+    tombstones for deletes). That merge is **convergent**: both sides land on
+    identical state whatever order they sync in, so the pit needs no conflict
+    dialog and cannot lose a ball. It has its own test suite, run against both
+    repos' copies. Never "simplify" the pit onto LWW.
 
 ## 🔒 Non-Negotiables
 
@@ -215,6 +247,10 @@ not wall: it names the impulse to keep going, it never blocks or nags. The
    surfaces for rubber tasks. Ever.
 3. **No secrets in either repo.** KV worker credentials/config live in the
    worker environment, entered/managed at runtime — repos stay safely public.
+   Note the v0.8.0 posture change, made knowingly by Chad: sharing a pit means
+   sharing one `SYNC_SECRET` across two journals, so each could read the
+   other's journal given its ID. Between Chad and Joelle that transparency is
+   a *feature* (see the pit). It is not a default to extend to anyone else.
 4. **All storage I/O goes through the storage module.** No direct
    `localStorage` calls scattered in feature code — the sync seam depends on it.
 5. **`SCHEMA_VERSION` + `normalize()`** on every load; never ship a schema
@@ -243,6 +279,9 @@ not wall: it names the impulse to keep going, it never blocks or nags. The
   carry-forward, Dev Notes, the meme library, and the v0.7.0 navigation
   refactor — three rooms, the ball sheet, the timer as a mode. Goal: hand
   Joelle a finished app to live in for a week and return notes.
+- **Phase 4 — Shared (v0.8.0)**: the ball pit. The first multi-person
+  surface: a shelf two journals share, an item-level convergent merge under
+  it, bonus stickers, and async "here's what I need help with."
 - **Parked:** month report analytics, Projects↔Calendar bridge polish,
   additional timer renderers, anything else that surfaces
   (→ `DECISIONS.md` parking lot).
