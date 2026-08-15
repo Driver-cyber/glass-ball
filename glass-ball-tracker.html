@@ -135,7 +135,7 @@
   <header>
     <h1>The Glass Ball</h1>
     <div class="tagline">Joelle's task &amp; schedule app — catch the glass, let the rubber bounce. Sibling to Chiaro Tinker Tools.</div>
-    <div class="meta">Updated <b>2026-08-14</b></div>
+    <div class="meta">Updated <b>2026-08-15</b></div>
   </header>
 
   <div class="columns">
@@ -144,11 +144,12 @@
       <div class="sub">Main repo · desktop-primary · vanilla single-file · Cloudflare Pages</div>
       <ol class="priorities">
         <li><div><div class="p-title">Co-design checkpoint with Joelle</div><div class="p-note">She drives: typeface, glass vs. rubber treatment, sticker/gold-star art, display name. Provisional cream/ink/glass-blue/gold palette holds until she calls it.</div></div></li>
-        <li><div><div class="p-title">First real week — let friction write the backlog</div><div class="p-note">Sync is live and both Pages sites deploy from main. Joelle's numbered notes become the next iteration's primary input.</div></div></li>
+        <li><div><div class="p-title">First real week — let friction write the backlog</div><div class="p-note">v0.7.0 hands her the finished app: three rooms, one Today scroll, a ball sheet, the timer as a mode. Sync is live and both Pages sites deploy from main. Her numbered notes become the next iteration's primary input.</div></div></li>
         <li><div><div class="p-title">Custom domains (optional)</div><div class="p-note">Pages.dev URLs work today; pick her domains when ready. Sync fields already take absolute URLs, so a domain move is safe.</div></div></li>
       </ol>
       <div class="backlog-label">Backlog</div>
       <ul class="backlog">
+        <li>Chad needs his own journal on Joelle's Worker to use the ball pit</li>
         <li>Closing surface refinement once the game is felt in real use</li>
         <li>Hosted images (R2) if the meme library outgrows its ~1.2MB in-blob cap</li>
         <li>Meme display polish — captions, sizing, text+image pairing</li>
@@ -181,17 +182,18 @@
 {
   "project": "The Glass Ball",
   "description": "Joelle's glass/rubber-ball task and schedule app — catch what matters, let the rest bounce; sibling to CTT.",
-  "updated": "2026-08-14",
+  "updated": "2026-08-15",
   "columns": [
     {
       "name": "glass-ball",
       "sub": "Main repo · desktop-primary · vanilla single-file · Cloudflare Pages",
       "priorities": [
         { "title": "Co-design checkpoint with Joelle", "note": "Typeface, glass vs. rubber treatment, sticker/gold-star art, display name. Provisional palette holds until she calls it." },
-        { "title": "First real week — friction writes the backlog", "note": "Sync live, both Pages sites deploying from main. Joelle's numbered notes drive the next iteration." },
+        { "title": "First real week — friction writes the backlog", "note": "v0.7.0 hands her the finished app (three rooms, ball sheet, timer as a mode). Sync live, both Pages sites deploying from main. Her numbered notes drive the next iteration." },
         { "title": "Custom domains (optional)", "note": "Pages.dev works today; sync fields take absolute URLs, so a domain move is safe." }
       ],
       "backlog": [
+        "Chad needs his own journal on Joelle's Worker to use the ball pit",
         "Closing surface refinement once the game is felt in real use",
         "Hosted images (R2) if the meme library outgrows its ~1.2MB in-blob cap",
         "Meme display polish — captions, sizing, text+image pairing",
@@ -199,6 +201,10 @@
         "Sync conflict handling beyond last-write-wins"
       ],
       "shipped": [
+        { "date": "2026-08-15", "what": "v0.9.0 — the pit becomes the front door for the undated, plus a private lane. The + opens with no day: leave it empty and the ball parks in the pit (shared 🤝 or just-mine 🔒, chosen at creation), pick a date or tap the today chip and it skips the pit entirely. Private items never enter the KV upload — they ride the journal only. The bonus sticker got its art: a small rainbow star ★.", "tags": ["ball-pit", "private-lane", "ux", "schema", "release"], "learned": "A default is a design decision about where things land when nobody is deciding — pointing the undated at the pit turned a feature into the app's inbox." },
+        { "date": "2026-08-15", "what": "v0.8.1 — the guide rebuilt as a marketing scrolly demo with a story spine: the noise (gray balls rain in, one secretly glass — 'did you spot it?'), a live-drawn Today card that types/catches/opens the ball sheet, the timer with its joke on display, the pit row caught by the other side with the bonus ✧, then game → house → pledge → door. Wry second-person voice; features load-bearing in every scene.", "tags": ["guide", "scrollytelling", "marketing"], "learned": "A demo teaches best when the viewer starts playing before the rules arrive — hide one glass ball in the noise and the pitch makes itself." },
+        { "date": "2026-08-15", "what": "v0.8.0 — the ball pit: a shelf two journals share. Park a ball with no day yet (the brain dump that has a home), take one onto a day through the ordinary caps, and whoever catches it catches it for both. Journal IDs still gate the personal boards; the Sync code carries the pit, so a pasted code asks whether it's your own device or your partner's. Everyone involved earns a sticker — a bonus one, drawn outside the three slots and outside the gold-star test.", "tags": ["ball-pit", "sync", "shared", "schema", "release"], "learned": "Last-write-wins is a single-writer assumption. The moment two people share a document it silently eats edits, so the pit merges per item instead — union the ids, newer wins, tombstones — which is convergent and therefore needs no conflict dialog at all." },
+        { "date": "2026-08-15", "what": "v0.7.0 — the navigation catches up to the app: five tabs become three rooms (Today · Projects · Closing). Opening and Calendar merge into one Today scroll — glance and today's balls up top, the month below, any other day in a framed panel beneath it. The Forge stops being a room and becomes a mode: the timer runs in an overlay reachable from anywhere, with a bar that rides along while a block runs. Tapping a ball opens a sheet with its three verbs (▶ Start it · ✓ Catch it · → Move it forward) plus ✎ Edit; the checkbox stays a direct tap on the row.", "tags": ["navigation", "ui", "timer", "release"], "learned": "When two surfaces render the same data, the tab split is the bug — and a running timer belongs to the app, not to a room you have to stand in." },
         { "date": "2026-08-14", "what": "v0.6.0 — carry forward: a → on every unfinished ball moves it to another day (Tomorrow in one tap). The ball stays settled and struck through on today, a real one lands on the target day, with bring-back undo. Moving earns no sticker and no gold star, but the day reads as settled so it can close.", "tags": ["carry-forward", "gamification", "schema"], "learned": "The kind answer and the honest answer can both be had: let the day CLOSE without letting the marker lie." },
         { "date": "2026-08-14", "what": "v0.5.0 — the guide becomes /guide: a scrollytelling tour in the app's daylight language (bouncing rubber vs held glass, caps filling, six rooms, the moon running a block, stickers → gold star, the no-guilt pledge), every scene drawn live, offline-cached, reduced-motion safe, with a standalone-PWA way back. Old guide modal retired.", "tags": ["guide", "scrollytelling", "release"], "learned": "Scroll choreography needs measured geometry, not box arithmetic — and reduced-motion resets must out-rank the id-specific height rules." },
         { "date": "2026-08-14", "what": "v0.4.0 — pre-handoff polish: a running timer now survives iOS discarding the PWA (device-local wall-clock stamp, rings on return if it finished while away); a page left open past midnight repaints instead of reporting yesterday; 44px touch targets on checkboxes.", "tags": ["timer", "ios", "polish"], "learned": "An in-memory timer plus a PWA the OS may discard equals a timer that vanishes — wall-clock state has to live somewhere the reload can find it." },

@@ -5,24 +5,27 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#FBFAF6">
 <title>The Glass Ball — the guide</title>
-<meta name="description" content="A juggler's secret, in app form. Catch the glass, let the rubber bounce.">
+<meta name="description" content="Catch the glass. Let the rubber bounce. A gentler, slightly salty way to run your day.">
 <meta property="og:title" content="The Glass Ball">
 <meta property="og:description" content="Catch the glass. Let the rubber bounce.">
 <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><radialGradient id="g" cx="38%25" cy="30%25" r="75%25"><stop offset="0%25" stop-color="%23BFDCEC"/><stop offset="55%25" stop-color="%236FA8C9"/><stop offset="100%25" stop-color="%232E6284"/></radialGradient></defs><circle cx="32" cy="33" r="24" fill="url(%23g)"/><ellipse cx="24" cy="23" rx="8" ry="5" fill="white" opacity=".75" transform="rotate(-25 24 23)"/></svg>'>
 <style>
 /* =====================================================================
-   The Glass Ball · the guide — a scrollytelling tour, daylight edition.
-   Same bones as the PJT scrolly page (sticky 100svh pins, progress from
-   the pin's own height so the collapsing iPhone URL bar can't jitter it,
-   rAF-driven choreography, honest reduced-motion fallback) re-lit for
-   Glass Ball: cream field, ink type, glass-blue and gold light. Every
-   scene is drawn live — no screenshots — so the page is one file and
-   caches for offline like the app itself.
+   The Glass Ball · the guide — a scrollytelling demo, daylight edition.
+   v2 (2026-08-15): rebuilt as a story with the features load-bearing.
+   The arc: the noise (you know it) → the idea (only one breaks) → the
+   rules (3 glass / 5 rubber) → the practice (type it, tap it) → the
+   timer (moon + the joke) → the ball pit (help, minus the asking) →
+   the game (stickers → star) → the house → the pledge → the door.
+   Same proven bones as v1: sticky 100svh pins, progress measured from
+   the pin itself so the collapsing iPhone URL bar can't jitter it, one
+   rAF loop, every scene drawn live (no screenshots), honest
+   reduced-motion fallback. Cream field, ink type, glass-blue and gold.
    ===================================================================== */
 :root{
   --cream:#FBFAF6; --panel:#FFFFFF; --ink:#191919; --muted:#6E675A;
   --border:#E4E0D3; --group:#F3F0E7;
-  --glass:#39749B; --glass-deep:#2A5B7C; --glass-light:#7FB0CE;
+  --glass:#39749B; --glass-deep:#2A5B7C; --glass-light:#7FB0CE; --glass-soft:#E9F1F6;
   --gold:#D9A21B; --gold-deep:#B8860B;
   --sans:'Avenir Next','Avenir',Seravek,'Trebuchet MS','Segoe UI',Verdana,sans-serif;
 }
@@ -82,6 +85,22 @@ body{background:var(--cream);color:var(--ink);font-family:var(--sans);
 .scroll-hint span{display:block;width:1px;height:34px;margin:12px auto 0;
   background:linear-gradient(var(--muted),transparent);}
 
+/* ── the noise: a rain of gray urgency ────────────────────────────── */
+.noise-field{position:relative;width:min(760px,92vw);height:clamp(220px,32vh,310px);
+  margin:4vh auto 0;}
+.nb{position:absolute;border-radius:50%;will-change:transform,opacity;
+  background:radial-gradient(circle at 38% 32%, #A79F90 0 15%, #8B8578 55%, #6E675A 100%);
+  box-shadow:inset -3px -6px 10px rgba(0,0,0,.16), 0 8px 18px -8px rgba(25,25,25,.3);}
+.nb.dull{filter:saturate(.8) brightness(1.06);}
+.nb.dark{filter:brightness(.9);}
+.nb.the-one{background:radial-gradient(circle at 36% 30%, #E8F3F9 0 12%, #7FB0CE 40%, var(--glass-deep) 94%);
+  box-shadow:inset -3px -7px 12px rgba(0,0,0,.2), 0 8px 20px -8px rgba(42,91,124,.5);}
+.noise-line{margin:4.5vh auto 0;font-size:clamp(14px,1.6vw,17px);color:var(--muted);line-height:1.75;
+  max-width:46ch;opacity:0;transform:translateY(18px);will-change:opacity,transform;}
+.noise-line b{color:var(--ink);}
+.noise-line2{margin:1.6vh auto 0;font-size:clamp(13px,1.5vw,15.5px);font-style:italic;
+  color:var(--glass);opacity:0;transform:translateY(14px);will-change:opacity,transform;}
+
 /* ── glass vs rubber ─────────────────────────────────────────────── */
 .pair{display:flex;justify-content:center;align-items:flex-end;gap:clamp(48px,12vw,150px);
   height:clamp(200px,30vh,300px);margin-top:8vh;}
@@ -118,21 +137,96 @@ body{background:var(--cream);color:var(--ink);font-family:var(--sans);
   opacity:0;transform:translateY(18px);will-change:opacity,transform;}
 .caps-line b{color:var(--ink);}
 
-/* ── the rooms ────────────────────────────────────────────────────── */
-.rooms{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;
-  width:min(880px,90vw);margin:6vh auto 0;}
-.room{background:var(--panel);border:1px solid var(--border);border-radius:18px;
-  padding:24px 20px;text-align:left;box-shadow:0 18px 44px -22px rgba(25,25,25,.18);
+/* ── how it works: a Today card, drawn live ──────────────────────── */
+.howwrap{display:flex;align-items:center;justify-content:center;
+  gap:clamp(26px,5.5vw,76px);flex-wrap:wrap;}
+.howcopy{max-width:40ch;text-align:left;}
+.daymock{width:min(400px,92vw);background:var(--panel);border:1px solid var(--border);
+  border-radius:20px;padding:16px 14px 12px;text-align:left;
+  box-shadow:0 24px 60px -24px rgba(25,25,25,.25);}
+.dm-head{display:flex;align-items:baseline;gap:8px;padding:0 4px 10px;}
+.dm-head b{font-size:16.5px;font-weight:800;letter-spacing:-.01em;}
+.dm-head span{font-size:12px;color:var(--muted);font-weight:500;}
+.dm-sticks{margin-left:auto;display:flex;gap:5px;}
+.dm-sticks i{width:19px;height:19px;border-radius:50%;border:1.5px dashed var(--border);
+  display:grid;place-items:center;font-style:normal;font-size:10px;color:transparent;
+  will-change:transform;}
+.dm-sticks i.lit{border:1.5px solid var(--gold);background:#F8ECCB;color:var(--gold-deep);}
+.dm-lab{font-size:10px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--muted);padding:7px 4px 5px;}
+.dm-row{display:flex;align-items:center;gap:9px;padding:9px 10px;border:1px solid var(--border);
+  border-radius:11px;margin-bottom:6px;background:var(--panel);font-size:13.5px;
   opacity:0;will-change:transform,opacity;}
-.room b{display:block;font-size:clamp(16px,1.9vw,20px);font-weight:800;letter-spacing:-.01em;}
-.room span{display:block;margin-top:8px;font-size:13px;line-height:1.6;color:var(--muted);}
-.room .glyph{font-size:20px;display:block;margin-bottom:10px;}
+.dm-row.glass{border-left:4px solid var(--glass);
+  background:linear-gradient(115deg, var(--glass-soft) 0%, var(--panel) 38%);}
+.dm-row.rubber{border-left:4px solid var(--border);background:var(--group);}
+.dm-row.entry{border-style:dashed;background:transparent;color:var(--muted);font-style:italic;}
+.dm-ck{flex:0 0 auto;width:21px;height:21px;border:1.5px solid #B9B3A4;border-radius:7px;
+  background:var(--panel);display:grid;place-items:center;}
+.dm-ck svg{width:14px;height:14px;display:block;}
+.dm-ck svg path{fill:none;stroke:#fff;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:17;stroke-dashoffset:17;}
+.dm-ck.on{background:var(--glass);border-color:var(--glass);}
+.dm-name{flex:1;min-width:0;position:relative;line-height:1.35;}
+.dm-strike{position:absolute;left:0;top:56%;height:1.5px;width:100%;background:var(--muted);
+  transform:scaleX(0);transform-origin:left;}
+.dm-min{flex:0 0 auto;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;}
+.dm-stick{flex:0 0 auto;font-size:13px;color:var(--gold-deep);opacity:0;
+  transform:scale(.3);will-change:transform,opacity;}
+.dm-chev{flex:0 0 auto;color:var(--muted);font-size:15px;line-height:1;}
+.dm-sheet{position:relative;display:flex;gap:7px;justify-content:center;align-items:center;
+  height:44px;margin:-1px 6px 7px;background:var(--panel);border:1px solid var(--border);
+  border-radius:12px;box-shadow:0 12px 30px -12px rgba(25,25,25,.28);
+  opacity:0;will-change:transform,opacity;}
+.dm-sheet::before{content:'';position:absolute;top:-6px;left:26px;width:10px;height:10px;
+  background:var(--panel);border-left:1px solid var(--border);border-top:1px solid var(--border);
+  transform:rotate(45deg);}
+.dm-chip{font-size:11px;font-weight:700;padding:6px 10px;border-radius:100px;
+  border:1px solid var(--border);white-space:nowrap;}
+.dm-chip.dark{background:var(--ink);color:var(--cream);border-color:var(--ink);}
 
-/* ── the forge / moon ─────────────────────────────────────────────── */
+/* ── the timer: moon + the joke ───────────────────────────────────── */
 .forgewrap{display:flex;align-items:center;justify-content:center;gap:clamp(30px,7vw,96px);flex-wrap:wrap;}
 .moon{width:clamp(180px,26vw,280px);height:auto;}
-.clock{font-weight:800;font-size:clamp(54px,10vw,128px);letter-spacing:-.05em;
+.clock{font-weight:800;font-size:clamp(48px,9vw,112px);letter-spacing:-.05em;
   font-variant-numeric:tabular-nums;line-height:1;}
+.joke-card{background:var(--panel);border:1px solid var(--border);border-radius:14px;
+  padding:14px 16px;margin:18px 0 6px;max-width:40ch;position:relative;
+  box-shadow:0 16px 40px -18px rgba(25,25,25,.22);
+  opacity:0;will-change:transform,opacity;}
+.joke-card .jc-mask{position:absolute;top:-11px;left:14px;font-size:18px;
+  background:var(--cream);padding:0 6px;border-radius:8px;}
+.joke-card p{font-size:14.5px;line-height:1.6;font-style:italic;}
+.joke-card small{display:block;margin-top:7px;font-size:11.5px;color:var(--muted);}
+
+/* ── the ball pit ─────────────────────────────────────────────────── */
+.pitwrap{display:flex;align-items:center;justify-content:center;
+  gap:clamp(26px,5.5vw,76px);flex-wrap:wrap;}
+.pitmock{width:min(400px,92vw);background:var(--panel);border:1px solid var(--border);
+  border-radius:20px;padding:16px 14px 14px;text-align:left;
+  box-shadow:0 24px 60px -24px rgba(25,25,25,.25);}
+.pm-head{display:flex;align-items:baseline;gap:8px;padding:0 4px 12px;font-size:15px;}
+.pm-head b{font-weight:800;letter-spacing:-.01em;}
+.pm-head span{font-size:11.5px;color:var(--muted);font-weight:500;}
+.pm-row{display:flex;align-items:center;gap:9px;padding:10px 10px;border:1px solid var(--border);
+  border-radius:11px;background:var(--group);font-size:13.5px;
+  opacity:0;will-change:transform,opacity;}
+.pm-row .dm-name{font-weight:600;}
+.pm-by{flex:0 0 auto;font-size:10.5px;color:var(--muted);white-space:nowrap;}
+.pm-by.caught{color:var(--glass);font-weight:700;}
+.pm-park{display:flex;align-items:center;gap:9px;padding:10px 10px;margin-top:7px;
+  border:1px dashed var(--border);border-radius:11px;font-size:12.5px;color:var(--muted);
+  font-style:italic;}
+.pm-bonus{display:inline-flex;align-items:center;gap:8px;margin-top:14px;padding:8px 14px;
+  border:1.5px dashed var(--gold);border-radius:100px;font-size:12.5px;color:var(--gold-deep);
+  font-weight:700;background:rgba(248,236,203,.5);
+  opacity:0;transform:scale(.6);will-change:transform,opacity;}
+.pm-bonus .rb{font-size:14px;font-weight:800;color:var(--gold-deep);}
+@supports ((-webkit-background-clip:text) or (background-clip:text)){
+  .pm-bonus .rb{color:transparent;
+    background-image:linear-gradient(135deg,#D14D41 0%,#DA702C 22%,#D0A215 42%,#879A39 60%,#39749B 79%,#8B7EC8 100%);
+    -webkit-background-clip:text;background-clip:text;}
+}
 
 /* ── stickers & the gold star ─────────────────────────────────────── */
 .stickrow{display:flex;justify-content:center;gap:clamp(14px,3vw,28px);margin-top:6vh;}
@@ -148,6 +242,16 @@ body{background:var(--cream);color:var(--ink);font-family:var(--sans);
   opacity:0;transform:translateY(16px);will-change:opacity,transform;}
 .star-line b{color:var(--gold-deep);}
 
+/* ── the rooms ────────────────────────────────────────────────────── */
+.rooms{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;
+  width:min(880px,90vw);margin:6vh auto 0;}
+.room{background:var(--panel);border:1px solid var(--border);border-radius:18px;
+  padding:24px 20px;text-align:left;box-shadow:0 18px 44px -22px rgba(25,25,25,.18);
+  opacity:0;will-change:transform,opacity;}
+.room b{display:block;font-size:clamp(16px,1.9vw,20px);font-weight:800;letter-spacing:-.01em;}
+.room span{display:block;margin-top:8px;font-size:13px;line-height:1.6;color:var(--muted);}
+.room .glyph{font-size:20px;display:block;margin-bottom:10px;}
+
 /* ── arrive ───────────────────────────────────────────────────────── */
 #get .pin{flex-direction:column;text-align:center;}
 .btns{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:38px;}
@@ -161,11 +265,14 @@ a:focus-visible{outline:2px solid var(--glass);outline-offset:4px;}
 /* ── phones: same acts, shorter rooms, cheaper light ─────────────── */
 @media(max-width:760px){
   #hero{height:150vh !important;}
+  #s-noise{height:280vh !important;}
   #s-idea{height:300vh !important;}
   #s-caps{height:300vh !important;}
-  #s-rooms{height:340vh !important;}
-  #s-forge{height:300vh !important;}
+  #s-day{height:380vh !important;}
+  #s-forge{height:320vh !important;}
+  #s-pit{height:300vh !important;}
   #s-game{height:320vh !important;}
+  #s-rooms{height:340vh !important;}
   #s-pledge{height:230vh !important;}
   #get{height:180vh !important;}
   .glow::before{width:110vw;height:110vw;left:-30vw;filter:blur(60px);}
@@ -174,6 +281,16 @@ a:focus-visible{outline:2px solid var(--glass);outline-offset:4px;}
   .hero-orb{width:96px;height:96px;margin-bottom:26px;}
   .sub{max-width:32ch;}
   .pair{gap:44px;height:clamp(180px,26vh,240px);margin-top:6vh;}
+  .noise-field{height:clamp(190px,26vh,250px);}
+  .howwrap,.pitwrap{gap:22px;}
+  .howcopy{max-width:34ch;}
+  .howcopy .sub,.pitwrap .sub{margin-top:14px;}
+  .daymock{padding:13px 11px 9px;}
+  .dm-row{padding:8px 9px;font-size:13px;margin-bottom:5px;}
+  .dm-sheet{height:40px;}
+  .dm-chip{font-size:10.5px;padding:5px 8px;}
+  .clock{font-size:clamp(44px,11vw,64px);}
+  .joke-card{margin:14px 0 4px;}
   .rooms{grid-template-columns:1fr 1fr;gap:10px;width:92vw;}
   .room{padding:16px 14px;border-radius:14px;}
   .room .glyph{font-size:17px;margin-bottom:6px;}
@@ -187,7 +304,7 @@ a:focus-visible{outline:2px solid var(--glass);outline-offset:4px;}
   /* IDs, not .scene — the phone height rules above are #id !important and
      would out-rank a class here, leaving a motion-averse reader 30k px of
      empty scroll */
-  #hero,#s-idea,#s-caps,#s-rooms,#s-forge,#s-game,#s-pledge,#get{height:auto !important;}
+  #hero,#s-noise,#s-idea,#s-caps,#s-day,#s-forge,#s-pit,#s-game,#s-rooms,#s-pledge,#get{height:auto !important;}
   .pin{position:relative;height:auto;padding:14vh 0;}
   .btn:hover,.home-pill:hover{transform:none;}
 }
@@ -214,7 +331,22 @@ a:focus-visible{outline:2px solid var(--glass);outline-offset:4px;}
   </div>
 </section>
 
-<!-- ── 2. the idea: glass vs rubber ───────────────────────────────── -->
+<!-- ── 2. the noise — the part you already live in ────────────────── -->
+<section class="scene" id="s-noise" style="height:380vh">
+  <div class="pin">
+    <div class="mid" style="text-align:center">
+      <div class="kicker">First, the part you already know</div>
+      <div class="mid-t" data-words>Everything wants a piece<br>of your Tuesday.</div>
+      <div class="noise-field" id="noiseField" aria-hidden="true"></div>
+      <p class="noise-line" id="noiseLine">The forms. The follow-ups. The dentist you meant to call in
+        March. It all arrives at the same volume, claiming the same urgency — and <b>nothing tells you
+        which ones actually break</b>.</p>
+      <p class="noise-line2" id="noiseLine2">(One of these is glass. Did you spot it?)</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── 3. the idea: glass vs rubber ───────────────────────────────── -->
 <section class="scene" id="s-idea" style="height:400vh">
   <div class="pin">
     <div class="mid" style="text-align:center">
@@ -234,7 +366,7 @@ a:focus-visible{outline:2px solid var(--glass);outline-offset:4px;}
   </div>
 </section>
 
-<!-- ── 3. the caps ────────────────────────────────────────────────── -->
+<!-- ── 4. the caps ────────────────────────────────────────────────── -->
 <section class="scene" id="s-caps" style="height:400vh">
   <div class="pin">
     <div class="mid" style="text-align:center">
@@ -249,47 +381,105 @@ a:focus-visible{outline:2px solid var(--glass);outline-offset:4px;}
   </div>
 </section>
 
-<!-- ── 4. the rooms ───────────────────────────────────────────────── -->
-<section class="scene" id="s-rooms" style="height:440vh">
-  <div class="pin">
-    <div class="mid" style="text-align:center">
-      <div class="kicker">Six rooms</div>
-      <div class="mid-t" data-words>Small house. Good bones.</div>
-      <div class="rooms" id="rooms">
-        <div class="room"><span class="glyph">🌅</span><b>Opening</b><span>Your day at a glance. Tap a ball and the timer&rsquo;s already set.</span></div>
-        <div class="room"><span class="glyph">🗓</span><b>Calendar</b><span>The heart. Pick any day, type a ball onto its list, done.</span></div>
-        <div class="room"><span class="glyph">🧺</span><b>Projects</b><span>Big things, broken into balls — send one to any day.</span></div>
-        <div class="room"><span class="glyph">🔥</span><b>The Forge</b><span>Where balls get caught. A timer, a joke, and one honest question.</span></div>
-        <div class="room"><span class="glyph">🌙</span><b>Closing</b><span>The exhale. It will tell you when you&rsquo;ve done enough.</span></div>
-        <div class="room"><span class="glyph">✎</span><b>Dev Notes</b><span>Something weird? Tell on us here and text Chad the batch.</span></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ── 5. the forge ───────────────────────────────────────────────── -->
-<section class="scene" id="s-forge" style="height:400vh">
+<!-- ── 5. how it works: type it, tap it ───────────────────────────── -->
+<section class="scene" id="s-day" style="height:480vh">
   <div class="pin">
     <div class="mid">
-      <div class="forgewrap">
-        <svg class="moon" id="moonSvg" viewBox="0 0 220 152" aria-hidden="true"></svg>
-        <div style="max-width:44ch">
-          <div class="kicker">The Forge</div>
-          <div class="clock" id="clock">25:00</div>
-          <p class="sub">Pick a ball and the moon keeps its time — half-lit means halfway.<br><br>
-            It opens with a <span class="accent">joke</span> (always skippable) and ends with the only
-            honest question: <em>did you finish?</em> Say &ldquo;still needs work&rdquo; and it offers more
-            minutes — or rolls the rest onto another day, on purpose.<br><br>
-            Didn&rsquo;t finish and you&rsquo;re done for today? Every ball has a
-            <span class="accent">&rarr;</span> — hand it to another day. It stays here, settled, and
-            lands there for real. Nothing dropped, nothing hanging.</p>
+      <div class="howwrap">
+        <div class="howcopy">
+          <div class="kicker">How it works</div>
+          <div class="mid-t" data-words>Type it. Tap it.<br>That&rsquo;s the manual.</div>
+          <p class="sub">Type on the empty line — now it&rsquo;s a ball on your day.
+            Tap the checkbox — <span class="accent">caught</span>, struck through, stickered.
+            Tap the ball itself and it offers everything else it can do:
+            <b>&#9654; run a timer · &rarr; move to another day · ✎ edit</b>.<br>
+            You have now read the entire manual.</p>
+        </div>
+        <div class="daymock" id="dayMock" aria-hidden="true">
+          <div class="dm-head"><b>Your Tuesday</b><span>at a glance</span>
+            <span class="dm-sticks"><i id="dmS1">✦</i><i>✦</i><i>✦</i></span></div>
+          <div class="dm-lab">◉ Glass</div>
+          <div class="dm-row glass" id="dmG1">
+            <span class="dm-ck" id="dmCk1"><svg viewBox="0 0 18 18"><path id="dmPath1" d="M3.5 9.5 L7.5 13 L14.5 5"/></svg></span>
+            <span class="dm-name">School enrollment forms<i class="dm-strike" id="dmStrike1"></i></span>
+            <span class="dm-min">45m</span><span class="dm-stick" id="dmStick1">✦</span><span class="dm-chev">›</span></div>
+          <div class="dm-row glass" id="dmG2">
+            <span class="dm-ck"><svg viewBox="0 0 18 18"><path d="M3.5 9.5 L7.5 13 L14.5 5"/></svg></span>
+            <span class="dm-name">Call the pediatrician</span>
+            <span class="dm-min">15m</span><span class="dm-chev">›</span></div>
+          <div class="dm-sheet" id="dmSheet">
+            <span class="dm-chip dark">&#9654; Start it</span>
+            <span class="dm-chip">&#10003; Catch it</span>
+            <span class="dm-chip">&rarr; Move it</span>
+            <span class="dm-chip">✎</span></div>
+          <div class="dm-row glass" id="dmG3">
+            <span class="dm-ck"><svg viewBox="0 0 18 18"><path d="M3.5 9.5 L7.5 13 L14.5 5"/></svg></span>
+            <span class="dm-name">Renew the passports</span><span class="dm-chev">›</span></div>
+          <div class="dm-lab">○ Rubber</div>
+          <div class="dm-row rubber" id="dmR1">
+            <span class="dm-ck"><svg viewBox="0 0 18 18"><path d="M3.5 9.5 L7.5 13 L14.5 5"/></svg></span>
+            <span class="dm-name">Dishes (again)</span><span class="dm-chev">›</span></div>
+          <div class="dm-row entry" id="dmR2"><span class="dm-ck" style="opacity:.45"></span>
+            <span class="dm-name">add a rubber ball…</span></div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ── 6. the game ────────────────────────────────────────────────── -->
+<!-- ── 6. the timer ───────────────────────────────────────────────── -->
+<section class="scene" id="s-forge" style="height:420vh">
+  <div class="pin">
+    <div class="mid">
+      <div class="forgewrap">
+        <svg class="moon" id="moonSvg" viewBox="0 0 220 152" aria-hidden="true"></svg>
+        <div style="max-width:44ch">
+          <div class="kicker">The timer</div>
+          <div class="clock" id="clock">25:00</div>
+          <div class="joke-card" id="jokeCard"><span class="jc-mask">🎭</span>
+            <p>&ldquo;Somewhere a version of you already finished this. Go meet her.&rdquo;</p>
+            <small>— the app, every time you press Start. Always skippable.</small></div>
+          <p class="sub">Tap <span class="accent">&#9654;</span> on any ball and its minutes load the
+            moon — half-lit means halfway. Close the window; it keeps running on a little bar at the
+            bottom of every room. It opens with a <span class="accent">joke</span>, because chores
+            don&rsquo;t deserve solemnity — and it ends with one honest question: <em>did you
+            finish?</em> &ldquo;Still needs work&rdquo; buys more minutes, or hands the rest to another
+            day on purpose. Nothing dropped. Nothing hanging over you.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 7. the ball pit ────────────────────────────────────────────── -->
+<section class="scene" id="s-pit" style="height:380vh">
+  <div class="pin">
+    <div class="mid">
+      <div class="pitwrap">
+        <div class="howcopy">
+          <div class="kicker">The ball pit</div>
+          <div class="mid-t" data-words>Some chores are<br>a team sport.</div>
+          <p class="sub">A shelf both your journals share. No day for it yet? <b>Park it.</b>
+            No energy to explain the insurance thing out loud? Park it — <b>the ball is the
+            explanation</b>. Whoever catches it, catches it for both of you… and the one who parked
+            it still gets a sticker.<br>
+            <span class="accent">Asking for help, minus the asking.</span></p>
+        </div>
+        <div class="pitmock" aria-hidden="true">
+          <div class="pm-head">🧺 <b>Chad &amp; Joelle</b> <span>— the shared shelf</span></div>
+          <div class="pm-row" id="pmRow">
+            <span class="dm-ck" id="pmCk"><svg viewBox="0 0 18 18"><path id="pmPath" d="M3.5 9.5 L7.5 13 L14.5 5"/></svg></span>
+            <span class="dm-name">Call the plumber back<i class="dm-strike" id="pmStrike"></i></span>
+            <span class="pm-by" id="pmBy">from you</span></div>
+          <div class="pm-park">🧺 <span>park a ball here — a day can come later…</span></div>
+          <div class="pm-bonus" id="pmBonus"><span class="rb">★</span>&nbsp;bonus sticker — he caught yours</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 8. the game ────────────────────────────────────────────────── -->
 <section class="scene" id="s-game" style="height:420vh">
   <div class="pin">
     <div class="mid" style="text-align:center">
@@ -306,19 +496,39 @@ a:focus-visible{outline:2px solid var(--glass);outline-offset:4px;}
   </div>
 </section>
 
-<!-- ── 7. the pledge ──────────────────────────────────────────────── -->
+<!-- ── 9. the rooms — the whole house, one glance ─────────────────── -->
+<section class="scene" id="s-rooms" style="height:440vh">
+  <div class="pin">
+    <div class="mid" style="text-align:center">
+      <div class="kicker">The whole house</div>
+      <div class="mid-t" data-words>Small house. Good bones.</div>
+      <div class="rooms" id="rooms">
+        <div class="room"><span class="glyph">🌅</span><b>Today</b><span>Your day at a glance, then the whole month. One tap on any ball opens what it can do.</span></div>
+        <div class="room"><span class="glyph">📚</span><b>Projects</b><span>Big things, broken into balls — send one to any day.</span></div>
+        <div class="room"><span class="glyph">🧺</span><b>The ball pit</b><span>A shelf you two share. Park one with no day yet; either of you can catch it.</span></div>
+        <div class="room"><span class="glyph">⏳</span><b>The timer</b><span>Not a place you go. It starts anywhere and follows you.</span></div>
+        <div class="room"><span class="glyph">🌙</span><b>Closing</b><span>The exhale. It will tell you when you&rsquo;ve done enough.</span></div>
+        <div class="room"><span class="glyph">✎</span><b>Dev Notes</b><span>Something weird? Tell on us here and text Chad the batch.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 10. the pledge ─────────────────────────────────────────────── -->
 <section class="scene" id="s-pledge" style="height:320vh">
   <div class="pin">
     <div class="mid" style="text-align:center">
       <div class="big" data-words>No streaks.<br>No red dots.<br>No guilt.</div>
       <p class="sub" style="margin-left:auto;margin-right:auto;text-align:center">Rubber that bounces
-        isn&rsquo;t failure — it&rsquo;s Tuesday. This app celebrates <span class="accent-au">finishing</span>,
-        never opening. When the glass is caught, you&rsquo;re done. Actually done.</p>
+        isn&rsquo;t failure — it&rsquo;s Tuesday. No badges breeding overnight, no &ldquo;we miss
+        you.&rdquo; This app celebrates <span class="accent-au">finishing</span>, never opening. When
+        the glass is caught, it says the quiet part out loud: <b>you&rsquo;re done — go be somewhere
+        else.</b></p>
     </div>
   </div>
 </section>
 
-<!-- ── 8. arrive ──────────────────────────────────────────────────── -->
+<!-- ── 11. arrive ─────────────────────────────────────────────────── -->
 <section class="scene" id="get" style="height:220vh">
   <div class="pin">
     <div class="mid" style="text-align:center">
@@ -327,7 +537,7 @@ a:focus-visible{outline:2px solid var(--glass);outline-offset:4px;}
         <div class="btns">
           <a class="btn btn-1" href="./">Open The Glass Ball</a>
         </div>
-        <p class="fine">Built by Chad, for Joelle · co-designed by both<br>
+        <p class="fine">Ordo ab chao · Built by Chad, for Joelle · co-designed by both<br>
           Catch the glass. Let the rubber bounce. 🔮</p>
       </div>
     </div>
@@ -363,6 +573,23 @@ a:focus-visible{outline:2px solid var(--glass);outline-offset:4px;}
   if(rWrap) for(var j=0;j<5;j++){ var s2=document.createElement('div'); s2.className='slot';
     s2.appendChild(document.createElement('i')); rWrap.appendChild(s2); rSlots.push(s2); }
 
+  /* build the noise: a hand-placed heap of gray urgency. One is glass —
+     the reader's first invitation to play the game themselves. */
+  var NOISE=[ {x:6,s:30,y:74,r:-24,c:'dull'}, {x:14,s:44,y:62,r:12,c:''},
+    {x:24,s:22,y:80,r:40,c:'dark'}, {x:31,s:52,y:56,r:-8,c:''},
+    {x:41,s:26,y:78,r:66,c:'dull'}, {x:48,s:38,y:66,r:-30,c:''},
+    {x:57,s:20,y:82,r:18,c:'dark'}, {x:63,s:46,y:60,r:-14,c:'the-one'},
+    {x:73,s:28,y:76,r:52,c:''},     {x:80,s:36,y:68,r:-40,c:'dull'},
+    {x:88,s:24,y:79,r:8,c:''},      {x:36,s:18,y:85,r:-60,c:'dark'},
+    {x:68,s:18,y:85,r:24,c:''},     {x:20,s:32,y:70,r:-18,c:''} ];
+  var noiseBalls=[], noiseField=document.getElementById('noiseField');
+  if(noiseField) NOISE.forEach(function(n,idx){
+    var b=document.createElement('div'); b.className='nb'+(n.c?' '+n.c:'');
+    b.style.left=n.x+'%'; b.style.top=n.y+'%'; b.style.width=n.s+'px'; b.style.height=n.s+'px';
+    noiseField.appendChild(b);
+    noiseBalls.push({el:b, d:idx, r:n.r});
+  });
+
   /* progress, measured against the pin itself — the collapsing iPhone URL
      bar changes window.innerHeight mid-gesture; the 100svh pin does not */
   function prog(scene){
@@ -374,30 +601,42 @@ a:focus-visible{outline:2px solid var(--glass);outline-offset:4px;}
     return clamp(-r.top / span, 0, 1);
   }
   var VW = window.innerWidth, VH = window.innerHeight;
-  var ideaAmp = null;   // bounce headroom, measured, refreshed on real resizes
+  var ideaAmp = null, noiseH = null;   // measured, refreshed on real resizes
   function remeasure(){
     if(Math.abs(window.innerWidth-VW)<2 && Math.abs(window.innerHeight-VH)<140) return;
-    VW = window.innerWidth; VH = window.innerHeight; ideaAmp = null;
+    VW = window.innerWidth; VH = window.innerHeight; ideaAmp = null; noiseH = null;
   }
 
   var S = {
     hero:  document.getElementById('hero'),
+    noise: document.getElementById('s-noise'),
     idea:  document.getElementById('s-idea'),
     caps:  document.getElementById('s-caps'),
-    rooms: document.getElementById('s-rooms'),
+    day:   document.getElementById('s-day'),
     forge: document.getElementById('s-forge'),
+    pit:   document.getElementById('s-pit'),
     game:  document.getElementById('s-game'),
+    rooms: document.getElementById('s-rooms'),
     get:   document.getElementById('get')
   };
   var heroInner=document.getElementById('heroInner'), heroOrb=document.getElementById('heroOrb'),
       hintWrap=document.getElementById('hintWrap');
+  var noiseLine=document.getElementById('noiseLine'), noiseLine2=document.getElementById('noiseLine2');
   var glassBall=document.getElementById('glassBall'), rubberBall=document.getElementById('rubberBall'),
       rubberFloor=document.getElementById('rubberFloor');
   var capsLine=document.getElementById('capsLine');
-  var rooms=[].slice.call(document.querySelectorAll('.room'));
-  var moonSvg=document.getElementById('moonSvg'), clock=document.getElementById('clock');
+  var dmRows=['dmG1','dmG2','dmSheet','dmG3','dmR1','dmR2'].map(function(id){ return document.getElementById(id); });
+  var dmCk1=document.getElementById('dmCk1'), dmPath1=document.getElementById('dmPath1'),
+      dmStrike1=document.getElementById('dmStrike1'), dmStick1=document.getElementById('dmStick1'),
+      dmS1=document.getElementById('dmS1'), dmSheet=document.getElementById('dmSheet');
+  var moonSvg=document.getElementById('moonSvg'), clock=document.getElementById('clock'),
+      jokeCard=document.getElementById('jokeCard');
+  var pmRow=document.getElementById('pmRow'), pmCk=document.getElementById('pmCk'),
+      pmPath=document.getElementById('pmPath'), pmStrike=document.getElementById('pmStrike'),
+      pmBy=document.getElementById('pmBy'), pmBonus=document.getElementById('pmBonus');
   var sticks=[document.getElementById('stick1'),document.getElementById('stick2'),document.getElementById('stick3')];
   var goldStar=document.getElementById('goldStar'), starLine=document.getElementById('starLine');
+  var rooms=[].slice.call(document.querySelectorAll('.room'));
   var arrive=document.getElementById('arrive');
 
   function words(set,p){
@@ -406,6 +645,15 @@ a:focus-visible{outline:2px solid var(--glass);outline-offset:4px;}
       var e=ease(clamp((p - i/(n+2))/0.22, 0, 1));
       w.style.opacity=e; w.style.transform='translateY('+((1-e)*30)+'px)';
     });
+  }
+
+  /* one checkbox worth of joy: box fills, check draws, strike sweeps */
+  function paintCatch(e, ck, path, strike, stick){
+    if(ck) ck.classList.toggle('on', e>0.15);
+    if(path) path.style.strokeDashoffset = 17*(1-e);
+    if(strike) strike.style.transform = 'scaleX('+e.toFixed(3)+')';
+    if(stick){ stick.style.opacity=e;
+      stick.style.transform='scale('+(0.3+0.7*e+(e>0.5?Math.sin(e*Math.PI)*0.3:0)).toFixed(3)+')'; }
   }
 
   /* the moon, drawn exactly the way the app draws it: half-lit = halfway */
@@ -435,6 +683,24 @@ a:focus-visible{outline:2px solid var(--glass);outline-offset:4px;}
     }
 
     wordSets.forEach(function(set){ if(set.scene) words(set, prog(set.scene)); });
+
+    /* the noise: gray balls rain in and pile up, gravity-eased. The lines
+       land after the heap is mostly down. */
+    if(S.noise && noiseBalls.length){
+      var np = prog(S.noise);
+      if(noiseH===null && noiseField) noiseH=noiseField.offsetHeight||260;
+      noiseBalls.forEach(function(b){
+        var e=clamp((np-0.06-b.d*0.037)/0.16, 0, 1); e=e*e;   // gravity, not ease
+        var sq=(e>0.86&&e<1)? Math.sin((e-0.86)/0.14*Math.PI)*0.14 : 0;   // contact squash
+        b.el.style.opacity = e>0?1:0;
+        b.el.style.transform='translateY('+((1-e)*-(noiseH*1.1)).toFixed(1)+'px) rotate('
+          +(b.r*e).toFixed(1)+'deg) scaleY('+(1-sq).toFixed(3)+') scaleX('+(1+sq).toFixed(3)+')';
+      });
+      var nl=ease(clamp((np-0.68)/0.13, 0, 1));
+      if(noiseLine){ noiseLine.style.opacity=nl; noiseLine.style.transform='translateY('+((1-nl)*18)+'px)'; }
+      var nl2=ease(clamp((np-0.84)/0.12, 0, 1));
+      if(noiseLine2){ noiseLine2.style.opacity=nl2; noiseLine2.style.transform='translateY('+((1-nl2)*14)+'px)'; }
+    }
 
     /* the idea: rubber bounces with decaying joy; glass is held perfectly still */
     if(S.idea && rubberBall){
@@ -478,22 +744,53 @@ a:focus-visible{outline:2px solid var(--glass);outline-offset:4px;}
       if(capsLine){ capsLine.style.opacity=le; capsLine.style.transform='translateY('+((1-le)*18)+'px)'; }
     }
 
-    /* the rooms: six cards rise in, staggered */
-    if(S.rooms && rooms.length){
-      var rp = prog(S.rooms);
-      rooms.forEach(function(card,i){
-        var e=ease(clamp((rp-0.16-i*0.075)/0.13, 0, 1));
-        card.style.opacity=e;
-        card.style.transform='translateY('+((1-e)*54)+'px) scale('+(0.92+0.08*e)+')';
+    /* how it works: rows slide in; the first glass ball gets caught (box
+       fills, check draws, strike sweeps, sticker pops — and the header slot
+       lights); then the ball sheet appears under the second row */
+    if(S.day && dmRows[0]){
+      var dp = prog(S.day);
+      dmRows.forEach(function(row,i){
+        if(!row) return;
+        if(row===dmSheet) return;                          // the sheet has its own beat
+        var e=ease(clamp((dp-0.10-i*0.055)/0.10, 0, 1));
+        row.style.opacity=e; row.style.transform='translateX('+((1-e)*-18)+'px)';
       });
+      var ce=ease(clamp((dp-0.46)/0.12, 0, 1));
+      paintCatch(ce, dmCk1, dmPath1, dmStrike1, dmStick1);
+      if(dmS1){ dmS1.classList.toggle('lit', ce>0.6);
+        dmS1.style.transform='scale('+(1+(ce>0.6?Math.sin(ce*Math.PI)*0.3:0)).toFixed(3)+')'; }
+      var se=ease(clamp((dp-0.66)/0.12, 0, 1));
+      if(dmSheet){ dmSheet.style.opacity=se; dmSheet.style.transform='translateY('+((1-se)*8)+'px)'; }
     }
 
-    /* the forge: the moon fills as the clock runs down */
+    /* the timer: the joke lands first (chores don't deserve solemnity),
+       then the moon fills as the clock runs down */
     if(S.forge){
-      var fp = ease(clamp((prog(S.forge)-0.12)/0.72, 0, 1));
+      var fp0 = prog(S.forge);
+      var je=ease(clamp((fp0-0.06)/0.12, 0, 1));
+      if(jokeCard){ jokeCard.style.opacity=je;
+        jokeCard.style.transform='translateY('+((1-je)*14)+'px) scale('+(0.94+0.06*je).toFixed(3)+')'; }
+      var fp = ease(clamp((fp0-0.24)/0.62, 0, 1));
       paintMoon(fp);
       if(clock){ var left=Math.round((1-fp)*1500);
         clock.textContent=Math.floor(left/60)+':'+pad(left%60); }
+    }
+
+    /* the ball pit: the parked ball drops onto the shelf ("from you"),
+       gets caught by the other side ("caught by Chad"), and the bonus
+       sticker arrives — dashed, outside the day's three */
+    if(S.pit && pmRow){
+      var pp = prog(S.pit);
+      var pe=ease(clamp((pp-0.16)/0.14, 0, 1));
+      pmRow.style.opacity=pe; pmRow.style.transform='translateY('+((1-pe)*-26)+'px)';
+      var pc=ease(clamp((pp-0.46)/0.12, 0, 1));
+      paintCatch(pc, pmCk, pmPath, pmStrike, null);
+      if(pmBy){ var caught = pc>0.5;
+        pmBy.textContent = caught ? 'caught by Chad' : 'from you';
+        pmBy.classList.toggle('caught', caught); }
+      var pb=ease(clamp((pp-0.66)/0.13, 0, 1));
+      if(pmBonus){ pmBonus.style.opacity=pb;
+        pmBonus.style.transform='scale('+(0.6+0.4*pb+(pb>0.5?Math.sin(pb*Math.PI)*0.12:0)).toFixed(3)+')'; }
     }
 
     /* the game: three stickers, then the star arrives spinning */
@@ -504,11 +801,21 @@ a:focus-visible{outline:2px solid var(--glass);outline-offset:4px;}
         s.classList.toggle('on', e>0.5);
         s.style.transform='scale('+(1+(e>0.5?Math.sin(e*Math.PI)*0.25:0))+')';
       });
-      var se=ease(clamp((gp-0.56)/0.16, 0, 1));
-      if(goldStar){ goldStar.style.opacity=se;
-        goldStar.style.transform='scale('+(0.2+0.8*se)+') rotate('+((1-se)*-40)+'deg)'; }
+      var st=ease(clamp((gp-0.56)/0.16, 0, 1));
+      if(goldStar){ goldStar.style.opacity=st;
+        goldStar.style.transform='scale('+(0.2+0.8*st)+') rotate('+((1-st)*-40)+'deg)'; }
       var sl=ease(clamp((gp-0.70)/0.14, 0, 1));
       if(starLine){ starLine.style.opacity=sl; starLine.style.transform='translateY('+((1-sl)*16)+'px)'; }
+    }
+
+    /* the rooms: six cards rise in, staggered */
+    if(S.rooms && rooms.length){
+      var rp = prog(S.rooms);
+      rooms.forEach(function(card,i){
+        var e=ease(clamp((rp-0.16-i*0.075)/0.13, 0, 1));
+        card.style.opacity=e;
+        card.style.transform='translateY('+((1-e)*54)+'px) scale('+(0.92+0.08*e)+')';
+      });
     }
 
     /* arrive: from the distance, into your hands */
@@ -531,13 +838,25 @@ a:focus-visible{outline:2px solid var(--glass);outline-offset:4px;}
   } else {
     /* static, legible fallback — everything visible, nothing pinned */
     wordSets.forEach(function(s){ s.words.forEach(function(w){ w.style.opacity=1; w.style.transform='none'; }); });
+    noiseBalls.forEach(function(b){ b.el.style.opacity=1; b.el.style.transform='rotate('+b.r+'deg)'; });
+    if(noiseLine){ noiseLine.style.opacity=1; noiseLine.style.transform='none'; }
+    if(noiseLine2){ noiseLine2.style.opacity=1; noiseLine2.style.transform='none'; }
     gSlots.concat(rSlots).forEach(function(s){ s.firstChild.style.opacity=1; s.firstChild.style.transform='none'; s.style.borderColor='transparent'; });
     if(capsLine){ capsLine.style.opacity=1; capsLine.style.transform='none'; }
-    rooms.forEach(function(c){ c.style.opacity=1; c.style.transform='none'; });
+    dmRows.forEach(function(r){ if(r){ r.style.opacity=1; r.style.transform='none'; } });
+    paintCatch(1, dmCk1, dmPath1, dmStrike1, dmStick1);
+    if(dmS1) dmS1.classList.add('lit');
+    if(dmSheet){ dmSheet.style.opacity=1; dmSheet.style.transform='none'; }
+    if(jokeCard){ jokeCard.style.opacity=1; jokeCard.style.transform='none'; }
     paintMoon(0.5); if(clock) clock.textContent='12:30';
+    if(pmRow){ pmRow.style.opacity=1; pmRow.style.transform='none'; }
+    paintCatch(1, pmCk, pmPath, pmStrike, null);
+    if(pmBy){ pmBy.textContent='caught by Chad'; pmBy.classList.add('caught'); }
+    if(pmBonus){ pmBonus.style.opacity=1; pmBonus.style.transform='none'; }
     sticks.forEach(function(s){ if(s) s.classList.add('on'); });
     if(goldStar){ goldStar.style.opacity=1; goldStar.style.transform='none'; }
     if(starLine){ starLine.style.opacity=1; starLine.style.transform='none'; }
+    rooms.forEach(function(c){ c.style.opacity=1; c.style.transform='none'; });
     if(arrive){ arrive.style.opacity=1; arrive.style.transform='none'; }
     if(rubberBall) rubberBall.style.transform='none';
     if(hintWrap) hintWrap.style.display='none';

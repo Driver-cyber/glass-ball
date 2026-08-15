@@ -340,6 +340,180 @@
       sides, past-date refusal, legacy normalization) plus both prior suites
       re-run green.
 
+* **[2026-08-15] v0.7.0 — the navigation catches up to the app.** Chad's
+  call, and the right one: *"the navigation has been outgrown a little bit by
+  the awesome functionality."* Five tabs were describing an app we no longer
+  had — Opening and Calendar rendered the same day's lists twice, and the
+  Forge was a room you had to travel to in order to do a thing you'd already
+  chosen. **This supersedes the founding five-tab spec** (see 2026-08-14).
+    * *Decision — three rooms: **Today · Projects · Closing**.* Opening and
+      Calendar merge into one Today surface: the glance and today's balls up
+      top (what matters now), the month below (planning), and any *other* day
+      you tap opens in a framed panel beneath the calendar. Today never moves,
+      so "today" and "some other day" can never be confused — the thing the
+      old two-tab split was protecting, without the duplication.
+    * *Decision — the timer is a **mode**, not a room.* The Forge pane is
+      gone. The focus timer runs in an overlay reachable from anywhere (⏳ in
+      the header, or ▶ on any ball), and a **timer bar** rides along at the
+      bottom while a block runs, from whatever room she's in. Closing the face
+      never stops the clock; tapping the bar reopens it. The month report,
+      which never belonged in a workspace, moved to Closing.
+    * *Decision — one ball, one tap.* Tapping anywhere on a ball opens a
+      **sheet** with the three verbs a ball can take — **▶ Start it · ✓ Catch
+      it · → Move it forward** — plus **✎ Edit details** and a quiet delete.
+      The row full of ⋯ and → buttons is retired; a row is now a name, its
+      minutes, its sticker, and a chevron.
+    * *The one exception:* the **checkbox stays a direct tap on the row**.
+      Catching is the most frequent act and the best feeling in the app; it
+      never gets buried behind a menu. (First cut of the row rewrite let the
+      check bubble up and open the sheet too — caught by the ported v0.2.0
+      suite, fixed by swallowing the click at the check.)
+    * *Consequence — inline rename is gone from the row.* An existing ball's
+      name is now a label, not an input, so the whole row is one clean target;
+      renaming lives in ✎ Edit details. Inline *entry* (typing into the empty
+      line to add) is untouched — that's the blueprint pattern and it stays.
+    * *Fix:* the strike-through drew a rule out into empty space past the
+      words, because it lived on the row-filling label. It now lives on the
+      name itself.
+    * *No schema change* — v0.7.0 is navigation only, so the siblings stay in
+      lockstep by construction. Guard re-proved by canary (one-sided
+      `mergeDefaults` field → test 5 red → reverted → green).
+    * *Verified:* new 52-check v0.7.0 flow suite (three rooms, one Today
+      scroll, sheet verbs, timer-as-mode incl. the bar across rooms, carry via
+      the sheet, other-day panel, standalone timer, report in Closing,
+      persistence) plus the v0.2.0, v0.3.0 and carry suites ported to the new
+      navigation and re-run green. Zero console errors.
+
+* **[2026-08-15] v0.8.0 — the ball pit: a shelf two journals share.** Chad's
+  idea, and the app's first multi-person surface. Joelle and Chad each keep
+  their own journal; a shared "pit" sits between them. **Journal IDs gate the
+  personal boards; the Sync code carries the pit.**
+    * *Why it earns its place (Juggler's Test):* it helps catch glass, because
+      a ball with no day yet stops being a loose thought — park it, schedule it
+      on a Friday planning pass. And it lets rubber bounce, because nothing in
+      it counts at you.
+    * *Decision — two sync algorithms, deliberately.* A journal is one person's
+      document, so blob last-write-wins is correct. The pit is **two** people's
+      document, where LWW silently drops whichever save lost the race — the one
+      bug that would matter in an app promising nothing falls off. So the pit
+      merges **per item**: union the ids, newer `lastEdit` wins, tombstones for
+      deletes. That merge is **convergent** (commutative + idempotent), so both
+      sides land on identical state whatever order they sync in, it needs no
+      conflict dialog, and it cannot lose a ball. *Never simplify it onto LWW.*
+    * *Decision — everyone involved gets a sticker* (Chad's call). Catching
+      fills a real slot as always. If someone **else** catches a ball you put in
+      the pit, you earn a **bonus sticker**: outside the three slots, in its own
+      dashed shape, titled with who caught it. So a day can show more than three
+      stickers while never holding more than three glass balls.
+    * *Decision — but bonus stickers stay outside the gold-star test.* ★ still
+      means "every glass ball on my day, caught." A ball caught out of the pit
+      *is* genuinely done, so it counts for the day it's on; a gift for a ball
+      on someone else's day does not manufacture a star. Same rule that governed
+      carry-forward: a marker must mirror real state.
+    * *Decision — the caps are untouched.* Taking a ball off the shelf goes
+      through the ordinary creation form and the ordinary hard 3/5; a full day
+      refuses it and says so. Shared work is not an escape hatch around the
+      constraint that is the product.
+    * *Decision — a shelf, never an inbox.* Collapsed by default, no badge, no
+      count on Today. This is the guardrail that lets a multi-person feature
+      live in an anti-engagement app: an unbounded pile that counts at you is
+      exactly the "undefined, therefore endless" dread the constitution names.
+    * *Decision — transparency over privacy, knowingly* (Chad's call). Sharing
+      a pit means sharing one `SYNC_SECRET`, so either journal could read the
+      other's given its ID. Between Chad and Joelle that is a **feature**: the
+      pit is async communication — "check ball 4" instead of finding time to
+      explain a request out loud. Not a default to extend beyond the two of them.
+    * *Decision — a pasted Sync code now asks what it is.* It carries both a
+      journal and a pit, and guessing wrong would replace someone's whole board,
+      so the app asks: "my own other device" (join both) or "my partner's" (join
+      the pit only, keep my journal).
+    * *Schema (lockstep):* `db.pit {id,name,me,items,lastSync}` plus
+      `task.pitId` / `task.caughtBy`, normalized onto legacy balls.
+    * *DOM-clarity fix, same genus as v0.6.0's `.row-menu`:* the new Share verb
+      shifted the sheet's `nth-of-type(4)`, so the ported v0.2.0 suite clicked
+      Share where it meant Edit. Fixed in the app with a stable `#bsEdit`, not
+      in the test — positional selectors are the smell.
+    * *Verified:* a dedicated **16-test merge suite** asserting union,
+      newer-wins, no-stale-uncatch, commutativity, idempotence, deterministic
+      tie-breaks, tombstone propagation + expiry, junk rejection, and stable
+      ordering — every property run against **both repos' copies** of
+      `pitMerge`, plus a 60-item randomised exchange. Guard proved by two
+      canaries: a broken tie-break (subtle) and a dropped-unseen-item merge
+      (catastrophic) each turn it red. Plus a **43-check end-to-end suite** with
+      `fetch` stubbed to an in-memory KV so a simulated partner writes the shelf
+      between calls — his catch closing her copy, her parked ball surviving his
+      write, caps refusing a shared ball, tombstones not deleting anyone's day,
+      leaving the pit keeping her days. All four prior suites re-run green.
+
+* **[2026-08-15] v0.8.1 — the guide grows a story.** Chad's brief: a
+  marketing-style scrolly demo — what the app is, what it does, how you move
+  through it, stated plainly — with a gentle narrative the viewer can step
+  into ("we've all got these chores"), never a poem that obscures the product.
+    * *The arc:* the noise (a rain of gray urgency piling up — with **one
+      glass ball hidden in the heap** and a wink: "did you spot it?" — the
+      reader plays the game before they're taught it) → the idea → the caps →
+      **how it works** (a live-drawn Today card: rows arrive, a checkbox draws
+      its check, strike sweeps, sticker pops, the ball sheet opens — "Type it.
+      Tap it. That's the manual.") → the timer with its **joke on display**
+      (a real shipped line: "Somewhere a version of you already finished this.
+      Go meet her.") → **the ball pit** (a shelf row flips from "from you" to
+      "caught by Chad," bonus ✧ pops — "Asking for help, minus the asking.") →
+      the game → the house recap → the pledge → the door.
+    * *Decision — features stay load-bearing.* Every scene's kicker names the
+      feature; the feeling rides in the copy, not instead of it. The voice is
+      wry second-person ("The dentist you meant to call in March"), because
+      the audience is anyone who procrastinates chores — i.e., everyone.
+    * *Same proven bones:* sticky 100svh pins, progress measured from the pin
+      (URL-bar-proof), one rAF loop, scenes drawn live, reduced-motion
+      fallback extended to every new element (verified: 7.4k-px static page,
+      catch states resolved, joke visible).
+    * *Version:* v0.8.1 — app unchanged, but the subtitle/JS-header/SW-cache
+      trio bumps together so installed PWAs refresh their offline guide shell.
+    * *Verified:* per-scene screenshots at money-beats, phone + desktop, zero
+      console errors; reduced-motion assertions; all five app suites re-run
+      green (43/52/26/25/8) + lockstep 16/16.
+
+* **[2026-08-15] v0.9.0 — the pit becomes the front door, and grows a
+  private lane.** Chad's calls, closing two parking-lot questions same-day.
+    * *Decision — undated balls default to the pit.* The + opens with **no
+      day**; leave it empty and the ball parks on the shelf (the save button
+      says so: "Park it in the pit"); pick a date — or tap the new **today**
+      chip — and it skips the pit entirely. Priority and repeats step aside
+      for a pit-bound ball (they're chosen when it's taken onto a day; the
+      time block is kept and prefills Take-it). Inline entry on a day's list
+      is untouched — that's still the fastest path onto today.
+    * *Consequence — the shelf exists even solo.* A parking lane for the
+      undated is useful before (or without) a partner, so the pit panel now
+      shows regardless of membership; joining a pit is what makes it shared.
+    * *Decision — two lanes, chosen at creation.* 🤝 shared (default once a
+      pit is joined — transparency is the point) or 🔒 just mine (the only
+      option solo). **Private items never enter the pit's KV upload** — the
+      push filters them; they ride the journal blob across your own devices,
+      and survive every pull because the item-level merge unions rather than
+      replaces. Lane toggles: private→shared simply starts uploading;
+      shared→private asks first (a stray tap shouldn't silently vanish a ball
+      from the partner's shelf), then retracts the shared copy with a
+      tombstone and continues under a fresh id — day balls follow the move.
+    * *Fix found by the new suite:* balls parked solo are signed `by:'me'`
+      before a name exists, so joining a pit later orphaned them — wrong
+      attribution, and their bonus could never find its way home. Renaming
+      now re-signs your own items (`pitSetMe`); partner items keep their
+      author untouched.
+    * *Decision — bonus-sticker art: a small rainbow star ★* (Chad's pick,
+      Joelle holds the veto). Gradient clipped to the glyph via
+      `background-clip:text` behind an `@supports` guard — dashed-gold
+      fallback elsewhere. Still outside the three slots, still outside the
+      gold star.
+    * *Schema (lockstep):* pit items gain `vis` ('shared'|'private', legacy
+      items normalize shared) and `blockMin`.
+    * *Verified:* new 27-check v0.9.0 suite (undated default, form dynamics,
+      today chip, dated-create skips pit, lane defaults solo vs shared,
+      private excluded from KV yet surviving pulls, both toggle directions
+      incl. tombstone + fresh id, rainbow star gradient asserted via computed
+      style, leave-pit keeps the private lane, legacy normalize) — plus all
+      five prior suites updated to the new + flow and re-run green, and the
+      16-test lockstep+pit suite.
+
 ## 🤔 Pending Joelle (open design calls)
 * Body/UI typeface pick: Atkinson Hyperlegible vs. Karla vs. Alegreya Sans
   (or another direction she prefers)
@@ -350,6 +524,9 @@
 * Should a fully-*settled* day (all glass caught or deliberately moved) earn a
   marker of its own, distinct from the gold star? Today it earns a quiet
   banner and no star.
+* Bonus-sticker art — **decided 2026-08-15 (v0.9.0):** a small rainbow star ★
+  (Chad's pick; Joelle can veto in her review week).
+* Private lane — **decided 2026-08-15 (v0.9.0):** yes; see the v0.9.0 entry.
 
 ## 💡 The Parking Lot (Future Ideas)
 * Month report analytics (ahead/behind time-block budget) — mechanism stubbed
